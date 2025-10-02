@@ -14,7 +14,167 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      matriz_9box: {
+        Row: {
+          created_at: string | null
+          employee_name: string
+          id: string
+          notes: string | null
+          performance_score: number
+          role_fit_score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          employee_name: string
+          id?: string
+          notes?: string | null
+          performance_score: number
+          role_fit_score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          employee_name?: string
+          id?: string
+          notes?: string | null
+          performance_score?: number
+          role_fit_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      modules: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          materials: Json | null
+          module_order: number
+          title: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          materials?: Json | null
+          module_order: number
+          title: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          materials?: Json | null
+          module_order?: number
+          title?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      profile_evolution: {
+        Row: {
+          analysis_result: Json | null
+          created_at: string | null
+          file_url: string | null
+          id: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          analysis_result?: Json | null
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          analysis_result?: Json | null
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          materials_downloaded: string[] | null
+          module_id: string
+          updated_at: string | null
+          user_id: string
+          video_watched: boolean | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          materials_downloaded?: string[] | null
+          module_id: string
+          updated_at?: string | null
+          user_id: string
+          video_watched?: boolean | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          materials_downloaded?: string[] | null
+          module_id?: string
+          updated_at?: string | null
+          user_id?: string
+          video_watched?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
