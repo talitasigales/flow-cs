@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, X, Send } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,22 +20,43 @@ export const ChatbotNanda = () => {
     },
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
 
-    // Simulated response (later will be replaced with AI)
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('nanda-chat', {
+        body: { messages: [...messages, userMessage] }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       const assistantMessage: Message = {
         role: 'assistant',
-        content: 'Obrigada pela sua pergunta! Estou aqui para ajudá-lo com informações sobre PDA Assessment.',
+        content: data.choices[0].message.content,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    }, 1000);
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      toast({
+        title: 'Erro ao enviar mensagem',
+        description: error.message || 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,10 +109,15 @@ export const ChatbotNanda = () => {
                 placeholder="Digite sua pergunta..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSend()}
+                disabled={isLoading}
               />
-              <Button onClick={handleSend} size="icon">
-                <Send className="h-4 w-4" />
+              <Button onClick={handleSend} size="icon" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
