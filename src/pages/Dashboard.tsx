@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp, Grid3x3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Module {
@@ -99,6 +99,13 @@ export default function Dashboard() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/matriz-9box')}
+              >
+                <Grid3x3 className="mr-2 h-4 w-4" />
+                Matriz 9Box
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate('/resources')}
