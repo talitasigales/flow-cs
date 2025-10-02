@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Module from "./pages/Module";
 import Matriz9Box from "./pages/Matriz9Box";
+import ProfileEvolution from "./pages/ProfileEvolution";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/module/:moduleId" element={<Module />} />
             <Route path="/matriz-9box" element={<Matriz9Box />} />
+            <Route path="/profile-evolution" element={<ProfileEvolution />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

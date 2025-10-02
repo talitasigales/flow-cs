@@ -108,6 +108,13 @@ export default function Dashboard() {
               </Button>
               <Button
                 variant="outline"
+                onClick={() => navigate('/profile-evolution')}
+              >
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Evolução de Perfil
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => navigate('/resources')}
               >
                 <FileText className="mr-2 h-4 w-4" />
