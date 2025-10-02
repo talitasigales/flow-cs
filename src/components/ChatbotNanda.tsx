@@ -36,9 +36,16 @@ export const ChatbotNanda = () => {
         body: { messages: [...messages, userMessage] }
       });
 
-      if (error) throw error;
+      // Check for Supabase error with response data
+      if (error) {
+        console.error('Supabase error:', error);
+        // Try to extract error message from the response
+        const errorMessage = (error as any)?.context?.body?.error || error.message;
+        throw new Error(errorMessage);
+      }
 
-      if (data.error) {
+      // Check for error in the response data
+      if (data?.error) {
         throw new Error(data.error);
       }
 
@@ -49,9 +56,18 @@ export const ChatbotNanda = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error('Chat error:', error);
+      
+      // Handle specific error messages
+      let errorDescription = error.message || 'Tente novamente em alguns instantes.';
+      
+      // If it's the generic Supabase error, try to get more details
+      if (errorDescription.includes('non-2xx status code')) {
+        errorDescription = 'Erro ao se comunicar com o servidor. Tente novamente.';
+      }
+      
       toast({
         title: 'Erro ao enviar mensagem',
-        description: error.message || 'Tente novamente em alguns instantes.',
+        description: errorDescription,
         variant: 'destructive',
       });
     } finally {
