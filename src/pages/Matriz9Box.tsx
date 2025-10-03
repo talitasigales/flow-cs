@@ -254,7 +254,7 @@ export default function Matriz9Box() {
 
         {/* 9Box Matrix */}
         <div className="space-y-6">
-          <h2 className="text-xl font-bold text-foreground">Matriz de Avaliação</h2>
+          
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
             <div className="flex items-center justify-center min-w-[80px]">
