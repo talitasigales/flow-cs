@@ -171,7 +171,7 @@ export default function Module() {
             </Button>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                Módulo {module.module_order} de {allModules.length}
+                Passo {module.module_order} de {allModules.length}
               </span>
               <Progress value={module.module_order / allModules.length * 100} className="w-24" />
             </div>
