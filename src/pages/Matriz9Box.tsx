@@ -311,21 +311,21 @@ export default function Matriz9Box() {
 
         {/* 9Box Matrix */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold">Matriz de Avaliação</h2>
+          <h2 className="text-xl font-bold text-foreground">Matriz de Avaliação</h2>
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
             <div className="flex items-center justify-center">
-              <div className="transform -rotate-90 whitespace-nowrap font-semibold text-sm">
+              <div className="transform -rotate-90 whitespace-nowrap font-semibold text-sm text-foreground">
                 Fit com a Função
               </div>
             </div>
             {/* X-axis labels */}
-            <div className="text-center font-semibold text-sm">Baixo</div>
-            <div className="text-center font-semibold text-sm">Médio</div>
-            <div className="text-center font-semibold text-sm">Alto</div>
+            <div className="text-center font-semibold text-sm text-foreground">Baixo</div>
+            <div className="text-center font-semibold text-sm text-foreground">Médio</div>
+            <div className="text-center font-semibold text-sm text-foreground">Alto</div>
 
             {/* Row 3 (Alto Fit) */}
-            <div className="flex items-center justify-end pr-4 font-semibold text-sm">
+            <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
               Alto
             </div>
             {[1, 2, 3].map((performance) => {
@@ -373,7 +373,7 @@ export default function Matriz9Box() {
             })}
 
             {/* Row 2 (Médio Fit) */}
-            <div className="flex items-center justify-end pr-4 font-semibold text-sm">
+            <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
               Médio
             </div>
             {[1, 2, 3].map((performance) => {
@@ -421,7 +421,7 @@ export default function Matriz9Box() {
             })}
 
             {/* Row 1 (Baixo Fit) */}
-            <div className="flex items-center justify-end pr-4 font-semibold text-sm">
+            <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
               Baixo
             </div>
             {[1, 2, 3].map((performance) => {
