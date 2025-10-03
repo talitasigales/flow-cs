@@ -245,7 +245,7 @@ export default function ProfileEvolution() {
               <DialogTrigger asChild>
                 <Button className="gradient-primary">
                   <Plus className="mr-2 h-4 w-4" />
-                  Adicionar Ano
+                  Adicionar novo relatório PDA
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
