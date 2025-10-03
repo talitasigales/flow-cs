@@ -270,13 +270,13 @@ export default function Matriz9Box() {
         </Card>
 
         {/* 9Box Matrix */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h2 className="text-xl font-bold text-foreground">Matriz de Avaliação</h2>
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center min-w-[80px]">
               <div className="transform -rotate-90 whitespace-nowrap font-semibold text-sm text-foreground">
-                Fit com a Função
+                Compatibilidade com o cargo (%)
               </div>
             </div>
             {/* X-axis labels */}
