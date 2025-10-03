@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Plus, Trash2, Edit, Info } from 'lucide-react';
 import { toast } from 'sonner';
-
 interface MatrizEntry {
   id: string;
   employee_name: string;
@@ -19,9 +18,11 @@ interface MatrizEntry {
   role_fit_score: number;
   notes: string;
 }
-
 export default function Matriz9Box() {
-  const { user, loading: authLoading } = useAuth();
+  const {
+    user,
+    loading: authLoading
+  } = useAuth();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<MatrizEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,28 +32,24 @@ export default function Matriz9Box() {
     employee_name: '',
     performance_score: 2,
     role_fit_score: 2,
-    notes: '',
+    notes: ''
   });
-
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
-
   useEffect(() => {
     if (user) {
       fetchEntries();
     }
   }, [user]);
-
   const fetchEntries = async () => {
     try {
-      const { data, error } = await supabase
-        .from('matriz_9box')
-        .select('*')
-        .eq('user_id', user?.id);
-
+      const {
+        data,
+        error
+      } = await supabase.from('matriz_9box').select('*').eq('user_id', user?.id);
       if (error) throw error;
       setEntries(data || []);
     } catch (error) {
@@ -62,42 +59,36 @@ export default function Matriz9Box() {
       setLoading(false);
     }
   };
-
   const handleSubmit = async () => {
     if (!formData.employee_name.trim()) {
       toast.error('Nome do colaborador é obrigatório');
       return;
     }
-
     try {
       if (editingEntry) {
-        const { error } = await supabase
-          .from('matriz_9box')
-          .update({
-            employee_name: formData.employee_name,
-            performance_score: formData.performance_score,
-            role_fit_score: formData.role_fit_score,
-            notes: formData.notes,
-          })
-          .eq('id', editingEntry.id);
-
+        const {
+          error
+        } = await supabase.from('matriz_9box').update({
+          employee_name: formData.employee_name,
+          performance_score: formData.performance_score,
+          role_fit_score: formData.role_fit_score,
+          notes: formData.notes
+        }).eq('id', editingEntry.id);
         if (error) throw error;
         toast.success('Colaborador atualizado com sucesso');
       } else {
-        const { error } = await supabase
-          .from('matriz_9box')
-          .insert({
-            user_id: user?.id,
-            employee_name: formData.employee_name,
-            performance_score: formData.performance_score,
-            role_fit_score: formData.role_fit_score,
-            notes: formData.notes,
-          });
-
+        const {
+          error
+        } = await supabase.from('matriz_9box').insert({
+          user_id: user?.id,
+          employee_name: formData.employee_name,
+          performance_score: formData.performance_score,
+          role_fit_score: formData.role_fit_score,
+          notes: formData.notes
+        });
         if (error) throw error;
         toast.success('Colaborador adicionado com sucesso');
       }
-
       setDialogOpen(false);
       resetForm();
       fetchEntries();
@@ -106,14 +97,11 @@ export default function Matriz9Box() {
       toast.error('Erro ao salvar dados');
     }
   };
-
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('matriz_9box')
-        .delete()
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('matriz_9box').delete().eq('id', id);
       if (error) throw error;
       toast.success('Colaborador removido com sucesso');
       fetchEntries();
@@ -122,34 +110,28 @@ export default function Matriz9Box() {
       toast.error('Erro ao remover colaborador');
     }
   };
-
   const openEditDialog = (entry: MatrizEntry) => {
     setEditingEntry(entry);
     setFormData({
       employee_name: entry.employee_name,
       performance_score: entry.performance_score,
       role_fit_score: entry.role_fit_score,
-      notes: entry.notes,
+      notes: entry.notes
     });
     setDialogOpen(true);
   };
-
   const resetForm = () => {
     setEditingEntry(null);
     setFormData({
       employee_name: '',
       performance_score: 2,
       role_fit_score: 2,
-      notes: '',
+      notes: ''
     });
   };
-
   const getEntriesForCell = (performance: number, roleFit: number) => {
-    return entries.filter(
-      (e) => e.performance_score === performance && e.role_fit_score === roleFit
-    );
+    return entries.filter(e => e.performance_score === performance && e.role_fit_score === roleFit);
   };
-
   const getCellColor = (performance: number, roleFit: number) => {
     const total = performance + roleFit;
     if (total >= 5) return 'bg-success/20 border-success/50';
@@ -157,7 +139,6 @@ export default function Matriz9Box() {
     if (total >= 3) return 'bg-warning/20 border-warning/50';
     return 'bg-destructive/20 border-destructive/50';
   };
-
   const getCellLabel = (performance: number, roleFit: number) => {
     if (performance === 3 && roleFit === 3) return 'Estrela';
     if (performance === 3 && roleFit === 2) return 'Destaque';
@@ -169,17 +150,12 @@ export default function Matriz9Box() {
     if (performance === 1 && roleFit === 2) return 'Desenvolvimento';
     return 'Atenção';
   };
-
   if (authLoading || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
+    return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4">
@@ -191,10 +167,10 @@ export default function Matriz9Box() {
               </Button>
               <h1 className="text-2xl font-bold gradient-text">Matriz 9Box</h1>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) resetForm();
-            }}>
+            <Dialog open={dialogOpen} onOpenChange={open => {
+            setDialogOpen(open);
+            if (!open) resetForm();
+          }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary">
                   <Plus className="mr-2 h-4 w-4" />
@@ -213,23 +189,17 @@ export default function Matriz9Box() {
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome do Colaborador</Label>
-                    <Input
-                      id="name"
-                      value={formData.employee_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, employee_name: e.target.value })
-                      }
-                      placeholder="Ex: João Silva"
-                    />
+                    <Input id="name" value={formData.employee_name} onChange={e => setFormData({
+                    ...formData,
+                    employee_name: e.target.value
+                  })} placeholder="Ex: João Silva" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="performance">Desempenho</Label>
-                    <Select
-                      value={formData.performance_score.toString()}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, performance_score: parseInt(value) })
-                      }
-                    >
+                    <Select value={formData.performance_score.toString()} onValueChange={value => setFormData({
+                    ...formData,
+                    performance_score: parseInt(value)
+                  })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -241,13 +211,12 @@ export default function Matriz9Box() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="roleFit">Fit com a Função</Label>
-                    <Select
-                      value={formData.role_fit_score.toString()}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, role_fit_score: parseInt(value) })
-                      }
-                    >
+                    <Label htmlFor="roleFit">Compatibilidade com o cargo (%)
+                  </Label>
+                    <Select value={formData.role_fit_score.toString()} onValueChange={value => setFormData({
+                    ...formData,
+                    role_fit_score: parseInt(value)
+                  })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -260,25 +229,17 @@ export default function Matriz9Box() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Observações</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) =>
-                        setFormData({ ...formData, notes: e.target.value })
-                      }
-                      placeholder="Adicione observações sobre o colaborador..."
-                      rows={3}
-                    />
+                    <Textarea id="notes" value={formData.notes} onChange={e => setFormData({
+                    ...formData,
+                    notes: e.target.value
+                  })} placeholder="Adicione observações sobre o colaborador..." rows={3} />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setDialogOpen(false);
-                      resetForm();
-                    }}
-                  >
+                  <Button variant="outline" onClick={() => {
+                  setDialogOpen(false);
+                  resetForm();
+                }}>
                     Cancelar
                   </Button>
                   <Button onClick={handleSubmit}>
@@ -304,7 +265,7 @@ export default function Matriz9Box() {
               <br />
               <strong>Desempenho:</strong> Resultado atual do colaborador
               <br />
-              <strong>Compatibilidade com o cargo (%):</strong> Potencial e alinhamento com a posição
+              <strong>Fit com a Função:</strong> Potencial e alinhamento com a posição
             </CardDescription>
           </CardHeader>
         </Card>
@@ -328,145 +289,85 @@ export default function Matriz9Box() {
             <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
               Alto
             </div>
-            {[1, 2, 3].map((performance) => {
-              const cellEntries = getEntriesForCell(performance, 3);
-              return (
-                <Card
-                  key={`${performance}-3`}
-                  className={`min-h-[200px] ${getCellColor(performance, 3)} border-2`}
-                >
+            {[1, 2, 3].map(performance => {
+            const cellEntries = getEntriesForCell(performance, 3);
+            return <Card key={`${performance}-3`} className={`min-h-[200px] ${getCellColor(performance, 3)} border-2`}>
                   <CardContent className="p-4">
                     <p className="text-xs font-semibold mb-3 text-center">
                       {getCellLabel(performance, 3)}
                     </p>
                     <div className="space-y-2">
-                      {cellEntries.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className="bg-card p-2 rounded border border-border text-sm group relative"
-                        >
+                      {cellEntries.map(entry => <div key={entry.id} className="bg-card p-2 rounded border border-border text-sm group relative">
                           <p className="font-medium truncate pr-14">{entry.employee_name}</p>
                           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6"
-                              onClick={() => openEditDialog(entry)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEditDialog(entry)}>
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6 text-destructive"
-                              onClick={() => handleDelete(entry.id)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => handleDelete(entry.id)}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+          })}
 
             {/* Row 2 (Médio Fit) */}
             <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
               Médio
             </div>
-            {[1, 2, 3].map((performance) => {
-              const cellEntries = getEntriesForCell(performance, 2);
-              return (
-                <Card
-                  key={`${performance}-2`}
-                  className={`min-h-[200px] ${getCellColor(performance, 2)} border-2`}
-                >
+            {[1, 2, 3].map(performance => {
+            const cellEntries = getEntriesForCell(performance, 2);
+            return <Card key={`${performance}-2`} className={`min-h-[200px] ${getCellColor(performance, 2)} border-2`}>
                   <CardContent className="p-4">
                     <p className="text-xs font-semibold mb-3 text-center">
                       {getCellLabel(performance, 2)}
                     </p>
                     <div className="space-y-2">
-                      {cellEntries.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className="bg-card p-2 rounded border border-border text-sm group relative"
-                        >
+                      {cellEntries.map(entry => <div key={entry.id} className="bg-card p-2 rounded border border-border text-sm group relative">
                           <p className="font-medium truncate pr-14">{entry.employee_name}</p>
                           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6"
-                              onClick={() => openEditDialog(entry)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEditDialog(entry)}>
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6 text-destructive"
-                              onClick={() => handleDelete(entry.id)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => handleDelete(entry.id)}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+          })}
 
             {/* Row 1 (Baixo Fit) */}
             <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
               Baixo
             </div>
-            {[1, 2, 3].map((performance) => {
-              const cellEntries = getEntriesForCell(performance, 1);
-              return (
-                <Card
-                  key={`${performance}-1`}
-                  className={`min-h-[200px] ${getCellColor(performance, 1)} border-2`}
-                >
+            {[1, 2, 3].map(performance => {
+            const cellEntries = getEntriesForCell(performance, 1);
+            return <Card key={`${performance}-1`} className={`min-h-[200px] ${getCellColor(performance, 1)} border-2`}>
                   <CardContent className="p-4">
                     <p className="text-xs font-semibold mb-3 text-center">
                       {getCellLabel(performance, 1)}
                     </p>
                     <div className="space-y-2">
-                      {cellEntries.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className="bg-card p-2 rounded border border-border text-sm group relative"
-                        >
+                      {cellEntries.map(entry => <div key={entry.id} className="bg-card p-2 rounded border border-border text-sm group relative">
                           <p className="font-medium truncate pr-14">{entry.employee_name}</p>
                           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6"
-                              onClick={() => openEditDialog(entry)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEditDialog(entry)}>
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6 text-destructive"
-                              onClick={() => handleDelete(entry.id)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => handleDelete(entry.id)}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                   </CardContent>
-                </Card>
-              );
-            })}
+                </Card>;
+          })}
 
             {/* Bottom spacing row */}
             <div></div>
@@ -474,6 +375,5 @@ export default function Matriz9Box() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
