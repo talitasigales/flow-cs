@@ -185,7 +185,7 @@ export default function Module() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold gradient-text mb-2">
-                Passo {module.module_order} - {module.title}
+                Passo {module.module_order}
               </h1>
               <p className="text-lg text-muted-foreground">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
