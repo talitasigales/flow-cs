@@ -29,10 +29,16 @@ export default function ProfileEvolution() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     year: new Date().getFullYear(),
-    dominance: 50,
-    influence: 50,
-    stability: 50,
-    compliance: 50,
+    r: 50,
+    e: 50,
+    p: 50,
+    n: 50,
+    a: 50,
+    tomada_decisoes: 50,
+    intensidade_perfil: 50,
+    energia: 50,
+    equilibrio_energia: 50,
+    modificacao_perfil: 50,
     notes: '',
   });
 
@@ -84,10 +90,16 @@ export default function ProfileEvolution() {
         user_id: user?.id,
         year: formData.year,
         analysis_result: {
-          dominance: formData.dominance,
-          influence: formData.influence,
-          stability: formData.stability,
-          compliance: formData.compliance,
+          r: formData.r,
+          e: formData.e,
+          p: formData.p,
+          n: formData.n,
+          a: formData.a,
+          tomada_decisoes: formData.tomada_decisoes,
+          intensidade_perfil: formData.intensidade_perfil,
+          energia: formData.energia,
+          equilibrio_energia: formData.equilibrio_energia,
+          modificacao_perfil: formData.modificacao_perfil,
           notes: formData.notes,
         },
       });
@@ -122,24 +134,42 @@ export default function ProfileEvolution() {
   const resetForm = () => {
     setFormData({
       year: new Date().getFullYear(),
-      dominance: 50,
-      influence: 50,
-      stability: 50,
-      compliance: 50,
+      r: 50,
+      e: 50,
+      p: 50,
+      n: 50,
+      a: 50,
+      tomada_decisoes: 50,
+      intensidade_perfil: 50,
+      energia: 50,
+      equilibrio_energia: 50,
+      modificacao_perfil: 50,
       notes: '',
     });
   };
 
   const getProfileColor = (dimension: string) => {
     switch (dimension) {
-      case 'dominance':
-        return 'bg-red-500';
-      case 'influence':
+      case 'r':
+        return 'bg-orange-500';
+      case 'e':
         return 'bg-yellow-500';
-      case 'stability':
-        return 'bg-green-500';
-      case 'compliance':
+      case 'p':
         return 'bg-blue-500';
+      case 'n':
+        return 'bg-green-500';
+      case 'a':
+        return 'bg-purple-500';
+      case 'tomada_decisoes':
+        return 'bg-cyan-500';
+      case 'intensidade_perfil':
+        return 'bg-pink-500';
+      case 'energia':
+        return 'bg-red-500';
+      case 'equilibrio_energia':
+        return 'bg-indigo-500';
+      case 'modificacao_perfil':
+        return 'bg-teal-500';
       default:
         return 'bg-primary';
     }
@@ -147,14 +177,26 @@ export default function ProfileEvolution() {
 
   const getDimensionLabel = (dimension: string) => {
     switch (dimension) {
-      case 'dominance':
-        return 'Dominância';
-      case 'influence':
-        return 'Influência';
-      case 'stability':
-        return 'Estabilidade';
-      case 'compliance':
-        return 'Conformidade';
+      case 'r':
+        return 'R (Risco)';
+      case 'e':
+        return 'E (Extroversão)';
+      case 'p':
+        return 'P (Paciência)';
+      case 'n':
+        return 'N (Normas)';
+      case 'a':
+        return 'A (Autocontrole)';
+      case 'tomada_decisoes':
+        return 'Tomada de Decisões';
+      case 'intensidade_perfil':
+        return 'Intensidade do Perfil';
+      case 'energia':
+        return 'Energia';
+      case 'equilibrio_energia':
+        return 'Equilíbrio de Energia';
+      case 'modificacao_perfil':
+        return 'Modificação do Perfil';
       default:
         return dimension;
     }
@@ -228,96 +270,171 @@ export default function ProfileEvolution() {
                     />
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     <div className="space-y-2">
-                      <Label htmlFor="dominance">
-                        Dominância (D): {formData.dominance}%
-                      </Label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          id="dominance"
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={formData.dominance}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              dominance: parseInt(e.target.value),
-                            })
-                          }
-                          className="flex-1"
-                        />
-                        <div className="w-16 h-2 bg-red-500 rounded" />
-                      </div>
+                      <Label htmlFor="r">R (Risco): {formData.r}</Label>
+                      <Input
+                        id="r"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.r}
+                        onChange={(e) =>
+                          setFormData({ ...formData, r: parseInt(e.target.value) || 0 })
+                        }
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="influence">
-                        Influência (I): {formData.influence}%
-                      </Label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          id="influence"
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={formData.influence}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              influence: parseInt(e.target.value),
-                            })
-                          }
-                          className="flex-1"
-                        />
-                        <div className="w-16 h-2 bg-yellow-500 rounded" />
-                      </div>
+                      <Label htmlFor="e">E (Extroversão): {formData.e}</Label>
+                      <Input
+                        id="e"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.e}
+                        onChange={(e) =>
+                          setFormData({ ...formData, e: parseInt(e.target.value) || 0 })
+                        }
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="stability">
-                        Estabilidade (S): {formData.stability}%
-                      </Label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          id="stability"
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={formData.stability}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              stability: parseInt(e.target.value),
-                            })
-                          }
-                          className="flex-1"
-                        />
-                        <div className="w-16 h-2 bg-green-500 rounded" />
-                      </div>
+                      <Label htmlFor="p">P (Paciência): {formData.p}</Label>
+                      <Input
+                        id="p"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.p}
+                        onChange={(e) =>
+                          setFormData({ ...formData, p: parseInt(e.target.value) || 0 })
+                        }
+                      />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="compliance">
-                        Conformidade (C): {formData.compliance}%
-                      </Label>
-                      <div className="flex items-center gap-4">
+                      <Label htmlFor="n">N (Normas): {formData.n}</Label>
+                      <Input
+                        id="n"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.n}
+                        onChange={(e) =>
+                          setFormData({ ...formData, n: parseInt(e.target.value) || 0 })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="a">A (Autocontrole): {formData.a}</Label>
+                      <Input
+                        id="a"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.a}
+                        onChange={(e) =>
+                          setFormData({ ...formData, a: parseInt(e.target.value) || 0 })
+                        }
+                      />
+                    </div>
+
+                    <div className="border-t border-border pt-4 mt-4">
+                      <h4 className="font-semibold mb-3 text-sm">Métricas Adicionais</h4>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="tomada_decisoes">
+                          Tomada de Decisões: {formData.tomada_decisoes}
+                        </Label>
                         <Input
-                          id="compliance"
-                          type="range"
+                          id="tomada_decisoes"
+                          type="number"
                           min="0"
                           max="100"
-                          value={formData.compliance}
+                          value={formData.tomada_decisoes}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              compliance: parseInt(e.target.value),
+                              tomada_decisoes: parseInt(e.target.value) || 0,
                             })
                           }
-                          className="flex-1"
                         />
-                        <div className="w-16 h-2 bg-blue-500 rounded" />
+                      </div>
+
+                      <div className="space-y-2 mt-3">
+                        <Label htmlFor="intensidade_perfil">
+                          Intensidade do Perfil: {formData.intensidade_perfil}
+                        </Label>
+                        <Input
+                          id="intensidade_perfil"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={formData.intensidade_perfil}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              intensidade_perfil: parseInt(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-2 mt-3">
+                        <Label htmlFor="energia">Energia: {formData.energia}</Label>
+                        <Input
+                          id="energia"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={formData.energia}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              energia: parseInt(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-2 mt-3">
+                        <Label htmlFor="equilibrio_energia">
+                          Equilíbrio de Energia: {formData.equilibrio_energia}
+                        </Label>
+                        <Input
+                          id="equilibrio_energia"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={formData.equilibrio_energia}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              equilibrio_energia: parseInt(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-2 mt-3">
+                        <Label htmlFor="modificacao_perfil">
+                          Modificação do Perfil: {formData.modificacao_perfil}
+                        </Label>
+                        <Input
+                          id="modificacao_perfil"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={formData.modificacao_perfil}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              modificacao_perfil: parseInt(e.target.value) || 0,
+                            })
+                          }
+                        />
                       </div>
                     </div>
                   </div>
@@ -465,7 +582,7 @@ export default function ProfileEvolution() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {['dominance', 'influence', 'stability', 'compliance'].map(
+                    {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map(
                       (dimension) => (
                         <div key={dimension} className="space-y-3">
                           <h4 className="font-semibold text-sm">
@@ -518,7 +635,7 @@ export default function ProfileEvolution() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {['dominance', 'influence', 'stability', 'compliance'].map(
+                    {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map(
                       (dimension) => {
                         const avg = calculateAverage(
                           dimension as keyof typeof formData
