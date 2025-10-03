@@ -196,19 +196,18 @@ export default function Matriz9Box() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="performance">Média</Label>
-                    <Select value={formData.performance_score.toString()} onValueChange={value => setFormData({
-                    ...formData,
-                    performance_score: parseInt(value)
-                  })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Baixo - Desempenho abaixo das expectativas</SelectItem>
-                        <SelectItem value="2">Médio - Desempenho dentro das expectativas</SelectItem>
-                        <SelectItem value="3">Alto - Desempenho acima das expectativas</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      id="performance"
+                      type="number"
+                      value={formData.performance_score}
+                      onChange={e => setFormData({
+                        ...formData,
+                        performance_score: parseFloat(e.target.value) || 0
+                      })}
+                      placeholder="Digite o valor da métrica"
+                      step="0.01"
+                      min="0"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="roleFit">Compatibilidade com o cargo (%)
