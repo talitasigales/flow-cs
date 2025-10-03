@@ -370,7 +370,7 @@ export default function Matriz9Box() {
 
             {/* Bottom spacing row */}
             <div></div>
-            <div className="text-center font-semibold text-sm pt-2">Desempenho</div>
+            <div className="text-center font-semibold text-base pt-4">Média</div>
           </div>
         </div>
       </div>
