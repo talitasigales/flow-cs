@@ -204,9 +204,9 @@ export default function Matriz9Box() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Baixo</SelectItem>
-                        <SelectItem value="2">Médio</SelectItem>
-                        <SelectItem value="3">Alto</SelectItem>
+                        <SelectItem value="1">Baixo - Desempenho abaixo das expectativas</SelectItem>
+                        <SelectItem value="2">Médio - Desempenho dentro das expectativas</SelectItem>
+                        <SelectItem value="3">Alto - Desempenho acima das expectativas</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
