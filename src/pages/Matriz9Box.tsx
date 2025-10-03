@@ -304,7 +304,7 @@ export default function Matriz9Box() {
               <br />
               <strong>Desempenho:</strong> Resultado atual do colaborador
               <br />
-              <strong>Fit com a Função:</strong> Potencial e alinhamento com a posição
+              <strong>Compatibilidade com o cargo (%):</strong> Potencial e alinhamento com a posição
             </CardDescription>
           </CardHeader>
         </Card>
