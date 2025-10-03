@@ -195,7 +195,7 @@ export default function Matriz9Box() {
                   })} placeholder="Ex: João Silva" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="performance">Desempenho</Label>
+                    <Label htmlFor="performance">M</Label>
                     <Select value={formData.performance_score.toString()} onValueChange={value => setFormData({
                     ...formData,
                     performance_score: parseInt(value)
