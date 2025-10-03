@@ -194,7 +194,7 @@ export default function Dashboard() {
                           </h4>
                         </div>
                         <p className="text-muted-foreground mb-4">
-                          {module.description}
+                          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                         </p>
                         <div className="flex items-center gap-4 text-sm">
                           {isWatched && (
@@ -204,7 +204,7 @@ export default function Dashboard() {
                             </span>
                           )}
                           <Button size="sm" variant="outline">
-                            Acessar módulo
+                            COMEÇAR
                           </Button>
                         </div>
                       </div>
