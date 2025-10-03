@@ -597,7 +597,7 @@ export default function ProfileEvolution() {
                             <div className="space-y-4">
                               <h4 className="font-semibold text-sm flex items-center gap-2">
                                 <BarChart className="h-4 w-4" />
-                                Perfil Comportamental REPNA
+                                Perfil Comportamental PDA
                               </h4>
                               <div className="space-y-3 pl-6 border-l-2 border-primary/20">
                                 {['r', 'e', 'p', 'n', 'a'].map((key) => {
