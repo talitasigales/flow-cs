@@ -253,7 +253,7 @@ export default function Matriz9Box() {
         </Card>
 
         {/* 9Box Matrix */}
-        <div className="space-y-6">
+        <div className="space-y-6 mt-12">
           
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
