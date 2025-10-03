@@ -257,8 +257,10 @@ export default function Matriz9Box() {
           
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
-            <div className="flex items-center justify-center min-w-[80px]">
-              
+            <div className="flex items-center justify-center min-w-[120px] mr-6">
+              <div className="transform -rotate-90 whitespace-nowrap font-bold text-base">
+                COMPATIBILIDADE COM O CARGO
+              </div>
             </div>
             {/* X-axis labels */}
             <div className="text-center font-semibold text-sm text-foreground">Baixo</div>
