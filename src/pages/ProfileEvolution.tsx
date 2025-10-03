@@ -507,67 +507,167 @@ export default function ProfileEvolution() {
             {/* Timeline View */}
             <TabsContent value="timeline" className="space-y-4">
               <div className="grid gap-4">
-                {profiles.map((profile) => (
-                  <Card key={profile.id} className="gradient-card border-border/50">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5" />
-                            Ano {profile.year}
-                          </CardTitle>
-                          <CardDescription>
-                            Registrado em{' '}
-                            {new Date(profile.created_at).toLocaleDateString('pt-BR')}
-                          </CardDescription>
+                {profiles.map((profile) => {
+                  const getInterpretation = (key: string, value: number) => {
+                    const interpretations: Record<string, Record<string, string>> = {
+                      r: {
+                        low: 'Perfil mais cauteloso e analítico nas decisões',
+                        medium: 'Equilibra análise e ousadia nas decisões',
+                        high: 'Perfil mais ousado e disposto a assumir riscos'
+                      },
+                      e: {
+                        low: 'Preferência por trabalho mais reservado e individual',
+                        medium: 'Equilíbrio entre interações sociais e trabalho individual',
+                        high: 'Perfil comunicativo e voltado para relacionamentos'
+                      },
+                      p: {
+                        low: 'Ritmo mais acelerado e dinâmico de trabalho',
+                        medium: 'Equilibra ritmo e constância nas atividades',
+                        high: 'Perfil paciente, constante e metódico'
+                      },
+                      n: {
+                        low: 'Maior flexibilidade e adaptabilidade às mudanças',
+                        medium: 'Equilíbrio entre seguir processos e flexibilidade',
+                        high: 'Valoriza estrutura, normas e procedimentos'
+                      },
+                      a: {
+                        low: 'Expressão mais espontânea e direta das emoções',
+                        medium: 'Equilíbrio entre expressão e controle emocional',
+                        high: 'Alto controle e gestão das reações emocionais'
+                      },
+                      tomada_decisoes: {
+                        low: 'Decisões mais reflexivas e consultivas',
+                        medium: 'Equilíbrio entre reflexão e ação nas decisões',
+                        high: 'Decisões mais rápidas e assertivas'
+                      },
+                      intensidade_perfil: {
+                        low: 'Perfil mais flexível e adaptável',
+                        medium: 'Intensidade moderada nas características',
+                        high: 'Características fortemente marcadas no comportamento'
+                      },
+                      energia: {
+                        low: 'Energia mais contida e reservada',
+                        medium: 'Nível equilibrado de energia',
+                        high: 'Alta energia e dinamismo no comportamento'
+                      },
+                      equilibrio_energia: {
+                        low: 'Energia concentrada em áreas específicas',
+                        medium: 'Distribuição moderada de energia',
+                        high: 'Energia bem distribuída entre diferentes áreas'
+                      },
+                      modificacao_perfil: {
+                        low: 'Comportamento mais natural e espontâneo',
+                        medium: 'Adaptação moderada ao contexto',
+                        high: 'Alta adaptação do comportamento ao ambiente'
+                      }
+                    };
+
+                    const level = value <= 33 ? 'low' : value <= 66 ? 'medium' : 'high';
+                    return interpretations[key]?.[level] || '';
+                  };
+
+                  return (
+                    <Card key={profile.id} className="gradient-card border-border/50">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="flex items-center gap-2">
+                              <Calendar className="h-5 w-5" />
+                              Ano {profile.year}
+                            </CardTitle>
+                            <CardDescription>
+                              Registrado em{' '}
+                              {new Date(profile.created_at).toLocaleDateString('pt-BR')}
+                            </CardDescription>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => handleDelete(profile.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => handleDelete(profile.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {profile.analysis_result && (
-                        <div className="grid grid-cols-2 gap-4">
-                          {Object.entries(profile.analysis_result).map(
-                            ([key, value]) => {
-                              if (key === 'notes' || typeof value !== 'number')
-                                return null;
-                              return (
-                                <div key={key} className="space-y-2">
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="font-medium">
-                                      {getDimensionLabel(key)}
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                      {value}%
-                                    </span>
-                                  </div>
-                                  <Progress
-                                    value={value}
-                                    className={`h-2 ${getProfileColor(key)}`}
-                                  />
-                                </div>
-                              );
-                            }
-                          )}
-                        </div>
-                      )}
-                      {profile.analysis_result?.notes && (
-                        <div className="pt-4 border-t border-border">
-                          <p className="text-sm text-muted-foreground">
-                            {profile.analysis_result.notes}
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {profile.analysis_result && (
+                          <>
+                            {/* Perfil REPNA */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm flex items-center gap-2">
+                                <BarChart className="h-4 w-4" />
+                                Perfil Comportamental REPNA
+                              </h4>
+                              <div className="space-y-3 pl-6 border-l-2 border-primary/20">
+                                {['r', 'e', 'p', 'n', 'a'].map((key) => {
+                                  const value = profile.analysis_result?.[key];
+                                  if (typeof value !== 'number') return null;
+                                  return (
+                                    <div key={key} className="space-y-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium text-sm">
+                                          {getDimensionLabel(key)}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {value}/100
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground italic">
+                                        {getInterpretation(key, value)}
+                                      </p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Análise Complementar */}
+                            <div className="space-y-4 pt-4 border-t border-border">
+                              <h4 className="font-semibold text-sm flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4" />
+                                Análise Complementar
+                              </h4>
+                              <div className="space-y-3 pl-6 border-l-2 border-primary/20">
+                                {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
+                                  const value = profile.analysis_result?.[key];
+                                  if (typeof value !== 'number') return null;
+                                  return (
+                                    <div key={key} className="space-y-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium text-sm">
+                                          {getDimensionLabel(key)}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {value}/100
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground italic">
+                                        {getInterpretation(key, value)}
+                                      </p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                        
+                        {profile.analysis_result?.notes && (
+                          <div className="pt-4 border-t border-border">
+                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                              <FileText className="h-4 w-4" />
+                              Observações
+                            </h4>
+                            <p className="text-sm text-muted-foreground pl-6">
+                              {profile.analysis_result.notes}
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </TabsContent>
 
