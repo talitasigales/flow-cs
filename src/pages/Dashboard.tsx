@@ -190,7 +190,7 @@ export default function Dashboard() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-xl font-semibold">
-                            {module.module_order}
+                            Passo {module.module_order}
                           </h4>
                         </div>
                         <p className="text-muted-foreground mb-4">
