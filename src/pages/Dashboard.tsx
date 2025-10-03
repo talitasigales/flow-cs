@@ -190,11 +190,8 @@ export default function Dashboard() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-xl font-semibold">
-                            {module.title}
+                            {module.module_order}
                           </h4>
-                          <span className="text-sm text-muted-foreground">
-                            Módulo {module.module_order}
-                          </span>
                         </div>
                         <p className="text-muted-foreground mb-4">
                           {module.description}
