@@ -167,7 +167,7 @@ export default function Module() {
           <div className="flex items-center justify-between">
             <Button variant="ghost" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar ao Dashboard
+              Voltar
             </Button>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
