@@ -196,35 +196,18 @@ export default function Matriz9Box() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="performance">Média</Label>
-                    <Input 
-                      id="performance"
-                      type="number"
-                      value={formData.performance_score}
-                      onChange={e => setFormData({
-                        ...formData,
-                        performance_score: parseFloat(e.target.value) || 0
-                      })}
-                      placeholder="Digite o valor da métrica"
-                      step="0.01"
-                      min="0"
-                    />
+                    <Input id="performance" type="number" value={formData.performance_score} onChange={e => setFormData({
+                    ...formData,
+                    performance_score: parseFloat(e.target.value) || 0
+                  })} placeholder="Digite o valor da métrica" step="0.01" min="0" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="roleFit">Compatibilidade com o cargo (%)
                   </Label>
-                    <Input 
-                      id="roleFit"
-                      type="number"
-                      value={formData.role_fit_score}
-                      onChange={e => setFormData({
-                        ...formData,
-                        role_fit_score: parseFloat(e.target.value) || 0
-                      })}
-                      placeholder="Digite a porcentagem (0-100)"
-                      step="1"
-                      min="0"
-                      max="100"
-                    />
+                    <Input id="roleFit" type="number" value={formData.role_fit_score} onChange={e => setFormData({
+                    ...formData,
+                    role_fit_score: parseFloat(e.target.value) || 0
+                  })} placeholder="Digite a porcentagem (0-100)" step="1" min="0" max="100" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Observações</Label>
@@ -275,9 +258,7 @@ export default function Matriz9Box() {
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
             <div className="flex items-center justify-center min-w-[80px]">
-              <div className="transform -rotate-90 whitespace-nowrap font-semibold text-sm text-foreground mt-24">
-                Compatibilidade com o cargo (%)
-              </div>
+              
             </div>
             {/* X-axis labels */}
             <div className="text-center font-semibold text-sm text-foreground">Baixo</div>
@@ -370,7 +351,7 @@ export default function Matriz9Box() {
 
             {/* Bottom spacing row */}
             <div></div>
-            <div className="text-center font-semibold text-base pt-4">Média</div>
+            
           </div>
         </div>
       </div>
