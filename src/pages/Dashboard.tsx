@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp, Grid3x3 } from 'lucide-react';
+import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp, Grid3x3, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 interface Module {
   id: string;
@@ -68,6 +68,17 @@ export default function Dashboard() {
     const completedCount = progress.filter(p => p.completed).length;
     return Math.round(completedCount / modules.length * 100);
   };
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Erro ao sair');
+    }
+  };
+
   if (authLoading || loading) {
     return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -97,6 +108,10 @@ export default function Dashboard() {
               </Button>
               <Button variant="outline" onClick={() => navigate('/profile')}>
                 Perfil
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
               </Button>
             </div>
           </div>
