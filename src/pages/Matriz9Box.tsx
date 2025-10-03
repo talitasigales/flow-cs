@@ -258,7 +258,9 @@ export default function Matriz9Box() {
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
             <div className="flex items-center justify-center min-w-[80px]">
-              
+              <div className="transform -rotate-90 whitespace-nowrap font-bold text-base mt-24">
+                COMPATIBILIDADE COM O CARGO
+              </div>
             </div>
             {/* X-axis labels */}
             <div className="text-center font-semibold text-sm text-foreground">Baixo</div>
@@ -349,9 +351,11 @@ export default function Matriz9Box() {
                 </Card>;
           })}
 
-            {/* Bottom spacing row */}
+            {/* X-axis label */}
             <div></div>
-            
+            <div className="col-span-3 text-center font-bold text-base pt-4">
+              PERFORMANCE
+            </div>
           </div>
         </div>
       </div>
