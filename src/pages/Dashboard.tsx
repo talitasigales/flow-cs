@@ -148,7 +148,7 @@ export default function Dashboard() {
             <CardTitle>Progresso Geral</CardTitle>
             <CardDescription>
               Você completou {progress.filter((p) => p.completed).length} de{' '}
-              {modules.length} módulos
+              {modules.length} passos
             </CardDescription>
           </CardHeader>
           <CardContent>
