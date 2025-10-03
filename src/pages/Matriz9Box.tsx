@@ -258,9 +258,7 @@ export default function Matriz9Box() {
           <div className="grid grid-cols-4 gap-4">
             {/* Y-axis label */}
             <div className="flex items-center justify-center min-w-[80px]">
-              <div className="transform -rotate-90 whitespace-nowrap font-bold text-base">
-                COMPATIBILIDADE COM O CARGO
-              </div>
+              
             </div>
             {/* X-axis labels */}
             <div className="text-center font-semibold text-sm text-foreground">Baixo</div>
@@ -296,9 +294,7 @@ export default function Matriz9Box() {
           })}
 
             {/* Row 2 (Médio Fit) */}
-            <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">
-              Médio
-            </div>
+            <div className="flex items-center justify-end pr-4 font-semibold text-sm text-foreground">  Médio</div>
             {[1, 2, 3].map(performance => {
             const cellEntries = getEntriesForCell(performance, 2);
             return <Card key={`${performance}-2`} className={`min-h-[200px] ${getCellColor(performance, 2)} border-2`}>
