@@ -277,10 +277,7 @@ export default function Module() {
 
         {/* Navigation */}
         <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => navigateToModule('prev')} disabled={!hasPrevious}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Módulo Anterior
-          </Button>
+          
           <Button onClick={() => navigate('/dashboard')} variant="ghost">
             Ver Todos os Módulos
           </Button>
