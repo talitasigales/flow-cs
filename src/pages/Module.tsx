@@ -282,7 +282,7 @@ export default function Module() {
             Ver Todos os Módulos
           </Button>
           <Button variant="outline" onClick={() => navigateToModule('next')} disabled={!hasNext}>
-            Próximo Módulo
+            Próximo passo
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
