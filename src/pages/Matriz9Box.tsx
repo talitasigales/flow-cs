@@ -212,19 +212,19 @@ export default function Matriz9Box() {
                   <div className="space-y-2">
                     <Label htmlFor="roleFit">Compatibilidade com o cargo (%)
                   </Label>
-                    <Select value={formData.role_fit_score.toString()} onValueChange={value => setFormData({
-                    ...formData,
-                    role_fit_score: parseInt(value)
-                  })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Baixo</SelectItem>
-                        <SelectItem value="2">Médio</SelectItem>
-                        <SelectItem value="3">Alto</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      id="roleFit"
+                      type="number"
+                      value={formData.role_fit_score}
+                      onChange={e => setFormData({
+                        ...formData,
+                        role_fit_score: parseFloat(e.target.value) || 0
+                      })}
+                      placeholder="Digite a porcentagem (0-100)"
+                      step="1"
+                      min="0"
+                      max="100"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Observações</Label>
