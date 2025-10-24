@@ -30,12 +30,27 @@ export default function Auth() {
     try {
       if (isLogin) {
         const {
+          data,
           error
         } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         if (error) throw error;
+        
+        // Check if user needs to change password
+        if (data.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('password_changed')
+            .eq('id', data.user.id)
+            .single();
+          
+          if (profile && profile.password_changed === false) {
+            toast.info('Por segurança, você precisará trocar sua senha provisória.');
+          }
+        }
+        
         toast.success('Login realizado com sucesso!');
         navigate('/dashboard');
       } else {

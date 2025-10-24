@@ -7,6 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp, Grid3x3, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
+import { usePasswordCheck } from '@/hooks/usePasswordCheck';
 interface Module {
   id: string;
   title: string;
@@ -29,6 +31,7 @@ export default function Dashboard() {
   const [modules, setModules] = useState<Module[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const { needsPasswordChange, loading: passwordCheckLoading, refetch } = usePasswordCheck();
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
@@ -79,10 +82,18 @@ export default function Dashboard() {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || loading || passwordCheckLoading) {
     return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>;
+  }
+  
+  if (needsPasswordChange) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <ChangePasswordDialog onPasswordChanged={refetch} />
+      </div>
+    );
   }
   return <div className="min-h-screen bg-background">
       {/* Header */}
