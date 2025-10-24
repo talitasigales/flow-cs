@@ -37,20 +37,16 @@ export default function Auth() {
           password
         });
         if (error) throw error;
-        
+
         // Check if user needs to change password
         if (data.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('password_changed')
-            .eq('id', data.user.id)
-            .single();
-          
+          const {
+            data: profile
+          } = await supabase.from('profiles').select('password_changed').eq('id', data.user.id).single();
           if (profile && profile.password_changed === false) {
             toast.info('Por segurança, você precisará trocar sua senha provisória.');
           }
         }
-        
         toast.success('Login realizado com sucesso!');
         navigate('/dashboard');
       } else {
@@ -92,7 +88,7 @@ export default function Auth() {
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="h-8 w-8 text-primary" />
-              <h2 className="text-2xl font-bold gradient-text">Flow: plataforma de sucesso contínuo da Grou</h2>
+              <h2 className="text-2xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
             </div>
             <CardTitle className="text-2xl">
               {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
