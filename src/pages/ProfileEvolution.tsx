@@ -1320,108 +1320,276 @@ export default function ProfileEvolution() {
 
             {/* Analysis View */}
             <TabsContent value="analysis" className="space-y-4">
+              {/* Overview Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="gradient-card border-border/50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Anos Registrados</p>
+                        <p className="text-3xl font-bold">{profiles.length}</p>
+                      </div>
+                      <Calendar className="h-10 w-10 text-primary/50" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="gradient-card border-border/50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Período</p>
+                        <p className="text-xl font-bold">
+                          {profiles[0]?.year} - {profiles[profiles.length - 1]?.year}
+                        </p>
+                      </div>
+                      <TrendingUp className="h-10 w-10 text-success/50" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="gradient-card border-border/50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Colaboradores</p>
+                        <p className="text-3xl font-bold">{uniqueNames.length || 1}</p>
+                      </div>
+                      <FileText className="h-10 w-10 text-primary/50" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* REPNA Dimension Cards */}
               <Card className="gradient-card border-border/50">
                 <CardHeader>
-                  <CardTitle>Análise de Evolução do Perfil PDA</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Dimensões REPNA
+                  </CardTitle>
                   <CardDescription>
-                    Interpretação técnica das mudanças comportamentais ao longo do tempo
+                    Análise do perfil comportamental ao longo do tempo
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Análise Descritiva */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Interpretação Técnica da Evolução
-                    </h4>
-                    <div className="space-y-3 text-sm text-muted-foreground">
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Trajetória de Desenvolvimento:</strong> A análise longitudinal do perfil comportamental revela padrões significativos de adaptação e crescimento profissional. As variações observadas nos eixos REPNA indicam processos de maturação comportamental e ajustes estratégicos às demandas do ambiente organizacional.
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* R - Risco */}
+                    <Card className="border-orange-500/30 bg-orange-500/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">R</span>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Risco</CardTitle>
+                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('r')}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <Progress value={calculateAverage('r')} className="mb-3 h-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Gestão de incertezas e tomada de decisão sob pressão. Incrementos indicam maior inovação.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* E - Extroversão */}
+                    <Card className="border-yellow-500/30 bg-yellow-500/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">E</span>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Extroversão</CardTitle>
+                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('e')}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <Progress value={calculateAverage('e')} className="mb-3 h-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Estratégia relacional e comunicacional. Elevações indicam expansão da rede de influência.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* P - Paciência */}
+                    <Card className="border-blue-500/30 bg-blue-500/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">P</span>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Paciência</CardTitle>
+                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('p')}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <Progress value={calculateAverage('p')} className="mb-3 h-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Ritmo de trabalho e gestão do tempo. Aumentos correlacionam-se com resiliência.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* N - Normas */}
+                    <Card className="border-green-500/30 bg-green-500/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">N</span>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Normas</CardTitle>
+                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('n')}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <Progress value={calculateAverage('n')} className="mb-3 h-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Relação com estruturas e processos. Incrementos sugerem valorização de metodologias.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* A - Autocontrole */}
+                    <Card className="border-purple-600/30 bg-purple-600/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">A</span>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Autocontrole</CardTitle>
+                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('a')}</p>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <Progress value={calculateAverage('a')} className="mb-3 h-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Gestão emocional e autorregulação. Elevações apontam sofisticação na diplomacia.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Indicadores Complementares */}
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart className="h-5 w-5" />
+                    Indicadores Complementares
+                  </CardTitle>
+                  <CardDescription>
+                    Métricas adicionais de desempenho e energia
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Tomada de Decisões</span>
+                        <span className="text-2xl font-bold">{calculateAverage('tomada_decisoes')}</span>
+                      </div>
+                      <Progress value={calculateAverage('tomada_decisoes')} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Capacidade de avaliar cenários e escolher estratégias adequadas
                       </p>
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Eixo de Risco (R):</strong> Flutuações neste eixo sugerem evolução na capacidade de gestão de incertezas e tomada de decisão sob pressão. Incrementos indicam maior propensão à inovação e desafios, enquanto reduções podem sinalizar amadurecimento na avaliação criteriosa de cenários.
+                    </div>
+
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Intensidade do Perfil</span>
+                        <span className="text-2xl font-bold">{calculateAverage('intensidade_perfil')}</span>
+                      </div>
+                      <Progress value={calculateAverage('intensidade_perfil')} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Grau de expressão e consistência comportamental
                       </p>
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Eixo de Extroversão (E):</strong> Mudanças temporais refletem ajustes na estratégia relacional e comunicacional. Elevações apontam expansão da rede de influência e liderança, ao passo que reduções podem indicar refinamento na seletividade das interações.
+                    </div>
+
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Energia</span>
+                        <span className="text-2xl font-bold">{calculateAverage('energia')}</span>
+                      </div>
+                      <Progress value={calculateAverage('energia')} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Nível de energia e disposição para atividades
                       </p>
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Eixo de Paciência (P):</strong> A dinâmica deste eixo evidencia transformações no ritmo de trabalho e gestão do tempo. Aumentos correlacionam-se com desenvolvimento de resiliência e planejamento de longo prazo, enquanto quedas podem refletir adaptação a ambientes mais dinâmicos.
-                      </p>
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Eixo de Normas (N):</strong> Variações demonstram reconfiguração na relação com estruturas e processos. Incrementos sugerem valorização crescente de metodologias estruturadas, ao passo que reduções indicam maior flexibilidade e adaptabilidade contextual.
-                      </p>
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Eixo de Autocontrole (A):</strong> Alterações neste domínio revelam evolução na gestão emocional e autorregulação. Elevações apontam sofisticação na diplomacia e controle de impulsos, enquanto reduções podem indicar autenticidade e espontaneidade calibradas.
-                      </p>
-                      <p className="leading-relaxed">
-                        <strong className="text-foreground">Indicadores Complementares:</strong> As métricas de Tomada de Decisões, Intensidade do Perfil, Energia, Equilíbrio de Energia e Modificação do Perfil fornecem insights sobre a consistência comportamental, capacidade adaptativa e o grau de ajuste consciente do comportamento às demandas situacionais.
+                    </div>
+
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Equilíbrio de Energia</span>
+                        <span className="text-2xl font-bold">{calculateAverage('equilibrio_energia')}</span>
+                      </div>
+                      <Progress value={calculateAverage('equilibrio_energia')} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Distribuição balanceada de energia entre atividades
                       </p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
 
-                  {/* Tabela Comparativa */}
-                  <div className="space-y-4 pt-6 border-t border-border">
-                    <h4 className="font-semibold flex items-center gap-2">
-                      <BarChart className="h-5 w-5" />
-                      Tabela Comparativa de Indicadores
-                    </h4>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-3 px-4 font-semibold">Indicador</th>
-                            {profiles.map((profile) => (
-                              <th key={profile.id} className="text-center py-3 px-4 font-semibold">
-                                {profile.year}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((dimension, idx) => (
-                            <tr key={dimension} className={idx % 2 === 0 ? 'bg-muted/30' : ''}>
-                              <td className="py-3 px-4 font-medium">
-                                {getDimensionLabel(dimension)}
-                              </td>
-                              {profiles.map((profile) => {
-                                const value = profile.analysis_result?.[dimension];
-                                return (
-                                  <td key={profile.id} className="text-center py-3 px-4">
-                                    {typeof value === 'number' ? (
-                                      <span className="inline-flex items-center justify-center w-12 h-8 rounded bg-primary/10 text-foreground font-semibold">
-                                        {value}
-                                      </span>
-                                    ) : (
-                                      <span className="text-muted-foreground">-</span>
-                                    )}
-                                  </td>
-                                );
-                              })}
-                            </tr>
+              {/* Tabela Comparativa Compacta */}
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Dados Históricos
+                  </CardTitle>
+                  <CardDescription>
+                    Visão consolidada dos indicadores por ano
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-3 px-4 font-semibold sticky left-0 bg-card">Indicador</th>
+                          {profiles.map((profile) => (
+                            <th key={profile.id} className="text-center py-3 px-4 font-semibold whitespace-nowrap">
+                              {profile.year}
+                            </th>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* Estatísticas Resumidas */}
-                  <div className="grid md:grid-cols-2 gap-4 pt-6 border-t border-border">
-                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-primary" />
-                        <span className="font-medium">Anos Registrados</span>
-                      </div>
-                      <span className="text-2xl font-bold">{profiles.length}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <TrendingUp className="h-5 w-5 text-success" />
-                        <span className="font-medium">Período</span>
-                      </div>
-                      <span className="text-2xl font-bold">
-                        {profiles[0]?.year} - {profiles[profiles.length - 1]?.year}
-                      </span>
-                    </div>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia'].map((dimension, idx) => (
+                          <tr key={dimension} className={idx % 2 === 0 ? 'bg-muted/20' : ''}>
+                            <td className="py-3 px-4 font-medium sticky left-0 bg-inherit">
+                              {getDimensionLabel(dimension)}
+                            </td>
+                            {profiles.map((profile) => {
+                              const value = profile.analysis_result?.[dimension];
+                              return (
+                                <td key={profile.id} className="text-center py-3 px-4">
+                                  {typeof value === 'number' ? (
+                                    <span className="inline-flex items-center justify-center w-12 h-8 rounded bg-primary/10 text-foreground font-semibold">
+                                      {value}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </CardContent>
               </Card>
