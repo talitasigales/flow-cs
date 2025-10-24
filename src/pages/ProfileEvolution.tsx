@@ -572,76 +572,123 @@ export default function ProfileEvolution() {
                     <CardContent className="pt-6">
                       {profile.analysis_result && (
                         <div className="space-y-6">
-                          {/* Radar Chart + Energy Bar */}
+                          {/* REPNA Grid + Energy Bar */}
                           <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
-                            {/* Radar Chart */}
+                            {/* REPNA Grid Chart */}
                             <div className="space-y-4">
                               <h4 className="font-semibold text-sm flex items-center gap-2">
                                 <BarChart className="h-4 w-4" />
                                 Perfil Comportamental REPNA
                               </h4>
                               <div className="bg-muted/20 rounded-lg p-6">
-                                <ResponsiveContainer width="100%" height={400}>
-                                  <RadarChart
-                                    data={[
-                                      {
-                                        subject: 'R',
-                                        value: profile.analysis_result?.r || 0,
-                                        fullMark: 100,
-                                      },
-                                      {
-                                        subject: 'E',
-                                        value: profile.analysis_result?.e || 0,
-                                        fullMark: 100,
-                                      },
-                                      {
-                                        subject: 'P',
-                                        value: profile.analysis_result?.p || 0,
-                                        fullMark: 100,
-                                      },
-                                      {
-                                        subject: 'N',
-                                        value: profile.analysis_result?.n || 0,
-                                        fullMark: 100,
-                                      },
-                                      {
-                                        subject: 'A',
-                                        value: profile.analysis_result?.a || 0,
-                                        fullMark: 100,
-                                      },
-                                    ]}
-                                  >
-                                    <PolarGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.3} />
-                                    <PolarAngleAxis
-                                      dataKey="subject"
-                                      tick={(props) => {
-                                        const { x, y, payload } = props;
-                                        const color = getProfileColorHex(payload.value.toLowerCase());
-                                        return (
-                                          <text
-                                            x={x}
-                                            y={y}
-                                            textAnchor="middle"
-                                            fill={color}
-                                            fontSize={16}
-                                            fontWeight="bold"
-                                          >
-                                            {payload.value}
-                                          </text>
-                                        );
-                                      }}
-                                    />
-                                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                                    <Radar
-                                      name="REPNA"
-                                      dataKey="value"
-                                      stroke="hsl(var(--primary))"
-                                      fill="hsl(var(--primary))"
-                                      fillOpacity={0.3}
-                                      strokeWidth={2}
-                                    />
-                                  </RadarChart>
-                                </ResponsiveContainer>
+                                <svg width="100%" height="400" viewBox="0 0 500 400" className="overflow-visible">
+                                  {/* Grid background with rounded corners */}
+                                  <defs>
+                                    <clipPath id="roundedGrid">
+                                      <rect x="50" y="20" width="400" height="320" rx="20" />
+                                    </clipPath>
+                                  </defs>
+                                  
+                                  <rect 
+                                    x="50" 
+                                    y="20" 
+                                    width="400" 
+                                    height="320" 
+                                    fill="hsl(var(--muted))" 
+                                    opacity="0.3"
+                                    rx="20"
+                                  />
+                                  
+                                  {/* Horizontal grid lines */}
+                                  {[0, 25, 50, 75, 100].map((value) => {
+                                    const y = 340 - (value * 3.2);
+                                    return (
+                                      <line
+                                        key={value}
+                                        x1="50"
+                                        y1={y}
+                                        x2="450"
+                                        y2={y}
+                                        stroke="hsl(var(--muted-foreground))"
+                                        strokeOpacity="0.2"
+                                        strokeDasharray="4,4"
+                                        clipPath="url(#roundedGrid)"
+                                      />
+                                    );
+                                  })}
+                                  
+                                  {/* REPNA data points and connecting lines */}
+                                  {(() => {
+                                    const dimensions = ['r', 'e', 'p', 'n', 'a'];
+                                    const points = dimensions.map((dim, index) => {
+                                      const value = profile.analysis_result?.[dim] || 0;
+                                      const x = 50 + (index * 100) + 50;
+                                      const y = 340 - (value * 3.2);
+                                      return { x, y, value, dim, color: getProfileColorHex(dim) };
+                                    });
+                                    
+                                    return (
+                                      <>
+                                        {/* Connecting lines */}
+                                        {points.map((point, index) => {
+                                          if (index === points.length - 1) return null;
+                                          const nextPoint = points[index + 1];
+                                          return (
+                                            <line
+                                              key={`line-${index}`}
+                                              x1={point.x}
+                                              y1={point.y}
+                                              x2={nextPoint.x}
+                                              y2={nextPoint.y}
+                                              stroke="hsl(var(--primary))"
+                                              strokeWidth="3"
+                                            />
+                                          );
+                                        })}
+                                        
+                                        {/* Data points (circles) */}
+                                        {points.map((point, index) => (
+                                          <g key={`point-${index}`}>
+                                            <circle
+                                              cx={point.x}
+                                              cy={point.y}
+                                              r="18"
+                                              fill={point.color}
+                                              stroke="white"
+                                              strokeWidth="3"
+                                            />
+                                            <text
+                                              x={point.x}
+                                              y={point.y}
+                                              textAnchor="middle"
+                                              dominantBaseline="central"
+                                              fill="white"
+                                              fontSize="16"
+                                              fontWeight="bold"
+                                            >
+                                              {point.dim.toUpperCase()}
+                                            </text>
+                                          </g>
+                                        ))}
+                                      </>
+                                    );
+                                  })()}
+                                  
+                                  {/* Bottom labels */}
+                                  {['R', 'E', 'P', 'N', 'A'].map((letter, index) => (
+                                    <text
+                                      key={letter}
+                                      x={50 + (index * 100) + 50}
+                                      y="370"
+                                      textAnchor="middle"
+                                      fill="hsl(var(--foreground))"
+                                      fontSize="20"
+                                      fontWeight="bold"
+                                    >
+                                      {letter}
+                                    </text>
+                                  ))}
+                                </svg>
                               </div>
                             </div>
 
