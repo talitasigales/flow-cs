@@ -176,11 +176,12 @@ export default function Auth() {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`absolute w-full glass-morphism p-8 rounded-lg text-center transition-all duration-700 ${
+                  className={`absolute w-full glass-morphism p-8 rounded-lg text-center transition-all duration-700 shadow-2xl ${
                     index === currentSlide 
                       ? 'opacity-100 scale-100 translate-y-0' 
                       : 'opacity-0 scale-95 translate-y-4 pointer-events-none'
                   }`}
+                  style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
                 >
                   <p className="text-xl font-semibold">{feature}</p>
                 </div>
