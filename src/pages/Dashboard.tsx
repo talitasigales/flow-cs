@@ -159,11 +159,18 @@ export default function Dashboard() {
             const moduleProgress = getModuleProgress(module.id);
             const isCompleted = moduleProgress?.completed;
             const isWatched = moduleProgress?.video_watched;
-            return <Card key={module.id} className={`gradient-card border-border/50 hover:border-primary/50 transition-all cursor-pointer ${isCompleted ? 'border-success/50' : ''}`} onClick={() => navigate(`/module/${module.id}`)}>
+            return <Card key={module.id} className={`gradient-card border-border/50 hover:border-primary/50 transition-all cursor-pointer ${isCompleted ? 'border-primary/50 bg-primary/5' : ''}`} onClick={() => navigate(`/module/${module.id}`)}>
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0">
-                        {isCompleted ? <CheckCircle2 className="h-8 w-8 text-success" /> : <Circle className="h-8 w-8 text-muted-foreground" />}
+                        {isCompleted ? (
+                          <div className="relative">
+                            <CheckCircle2 className="h-8 w-8 text-primary animate-in zoom-in duration-500" />
+                            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
+                          </div>
+                        ) : (
+                          <Circle className="h-8 w-8 text-muted-foreground" />
+                        )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
