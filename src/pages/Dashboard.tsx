@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut, Check } from 'lucide-react';
+import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut, Check, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
@@ -149,6 +149,10 @@ export default function Dashboard() {
               <h1 className="gradient-text font-bold text-2xl">Plataforma de Sucesso do Cliente</h1>
             </div>
             <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={() => navigate('/chat-nanda')}>
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Chat Nanda
+              </Button>
               <Button variant="outline" onClick={() => navigate('/matriz-9box')}>
                 <Grid3x3 className="mr-2 h-4 w-4" />
                 Matriz 9Box
