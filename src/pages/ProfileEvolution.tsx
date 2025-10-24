@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -363,99 +364,98 @@ export default function ProfileEvolution() {
                     </div>
 
                     <div className="border-t border-border pt-4 mt-4">
-                      <h4 className="font-semibold mb-3 text-sm">Métricas Adicionais</h4>
+                      <h4 className="font-semibold mb-3 text-sm">Análise Complementar</h4>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="tomada_decisoes">
-                          Tomada de Decisões (0-100)
-                        </Label>
-                        <Input
-                          id="tomada_decisoes"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={formData.tomada_decisoes}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              tomada_decisoes: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="tomada_decisoes">Tomada de Decisões</Label>
+                            <span className="text-sm font-medium">{formData.tomada_decisoes}%</span>
+                          </div>
+                          <Slider
+                            id="tomada_decisoes"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={[formData.tomada_decisoes]}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, tomada_decisoes: value[0] })
+                            }
+                            className="w-full"
+                          />
+                        </div>
 
-                      <div className="space-y-2 mt-3">
-                        <Label htmlFor="intensidade_perfil">
-                          Intensidade do Perfil (0-100)
-                        </Label>
-                        <Input
-                          id="intensidade_perfil"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={formData.intensidade_perfil}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              intensidade_perfil: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="intensidade_perfil">Intensidade do Perfil</Label>
+                            <span className="text-sm font-medium">{formData.intensidade_perfil}%</span>
+                          </div>
+                          <Slider
+                            id="intensidade_perfil"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={[formData.intensidade_perfil]}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, intensidade_perfil: value[0] })
+                            }
+                            className="w-full"
+                          />
+                        </div>
 
-                      <div className="space-y-2 mt-3">
-                        <Label htmlFor="energia">Energia (0-100)</Label>
-                        <Input
-                          id="energia"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={formData.energia}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              energia: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="energia">Energia</Label>
+                            <span className="text-sm font-medium">{formData.energia}%</span>
+                          </div>
+                          <Slider
+                            id="energia"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={[formData.energia]}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, energia: value[0] })
+                            }
+                            className="w-full"
+                          />
+                        </div>
 
-                      <div className="space-y-2 mt-3">
-                        <Label htmlFor="equilibrio_energia">
-                          Equilíbrio de Energia (0-100)
-                        </Label>
-                        <Input
-                          id="equilibrio_energia"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={formData.equilibrio_energia}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              equilibrio_energia: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
-                      </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="equilibrio_energia">Equilíbrio de Energia</Label>
+                            <span className="text-sm font-medium">{formData.equilibrio_energia}%</span>
+                          </div>
+                          <Slider
+                            id="equilibrio_energia"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={[formData.equilibrio_energia]}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, equilibrio_energia: value[0] })
+                            }
+                            className="w-full"
+                          />
+                        </div>
 
-                      <div className="space-y-2 mt-3">
-                        <Label htmlFor="modificacao_perfil">
-                          Modificação do Perfil (0-100)
-                        </Label>
-                        <Input
-                          id="modificacao_perfil"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={formData.modificacao_perfil}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              modificacao_perfil: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="modificacao_perfil">Modificação do Perfil</Label>
+                            <span className="text-sm font-medium">{formData.modificacao_perfil}%</span>
+                          </div>
+                          <Slider
+                            id="modificacao_perfil"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={[formData.modificacao_perfil]}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, modificacao_perfil: value[0] })
+                            }
+                            className="w-full"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -649,21 +649,27 @@ export default function ProfileEvolution() {
                                 <TrendingUp className="h-4 w-4" />
                                 Análise Complementar
                               </h4>
-                              <div className="space-y-3 pl-6 border-l-2 border-primary/20">
+                              <div className="space-y-4 pl-6 border-l-2 border-primary/20">
                                 {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
                                   const value = profile.analysis_result?.[key];
                                   if (typeof value !== 'number') return null;
                                   return (
-                                    <div key={key} className="space-y-1">
+                                    <div key={key} className="space-y-2">
                                       <div className="flex items-center justify-between">
                                         <span className="font-medium text-sm">
                                           {getDimensionLabel(key)}
                                         </span>
-                                        <span className="text-xs text-muted-foreground">
-                                          {value}/100
+                                        <span className="text-sm font-medium">
+                                          {value}%
                                         </span>
                                       </div>
-                                      <p className="text-sm text-muted-foreground italic">
+                                      <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                                        <div 
+                                          className="absolute left-0 top-0 h-full bg-primary transition-all rounded-full"
+                                          style={{ width: `${value}%` }}
+                                        />
+                                      </div>
+                                      <p className="text-xs text-muted-foreground italic">
                                         {getInterpretation(key, value)}
                                       </p>
                                     </div>
