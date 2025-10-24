@@ -910,28 +910,42 @@ export default function ProfileEvolution() {
 
                           {/* Tabela de Resumo */}
                           <div className="pt-4 border-t border-border">
-                            <div className="bg-primary rounded-lg overflow-hidden">
+                            <div className="rounded-lg overflow-hidden shadow-lg">
                               <div className="grid grid-cols-6 text-center text-white font-bold">
-                                <div className="py-4 px-2 border-r border-primary-foreground/20">
+                                <div className="py-4 px-2 bg-primary">
                                   Perfil
                                 </div>
-                                {['R', 'E', 'P', 'N', 'A'].map((letter, idx) => (
+                                {[
+                                  { letter: 'R', color: '#f97316' },
+                                  { letter: 'E', color: '#eab308' },
+                                  { letter: 'P', color: '#3b82f6' },
+                                  { letter: 'N', color: '#22c55e' },
+                                  { letter: 'A', color: '#9333ea' }
+                                ].map(({ letter, color }) => (
                                   <div
                                     key={letter}
-                                    className={`py-4 px-2 ${idx < 4 ? 'border-r border-primary-foreground/20' : ''}`}
+                                    className="py-4 px-2"
+                                    style={{ backgroundColor: color }}
                                   >
                                     {letter}
                                   </div>
                                 ))}
                               </div>
-                              <div className="grid grid-cols-6 text-center bg-primary/90 text-white font-semibold text-lg">
-                                <div className="py-3 px-2 border-r border-primary-foreground/20">
+                              <div className="grid grid-cols-6 text-center text-white font-semibold text-lg">
+                                <div className="py-3 px-2 bg-primary/90">
                                   {profile.year}
                                 </div>
-                                {['r', 'e', 'p', 'n', 'a'].map((key, idx) => (
+                                {[
+                                  { key: 'r', color: '#f97316' },
+                                  { key: 'e', color: '#eab308' },
+                                  { key: 'p', color: '#3b82f6' },
+                                  { key: 'n', color: '#22c55e' },
+                                  { key: 'a', color: '#9333ea' }
+                                ].map(({ key, color }) => (
                                   <div
                                     key={key}
-                                    className={`py-3 px-2 ${idx < 4 ? 'border-r border-primary-foreground/20' : ''}`}
+                                    className="py-3 px-2"
+                                    style={{ backgroundColor: `${color}dd` }}
                                   >
                                     {profile.analysis_result?.[key] || 0}
                                   </div>
