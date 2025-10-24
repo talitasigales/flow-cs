@@ -587,81 +587,112 @@ export default function ProfileEvolution() {
 
             {/* Timeline View - Comparative Side by Side */}
             <TabsContent value="timeline" className="space-y-6">
-              {/* Filters Section */}
-              <Card className="border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Filter className="h-5 w-5" />
-                    Filtros de Comparação
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Name Filter */}
-                    <div className="space-y-2">
-                      <Label>Colaborador</Label>
-                      <Select value={selectedName} onValueChange={setSelectedName}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um colaborador" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os colaboradores</SelectItem>
-                          {uniqueNames.map(name => (
-                            <SelectItem key={name} value={name}>
-                              {name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Years Filter */}
-                    <div className="space-y-2">
-                      <Label>Anos para Comparar</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {uniqueYears.map(year => (
-                          <Badge
-                            key={year}
-                            variant={selectedYears.includes(year) ? "default" : "outline"}
-                            className="cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => toggleYear(year)}
-                          >
-                            {year}
-                            {selectedYears.includes(year) && (
-                              <X className="ml-1 h-3 w-3" />
-                            )}
-                          </Badge>
-                        ))}
-                        {uniqueYears.length === 0 && (
-                          <span className="text-sm text-muted-foreground">Nenhum ano disponível</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Clear Filters */}
-                  {(selectedName !== 'all' || selectedYears.length > 0) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Limpar Filtros
+              {profiles.length === 0 ? (
+                <Card className="border-border/50">
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <BarChart className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Nenhum perfil cadastrado</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Adicione seu primeiro perfil REPNA para começar a comparação e análise
+                    </p>
+                    <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Adicionar Perfil
                     </Button>
-                  )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Filters Section */}
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Filter className="h-5 w-5" />
+                        Filtros de Comparação
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {/* Name Filter */}
+                        <div className="space-y-2">
+                          <Label>Colaborador</Label>
+                          <Select value={selectedName} onValueChange={setSelectedName}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um colaborador" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todos os colaboradores</SelectItem>
+                              {uniqueNames.map(name => (
+                                <SelectItem key={name} value={name}>
+                                  {name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                  {/* Results count */}
-                  <div className="text-sm text-muted-foreground">
-                    Exibindo {filteredProfiles.length} de {profiles.length} perfis
-                  </div>
-                </CardContent>
-              </Card>
+                        {/* Years Filter */}
+                        <div className="space-y-2">
+                          <Label>Anos para Comparar</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {uniqueYears.map(year => (
+                              <Badge
+                                key={year}
+                                variant={selectedYears.includes(year) ? "default" : "outline"}
+                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => toggleYear(year)}
+                              >
+                                {year}
+                                {selectedYears.includes(year) && (
+                                  <X className="ml-1 h-3 w-3" />
+                                )}
+                              </Badge>
+                            ))}
+                            {uniqueYears.length === 0 && (
+                              <span className="text-sm text-muted-foreground">Nenhum ano disponível</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-              {/* Profiles Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-                {filteredProfiles.map((profile) => (
+                      {/* Clear Filters */}
+                      {(selectedName !== 'all' || selectedYears.length > 0) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="gap-2"
+                        >
+                          <X className="h-4 w-4" />
+                          Limpar Filtros
+                        </Button>
+                      )}
+
+                      {/* Results count */}
+                      <div className="text-sm text-muted-foreground">
+                        Exibindo {filteredProfiles.length} de {profiles.length} perfis
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Profiles Grid */}
+                  {filteredProfiles.length === 0 ? (
+                    <Card className="border-border/50">
+                      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                        <Filter className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Nenhum perfil encontrado</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Ajuste os filtros ou adicione novos perfis
+                        </p>
+                        <Button onClick={clearFilters} variant="outline" className="gap-2">
+                          <X className="h-4 w-4" />
+                          Limpar Filtros
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+                      {filteredProfiles.map((profile) => (
                   <Card key={profile.id} className="gradient-card border-border/50 overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
                       <div className="flex items-center justify-between">
@@ -974,6 +1005,9 @@ export default function ProfileEvolution() {
                   </Card>
                 ))}
               </div>
+                  )}
+                </>
+              )}
             </TabsContent>
 
             {/* Comparison View */}
