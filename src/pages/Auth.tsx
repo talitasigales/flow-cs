@@ -161,7 +161,7 @@ export default function Auth() {
           <h1 className="text-5xl font-bold mb-6 text-center">
             Evolua Continuamente
           </h1>
-          <p className="text-xl mb-8 max-w-md text-center">Acompanhe sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>
+          <p className="text-xl mb-8 max-w-md text-center">Impulsione sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>
           <div className="space-y-6 w-full max-w-2xl mx-auto">
             {/* Feature Slider */}
             <div className="relative h-24 flex items-center justify-center">
