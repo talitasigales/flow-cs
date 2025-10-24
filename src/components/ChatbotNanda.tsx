@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import nandaAvatar from '@/assets/nanda-avatar.png';
 
 interface Message {
@@ -14,6 +15,7 @@ interface Message {
 }
 
 export const ChatbotNanda = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -24,6 +26,11 @@ export const ChatbotNanda = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Não renderizar se o usuário não estiver autenticado
+  if (!user) {
+    return null;
+  }
 
   useEffect(() => {
     // Atualizar base de conhecimento com REPNA correto
