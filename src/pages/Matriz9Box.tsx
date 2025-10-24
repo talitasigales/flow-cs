@@ -30,6 +30,13 @@ interface Category {
   color: string;
 }
 
+// Helper function to convert 0-100 score to category level (1=Baixo, 2=Médio, 3=Alto)
+const getScoreLevel = (score: number): number => {
+  if (score >= 0 && score <= 33) return 1;
+  if (score > 33 && score <= 66) return 2;
+  return 3;
+};
+
 const CATEGORIES: Category[] = [
   { name: 'Estrela', description: 'Alto desempenho e alto fit - Talentos-chave', performance: 3, roleFit: 3, color: 'bg-emerald-500/30 border-emerald-600 hover:bg-emerald-500/40' },
   { name: 'Destaque', description: 'Alto desempenho, médio fit - Considerar novas posições', performance: 3, roleFit: 2, color: 'bg-emerald-400/25 border-emerald-500 hover:bg-emerald-400/35' },
@@ -52,8 +59,8 @@ export default function Matriz9Box() {
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     employee_name: '',
-    performance_score: 2,
-    role_fit_score: 2,
+    performance_score: 50,
+    role_fit_score: 50,
     notes: ''
   });
 
@@ -161,8 +168,8 @@ export default function Matriz9Box() {
     setEditingEntry(null);
     setFormData({
       employee_name: '',
-      performance_score: 2,
-      role_fit_score: 2,
+      performance_score: 50,
+      role_fit_score: 50,
       notes: ''
     });
   };
@@ -172,11 +179,16 @@ export default function Matriz9Box() {
   );
 
   const getEntriesForCell = (performance: number, roleFit: number) => {
-    return filteredEntries.filter(e => e.performance_score === performance && e.role_fit_score === roleFit);
+    return filteredEntries.filter(e => 
+      getScoreLevel(e.performance_score) === performance && 
+      getScoreLevel(e.role_fit_score) === roleFit
+    );
   };
 
   const getCategoryForScore = (performance: number, roleFit: number) => {
-    return CATEGORIES.find(cat => cat.performance === performance && cat.roleFit === roleFit);
+    const perfLevel = getScoreLevel(performance);
+    const fitLevel = getScoreLevel(roleFit);
+    return CATEGORIES.find(cat => cat.performance === perfLevel && cat.roleFit === fitLevel);
   };
 
   const getInitials = (name: string) => {
@@ -202,7 +214,7 @@ export default function Matriz9Box() {
   };
 
   const calculateAveragePerformance = () => {
-    if (entries.length === 0) return 0;
+    if (entries.length === 0) return '0';
     const sum = entries.reduce((acc, e) => acc + e.performance_score, 0);
     return (sum / entries.length).toFixed(1);
   };
@@ -259,41 +271,44 @@ export default function Matriz9Box() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="performance">
-                      Desempenho
-                      <span className="text-xs text-muted-foreground ml-2">(1=Baixo, 2=Médio, 3=Alto)</span>
+                      Desempenho / Performance
+                      <span className="text-xs text-muted-foreground ml-2">(0-100)</span>
                     </Label>
-                    <Select
-                      value={formData.performance_score.toString()}
-                      onValueChange={(val) => setFormData({...formData, performance_score: parseInt(val)})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 - Baixo</SelectItem>
-                        <SelectItem value="2">2 - Médio</SelectItem>
-                        <SelectItem value="3">3 - Alto</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      id="performance"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.performance_score} 
+                      onChange={e => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val) && val >= 0 && val <= 100) {
+                          setFormData({...formData, performance_score: val});
+                        }
+                      }}
+                      placeholder="Ex: 85"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="roleFit">
-                      Fit com a Função
-                      <span className="text-xs text-muted-foreground ml-2">(1=Baixo, 2=Médio, 3=Alto)</span>
+                      Fit com a Função (% Compatibilidade)
+                      <span className="text-xs text-muted-foreground ml-2">(0-100%)</span>
                     </Label>
-                    <Select
-                      value={formData.role_fit_score.toString()}
-                      onValueChange={(val) => setFormData({...formData, role_fit_score: parseInt(val)})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 - Baixo</SelectItem>
-                        <SelectItem value="2">2 - Médio</SelectItem>
-                        <SelectItem value="3">3 - Alto</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      id="roleFit"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={formData.role_fit_score} 
+                      onChange={e => {
+                        const val = parseInt(e.target.value);
+                        if (!isNaN(val) && val >= 0 && val <= 100) {
+                          setFormData({...formData, role_fit_score: val});
+                        }
+                      }}
+                      placeholder="Ex: 75"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Observações</Label>
@@ -465,7 +480,7 @@ export default function Matriz9Box() {
                                     <p className="font-medium text-sm truncate">{entry.employee_name}</p>
                                     <div className="flex items-center gap-2 mt-1">
                                       <span className="text-xs text-muted-foreground">P: {entry.performance_score}</span>
-                                      <span className="text-xs text-muted-foreground">F: {entry.role_fit_score}</span>
+                                      <span className="text-xs text-muted-foreground">F: {entry.role_fit_score}%</span>
                                     </div>
                                   </div>
                                   
@@ -545,7 +560,7 @@ export default function Matriz9Box() {
                           <p className="font-medium text-sm">{entry.employee_name}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-muted-foreground">P: {entry.performance_score}</span>
-                            <span className="text-xs text-muted-foreground">F: {entry.role_fit_score}</span>
+                            <span className="text-xs text-muted-foreground">F: {entry.role_fit_score}%</span>
                           </div>
                           {entry.notes && (
                             <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{entry.notes}</p>
