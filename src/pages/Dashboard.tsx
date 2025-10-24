@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp, Grid3x3, LogOut } from 'lucide-react';
+import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
@@ -115,13 +115,6 @@ export default function Dashboard() {
               <Button variant="outline" onClick={() => navigate('/profile-evolution')}>
                 <TrendingUp className="mr-2 h-4 w-4" />
                 Evolução de Perfil
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/resources')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Recursos
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/profile')}>
-                Perfil
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
