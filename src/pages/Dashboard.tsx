@@ -5,10 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut, Check, MessageCircle } from 'lucide-react';
+import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut, Check, MessageCircle, Users, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import grouLogo from '@/assets/grou-logo.webp';
 interface Module {
   id: string;
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [modules, setModules] = useState<Module[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useIsAdmin();
   const {
     needsPasswordChange,
     loading: passwordCheckLoading,
@@ -161,6 +163,18 @@ export default function Dashboard() {
                 <TrendingUp className="mr-2 h-4 w-4" />
                 Evolução de Perfil PDA
               </Button>
+              {isAdmin && (
+                <>
+                  <Button variant="outline" onClick={() => navigate('/admin/users')}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Gerenciar Usuários
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/admin/logs')}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Logs
+                  </Button>
+                </>
+              )}
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
