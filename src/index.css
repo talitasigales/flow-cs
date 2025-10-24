@@ -25,16 +25,16 @@ All colors MUST be HSL.
     --primary-foreground: 210 40% 98%;
     --primary-glow: 221 83% 63%;
 
-    /* Secondary - Cyan for evolution */
-    --secondary: 188 94% 45%;
+    /* Secondary - Neon purple for evolution */
+    --secondary: 280 90% 60%;
     --secondary-foreground: 210 40% 98%;
 
     /* Muted colors */
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    /* Accent - Gradient accent */
-    --accent: 188 94% 45%;
+    /* Accent - Neon purple accent */
+    --accent: 280 90% 60%;
     --accent-foreground: 210 40% 98%;
 
     /* Destructive colors */
@@ -54,14 +54,14 @@ All colors MUST be HSL.
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(188 94% 45%));
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(280 90% 60%));
     --gradient-card: linear-gradient(180deg, hsl(240 5% 11%), hsl(240 5% 9%));
     --gradient-subtle: linear-gradient(180deg, hsl(240 5% 13%), hsl(240 5% 11%));
 
     /* Shadows */
     --shadow-primary: 0 10px 40px -10px hsl(221 83% 53% / 0.4);
     --shadow-card: 0 4px 20px hsl(240 10% 3.9% / 0.5);
-    --shadow-glow: 0 0 30px hsl(188 94% 45% / 0.3);
+    --shadow-glow: 0 0 30px hsl(280 90% 60% / 0.3);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -77,11 +77,11 @@ All colors MUST be HSL.
     --popover-foreground: 240 10% 3.9%;
     --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 188 94% 45%;
+    --secondary: 280 90% 60%;
     --secondary-foreground: 210 40% 98%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 188 94% 45%;
+    --accent: 280 90% 60%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
