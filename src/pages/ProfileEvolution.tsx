@@ -53,8 +53,8 @@ export default function ProfileEvolution() {
   // Extract unique names and years
   const uniqueNames = useMemo(() => {
     const names = profiles
-      .map(p => p.analysis_result?.employee_name)
-      .filter((name): name is string => !!name);
+      .map(p => p.analysis_result?.employee_name || (p as any).employee_name)
+      .filter((name): name is string => !!name && name.trim() !== '');
     return Array.from(new Set(names));
   }, [profiles]);
 
@@ -66,7 +66,8 @@ export default function ProfileEvolution() {
   // Filter profiles
   const filteredProfiles = useMemo(() => {
     return profiles.filter(profile => {
-      const nameMatch = selectedName === 'all' || profile.analysis_result?.employee_name === selectedName;
+      const profileName = profile.analysis_result?.employee_name || (profile as any).employee_name;
+      const nameMatch = selectedName === 'all' || profileName === selectedName;
       const yearMatch = selectedYears.length === 0 || selectedYears.includes(profile.year);
       return nameMatch && yearMatch;
     });
@@ -670,7 +671,7 @@ export default function ProfileEvolution() {
                             {profile.year}
                           </CardTitle>
                           <CardDescription className="mt-1">
-                            {profile.analysis_result?.employee_name || 'Colaborador'}
+                            {profile.analysis_result?.employee_name || (profile as any).employee_name || 'Colaborador'}
                           </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
