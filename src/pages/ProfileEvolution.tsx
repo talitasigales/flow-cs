@@ -1732,7 +1732,7 @@ export default function ProfileEvolution() {
                         </tr>
                       </thead>
                       <tbody>
-                        {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia'].map((dimension, idx) => (
+                        {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((dimension, idx) => (
                           <tr key={dimension} className={idx % 2 === 0 ? 'bg-muted/20' : ''}>
                             <td className="py-3 px-4 font-medium sticky left-0 bg-inherit">
                               {getDimensionLabel(dimension)}

@@ -105,16 +105,22 @@ Forneça uma análise estruturada em seções:
 
 1. **Resumo Executivo**: Uma visão geral das mudanças mais significativas (2-3 parágrafos)
 
-2. **Análise REPNA Detalhada**: Para cada dimensão com mudança significativa, explique:
+2. **Análise REPNA Detalhada**: Para cada dimensão REPNA (R, E, P, N, A) com mudança significativa, explique:
    - O que a mudança significa
    - Possíveis causas ou contextos
    - Implicações práticas no ambiente profissional
 
-3. **Insights Comportamentais**: Padrões emergentes, tendências e correlações entre as dimensões
+3. **Análise de Indicadores Complementares**: Analise TODOS os indicadores complementares, com destaque especial para:
+   - **Modificação do Perfil**: SEMPRE incluir análise detalhada deste indicador
+   - Intensidade do Perfil
+   - Tomada de Decisões
+   - Energia e Equilíbrio de Energia
 
-4. **Recomendações**: Sugestões práticas baseadas na evolução observada
+4. **Insights Comportamentais**: Padrões emergentes, tendências e correlações entre as dimensões
 
-Use markdown para formatação e seja específico nos insights.`;
+5. **Recomendações**: Sugestões práticas baseadas na evolução observada
+
+Use markdown para formatação e seja específico nos insights. IMPORTANTE: Sempre incluir análise do indicador Modificação do Perfil.`;
 
     // Call Lovable AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
