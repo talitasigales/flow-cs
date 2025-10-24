@@ -9,59 +9,59 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Base colors */
-    --background: 240 10% 3.9%;
+    --background: 230 50% 15%;
     --foreground: 210 40% 98%;
 
     /* Card colors */
-    --card: 240 5% 11%;
+    --card: 230 45% 18%;
     --card-foreground: 210 40% 98%;
 
     /* Popover colors */
-    --popover: 240 5% 11%;
+    --popover: 230 45% 18%;
     --popover-foreground: 210 40% 98%;
 
-    /* Primary - Deep blue for trust */
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --primary-glow: 221 83% 63%;
+    /* Primary - Cyan light */
+    --primary: 180 100% 75%;
+    --primary-foreground: 230 50% 15%;
+    --primary-glow: 180 100% 85%;
 
-    /* Secondary - Neon purple for evolution */
-    --secondary: 280 90% 60%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary - Purple light */
+    --secondary: 270 70% 75%;
+    --secondary-foreground: 230 50% 15%;
 
     /* Muted colors */
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 230 40% 25%;
+    --muted-foreground: 220 20% 65%;
 
-    /* Accent - Neon purple accent */
-    --accent: 280 90% 60%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent - Purple light accent */
+    --accent: 270 70% 75%;
+    --accent-foreground: 230 50% 15%;
 
     /* Destructive colors */
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
     /* Border and input */
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 221 83% 53%;
+    --border: 230 40% 25%;
+    --input: 230 40% 25%;
+    --ring: 180 100% 75%;
 
     /* Success color */
-    --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
+    --success: 142 76% 50%;
+    --success-foreground: 230 50% 15%;
 
     /* Border radius */
     --radius: 0.75rem;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(280 90% 60%));
-    --gradient-card: linear-gradient(180deg, hsl(240 5% 11%), hsl(240 5% 9%));
-    --gradient-subtle: linear-gradient(180deg, hsl(240 5% 13%), hsl(240 5% 11%));
+    /* Gradients - Cyan to Purple */
+    --gradient-primary: linear-gradient(90deg, hsl(180 100% 75%), hsl(270 70% 75%));
+    --gradient-card: linear-gradient(180deg, hsl(230 45% 18%), hsl(230 50% 15%));
+    --gradient-subtle: linear-gradient(180deg, hsl(230 40% 20%), hsl(230 45% 18%));
 
     /* Shadows */
-    --shadow-primary: 0 10px 40px -10px hsl(221 83% 53% / 0.4);
-    --shadow-card: 0 4px 20px hsl(240 10% 3.9% / 0.5);
-    --shadow-glow: 0 0 30px hsl(280 90% 60% / 0.3);
+    --shadow-primary: 0 10px 40px -10px hsl(180 100% 75% / 0.3);
+    --shadow-card: 0 4px 20px hsl(230 50% 10% / 0.5);
+    --shadow-glow: 0 0 40px hsl(270 70% 75% / 0.4);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,24 +70,24 @@ All colors MUST be HSL.
 
   .light {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 230 50% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 230 50% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 280 90% 60%;
-    --secondary-foreground: 210 40% 98%;
+    --popover-foreground: 230 50% 15%;
+    --primary: 180 100% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 70% 50%;
+    --secondary-foreground: 0 0% 100%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 280 90% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 70% 50%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 221 83% 53%;
+    --ring: 180 100% 40%;
   }
 }
 
