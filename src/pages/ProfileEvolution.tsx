@@ -28,6 +28,7 @@ export default function ProfileEvolution() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
+    employee_name: '',
     year: new Date().getFullYear(),
     r: 50,
     e: 50,
@@ -73,6 +74,11 @@ export default function ProfileEvolution() {
   };
 
   const handleSubmit = async () => {
+    if (!formData.employee_name.trim()) {
+      toast.error('Nome é obrigatório');
+      return;
+    }
+
     if (!formData.year) {
       toast.error('Ano é obrigatório');
       return;
@@ -88,6 +94,7 @@ export default function ProfileEvolution() {
     try {
       const { error } = await supabase.from('profile_evolution').insert({
         user_id: user?.id,
+        employee_name: formData.employee_name,
         year: formData.year,
         analysis_result: {
           r: formData.r,
@@ -133,6 +140,7 @@ export default function ProfileEvolution() {
 
   const resetForm = () => {
     setFormData({
+      employee_name: '',
       year: new Date().getFullYear(),
       r: 50,
       e: 50,
@@ -257,6 +265,19 @@ export default function ProfileEvolution() {
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
+                    <Label htmlFor="employee_name">Nome do Colaborador</Label>
+                    <Input
+                      id="employee_name"
+                      type="text"
+                      value={formData.employee_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, employee_name: e.target.value })
+                      }
+                      placeholder="Ex: João Silva"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="year">Ano</Label>
                     <Input
                       id="year"
@@ -272,7 +293,7 @@ export default function ProfileEvolution() {
 
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                     <div className="space-y-2">
-                      <Label htmlFor="r">R (Risco): {formData.r}</Label>
+                      <Label htmlFor="r">R (Risco) (0-100)</Label>
                       <Input
                         id="r"
                         type="number"
@@ -286,7 +307,7 @@ export default function ProfileEvolution() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="e">E (Extroversão): {formData.e}</Label>
+                      <Label htmlFor="e">E (Extroversão) (0-100)</Label>
                       <Input
                         id="e"
                         type="number"
@@ -300,7 +321,7 @@ export default function ProfileEvolution() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="p">P (Paciência): {formData.p}</Label>
+                      <Label htmlFor="p">P (Paciência) (0-100)</Label>
                       <Input
                         id="p"
                         type="number"
@@ -314,7 +335,7 @@ export default function ProfileEvolution() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="n">N (Normas): {formData.n}</Label>
+                      <Label htmlFor="n">N (Normas) (0-100)</Label>
                       <Input
                         id="n"
                         type="number"
@@ -328,7 +349,7 @@ export default function ProfileEvolution() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="a">A (Autocontrole): {formData.a}</Label>
+                      <Label htmlFor="a">A (Autocontrole) (0-100)</Label>
                       <Input
                         id="a"
                         type="number"
@@ -346,7 +367,7 @@ export default function ProfileEvolution() {
                       
                       <div className="space-y-2">
                         <Label htmlFor="tomada_decisoes">
-                          Tomada de Decisões: {formData.tomada_decisoes}
+                          Tomada de Decisões (0-100)
                         </Label>
                         <Input
                           id="tomada_decisoes"
@@ -365,7 +386,7 @@ export default function ProfileEvolution() {
 
                       <div className="space-y-2 mt-3">
                         <Label htmlFor="intensidade_perfil">
-                          Intensidade do Perfil: {formData.intensidade_perfil}
+                          Intensidade do Perfil (0-100)
                         </Label>
                         <Input
                           id="intensidade_perfil"
@@ -383,7 +404,7 @@ export default function ProfileEvolution() {
                       </div>
 
                       <div className="space-y-2 mt-3">
-                        <Label htmlFor="energia">Energia: {formData.energia}</Label>
+                        <Label htmlFor="energia">Energia (0-100)</Label>
                         <Input
                           id="energia"
                           type="number"
@@ -401,7 +422,7 @@ export default function ProfileEvolution() {
 
                       <div className="space-y-2 mt-3">
                         <Label htmlFor="equilibrio_energia">
-                          Equilíbrio de Energia: {formData.equilibrio_energia}
+                          Equilíbrio de Energia (0-100)
                         </Label>
                         <Input
                           id="equilibrio_energia"
@@ -420,7 +441,7 @@ export default function ProfileEvolution() {
 
                       <div className="space-y-2 mt-3">
                         <Label htmlFor="modificacao_perfil">
-                          Modificação do Perfil: {formData.modificacao_perfil}
+                          Modificação do Perfil (0-100)
                         </Label>
                         <Input
                           id="modificacao_perfil"

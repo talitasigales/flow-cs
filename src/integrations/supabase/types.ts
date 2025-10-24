@@ -78,6 +78,7 @@ export type Database = {
         Row: {
           analysis_result: Json | null
           created_at: string | null
+          employee_name: string | null
           file_url: string | null
           id: string
           user_id: string
@@ -86,6 +87,7 @@ export type Database = {
         Insert: {
           analysis_result?: Json | null
           created_at?: string | null
+          employee_name?: string | null
           file_url?: string | null
           id?: string
           user_id: string
@@ -94,6 +96,7 @@ export type Database = {
         Update: {
           analysis_result?: Json | null
           created_at?: string | null
+          employee_name?: string | null
           file_url?: string | null
           id?: string
           user_id?: string
