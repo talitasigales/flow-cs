@@ -220,7 +220,7 @@ export default function Dashboard() {
                           </h4>
                         </div>
                         <p className="text-muted-foreground mb-4">
-                          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                          {module.description || 'Descrição não disponível'}
                         </p>
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-4 text-sm">
