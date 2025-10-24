@@ -280,9 +280,15 @@ export default function Matriz9Box() {
                       step="0.01"
                       value={formData.performance_score} 
                       onChange={e => {
+                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        setFormData({...formData, performance_score: val});
+                      }}
+                      onBlur={e => {
                         const val = parseFloat(e.target.value);
-                        if (!isNaN(val) && val >= 0 && val <= 100) {
-                          setFormData({...formData, performance_score: val});
+                        if (isNaN(val) || val < 0) {
+                          setFormData({...formData, performance_score: 0});
+                        } else if (val > 100) {
+                          setFormData({...formData, performance_score: 100});
                         }
                       }}
                       placeholder="Ex: 85"
@@ -300,9 +306,15 @@ export default function Matriz9Box() {
                       max="100"
                       value={formData.role_fit_score} 
                       onChange={e => {
+                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                        setFormData({...formData, role_fit_score: val});
+                      }}
+                      onBlur={e => {
                         const val = parseInt(e.target.value);
-                        if (!isNaN(val) && val >= 0 && val <= 100) {
-                          setFormData({...formData, role_fit_score: val});
+                        if (isNaN(val) || val < 0) {
+                          setFormData({...formData, role_fit_score: 0});
+                        } else if (val > 100) {
+                          setFormData({...formData, role_fit_score: 100});
                         }
                       }}
                       placeholder="Ex: 75"
