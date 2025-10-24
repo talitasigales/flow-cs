@@ -189,7 +189,7 @@ export default function Module() {
                 Módulo {module.module_order}
               </h1>
               <p className="text-lg text-muted-foreground">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                {module.description || 'Descrição não disponível'}
               </p>
             </div>
             {progress?.completed && <div className="flex items-center gap-2 text-success">
