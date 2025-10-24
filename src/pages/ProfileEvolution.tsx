@@ -17,6 +17,7 @@ import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2, Filt
 import { toast } from 'sonner';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import { EditProfileDialog } from '@/components/EditProfileDialog';
+import { AIAnalysis } from '@/components/AIAnalysis';
 
 interface ProfileEvolution {
   id: string;
@@ -1411,6 +1412,27 @@ export default function ProfileEvolution() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* AI-Generated Analysis Section */}
+              {selectedYearA && selectedYearB && (
+                <Card className="gradient-card border-border/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Análise Comportamental por IA
+                    </CardTitle>
+                    <CardDescription>
+                      Análise profissional gerada pela Nanda usando a base de conhecimento PDA
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AIAnalysis 
+                      profileA={profiles.find(p => p.year === selectedYearA)} 
+                      profileB={profiles.find(p => p.year === selectedYearB)}
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
               {/* REPNA Dimension Cards */}
               <Card className="gradient-card border-border/50">

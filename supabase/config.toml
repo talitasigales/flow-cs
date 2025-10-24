@@ -1,5 +1,8 @@
 project_id = "gvzifvllfplxdtvhohjo"
 
+[functions.analyze-profile]
+verify_jwt = false
+
 [functions.nanda-chat]
 verify_jwt = false
 
