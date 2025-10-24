@@ -619,7 +619,7 @@ export default function ProfileEvolution() {
                           <div className="space-y-4 pt-4 border-t border-border">
                             <h4 className="font-semibold text-sm flex items-center gap-2">
                               <TrendingUp className="h-4 w-4" />
-                              Análise Complementar
+                              Indicadores
                             </h4>
                             <div className="grid gap-3">
                               {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
