@@ -105,7 +105,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img src={grouLogo} alt="Grou Logo" className="h-8" />
-              <h1 className="gradient-text font-bold text-2xl">Plataforma de Sucesso da Grou</h1>
+              <h1 className="gradient-text font-bold text-2xl">Plataforma de Sucesso do Cliente</h1>
             </div>
             <div className="flex items-center gap-4">
               <Button variant="outline" onClick={() => navigate('/matriz-9box')}>
