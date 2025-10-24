@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ArrowRight, CheckCircle2, Download, Play, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { ModuleMaterials } from '@/components/ModuleMaterials';
 interface Module {
   id: string;
   title: string;
@@ -254,6 +255,11 @@ export default function Module() {
               </div>
             </CardContent>
           </Card>}
+
+        {/* New Module Materials Library */}
+        <div className="mb-8">
+          <ModuleMaterials moduleId={moduleId!} />
+        </div>
 
         {/* Complete Module Section */}
         {!progress?.completed && <Card className="mb-8 border-primary/50 bg-primary/5">
