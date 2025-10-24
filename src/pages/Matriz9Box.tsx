@@ -185,10 +185,8 @@ export default function Matriz9Box() {
     );
   };
 
-  const getCategoryForScore = (performance: number, roleFit: number) => {
-    const perfLevel = getScoreLevel(performance);
-    const fitLevel = getScoreLevel(roleFit);
-    return CATEGORIES.find(cat => cat.performance === perfLevel && cat.roleFit === fitLevel);
+  const getCategoryForScore = (performanceLevel: number, roleFitLevel: number) => {
+    return CATEGORIES.find(cat => cat.performance === performanceLevel && cat.roleFit === roleFitLevel);
   };
 
   const getInitials = (name: string) => {
@@ -203,12 +201,12 @@ export default function Matriz9Box() {
   const getCountByCategory = (categoryName: string | string[]) => {
     if (Array.isArray(categoryName)) {
       return entries.filter(e => {
-        const cat = getCategoryForScore(e.performance_score, e.role_fit_score);
+        const cat = getCategoryForScore(getScoreLevel(e.performance_score), getScoreLevel(e.role_fit_score));
         return cat && categoryName.includes(cat.name);
       }).length;
     }
     return entries.filter(e => {
-      const cat = getCategoryForScore(e.performance_score, e.role_fit_score);
+      const cat = getCategoryForScore(getScoreLevel(e.performance_score), getScoreLevel(e.role_fit_score));
       return cat?.name === categoryName;
     }).length;
   };
