@@ -9,6 +9,7 @@ import { CheckCircle2, Circle, Play, FileText, Calendar, TrendingUp, Grid3x3, Lo
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
+import grouLogo from '@/assets/grou-logo.webp';
 interface Module {
   id: string;
   title: string;
@@ -103,6 +104,7 @@ export default function Dashboard() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <img src={grouLogo} alt="Grou Logo" className="h-8" />
               <h1 className="gradient-text font-bold text-2xl">Plataforma de Sucesso da Grou</h1>
             </div>
             <div className="flex items-center gap-4">
