@@ -95,13 +95,16 @@ export const ChatbotNanda = () => {
       {/* Floating Button */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg gradient-primary z-50"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg gradient-primary z-50 p-0 overflow-hidden"
         size="icon"
       >
         {isOpen ? (
           <X className="h-6 w-6" />
         ) : (
-          <MessageCircle className="h-6 w-6" />
+          <Avatar className="h-14 w-14">
+            <AvatarImage src={nandaAvatar} alt="Nanda" />
+            <AvatarFallback>N</AvatarFallback>
+          </Avatar>
         )}
       </Button>
 
@@ -110,7 +113,10 @@ export const ChatbotNanda = () => {
         <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 gradient-card border-border/50 flex flex-col">
           <CardHeader className="border-b border-border/50">
             <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={nandaAvatar} alt="Nanda" />
+                <AvatarFallback>N</AvatarFallback>
+              </Avatar>
               Nanda - Assistente PDA
             </CardTitle>
           </CardHeader>
