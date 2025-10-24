@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, TrendingUp } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
+import grouLogo from '@/assets/grou-logo.webp';
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -86,9 +87,9 @@ export default function Auth() {
       <div className="flex-1 flex items-center justify-center p-8">
         <Card className="w-full max-w-md gradient-card border-border/50">
           <CardHeader className="space-y-1">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-8 w-8 text-primary" />
-              <h2 className="text-2xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <img src={grouLogo} alt="Grou Logo" className="h-10 w-10" />
+              <h2 className="text-xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
             </div>
             <CardTitle className="text-2xl">
               {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
