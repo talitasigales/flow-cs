@@ -31,7 +31,11 @@ export default function Dashboard() {
   const [modules, setModules] = useState<Module[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const { needsPasswordChange, loading: passwordCheckLoading, refetch } = usePasswordCheck();
+  const {
+    needsPasswordChange,
+    loading: passwordCheckLoading,
+    refetch
+  } = usePasswordCheck();
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
@@ -73,7 +77,9 @@ export default function Dashboard() {
   };
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const {
+        error
+      } = await supabase.auth.signOut();
       if (error) throw error;
       navigate('/auth');
     } catch (error) {
@@ -81,19 +87,15 @@ export default function Dashboard() {
       toast.error('Erro ao sair');
     }
   };
-
   if (authLoading || loading || passwordCheckLoading) {
     return <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>;
   }
-  
   if (needsPasswordChange) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <ChangePasswordDialog onPasswordChanged={refetch} />
-      </div>
-    );
+      </div>;
   }
   return <div className="min-h-screen bg-background">
       {/* Header */}
@@ -102,7 +104,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <TrendingUp className="h-8 w-8 text-primary" />
-              <h1 className="gradient-text font-bold text-2xl">Flow: plataforma de sucesso contínuo da Grou </h1>
+              <h1 className="gradient-text font-bold text-2xl">Plataforma de Sucesso da Grou</h1>
             </div>
             <div className="flex items-center gap-4">
               <Button variant="outline" onClick={() => navigate('/matriz-9box')}>
