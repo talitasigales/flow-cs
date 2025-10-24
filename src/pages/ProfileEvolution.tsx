@@ -1205,8 +1205,8 @@ export default function ProfileEvolution() {
                           <BarChart className="h-4 w-4" />
                           Diferenças - Indicadores Complementares
                         </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia'].map((dim) => {
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                          {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((dim) => {
                             const profileA = profiles.find(p => p.year === selectedYearA);
                             const profileB = profiles.find(p => p.year === selectedYearB);
                             const valueA = profileA?.analysis_result?.[dim] || 0;
