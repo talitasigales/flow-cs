@@ -151,7 +151,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <Button variant="outline" onClick={() => navigate('/chat-nanda')}>
                 <MessageCircle className="mr-2 h-4 w-4" />
-                Chat Nanda
+                Fale com a Nanda, especialista PDA
               </Button>
               <Button variant="outline" onClick={() => navigate('/matriz-9box')}>
                 <Grid3x3 className="mr-2 h-4 w-4" />
