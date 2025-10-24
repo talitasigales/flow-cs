@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
-import grouLogo from '@/assets/grou-logo.webp';
+import grouLogo from '@/assets/grou-logo-verde.webp';
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,7 +88,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-6">
           {/* Logo and Title above the card */}
           <div className="flex flex-col items-center gap-4">
-            <img src={grouLogo} alt="Grou Logo" className="h-16 w-16" />
+            <img src={grouLogo} alt="Grou Logo" className="h-20 w-auto" />
             <h2 className="text-3xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
           </div>
           
