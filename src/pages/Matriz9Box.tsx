@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Plus, Trash2, Edit, Info, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Info, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -57,12 +57,19 @@ export default function Matriz9Box() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<MatrizEntry | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [formData, setFormData] = useState({
     employee_name: '',
     performance_score: 50,
     role_fit_score: 50,
     notes: ''
   });
+
+  // Get unique employee names for filter dropdown
+  const employeeNames = useMemo(() => {
+    const names = new Set(entries.map(e => e.employee_name));
+    return Array.from(names).sort();
+  }, [entries]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -174,9 +181,14 @@ export default function Matriz9Box() {
     });
   };
 
-  const filteredEntries = entries.filter(entry => 
-    entry.employee_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter entries by search term and selected employee
+  const filteredEntries = useMemo(() => {
+    return entries.filter(entry => {
+      const matchesSearch = entry.employee_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesEmployee = selectedEmployee === 'all' || entry.employee_name === selectedEmployee;
+      return matchesSearch && matchesEmployee;
+    });
+  }, [entries, searchTerm, selectedEmployee]);
 
   const getEntriesForCell = (performance: number, roleFit: number) => {
     return filteredEntries.filter(e => 
@@ -200,21 +212,21 @@ export default function Matriz9Box() {
 
   const getCountByCategory = (categoryName: string | string[]) => {
     if (Array.isArray(categoryName)) {
-      return entries.filter(e => {
+      return filteredEntries.filter(e => {
         const cat = getCategoryForScore(getScoreLevel(e.performance_score), getScoreLevel(e.role_fit_score));
         return cat && categoryName.includes(cat.name);
       }).length;
     }
-    return entries.filter(e => {
+    return filteredEntries.filter(e => {
       const cat = getCategoryForScore(getScoreLevel(e.performance_score), getScoreLevel(e.role_fit_score));
       return cat?.name === categoryName;
     }).length;
   };
 
   const calculateAveragePerformance = () => {
-    if (entries.length === 0) return '0';
-    const sum = entries.reduce((acc, e) => acc + e.performance_score, 0);
-    return (sum / entries.length).toFixed(1);
+    if (filteredEntries.length === 0) return '0';
+    const sum = filteredEntries.reduce((acc, e) => acc + e.performance_score, 0);
+    return (sum / filteredEntries.length).toFixed(1);
   };
 
   if (authLoading || loading) {
@@ -353,8 +365,10 @@ export default function Matriz9Box() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-3xl font-bold">{entries.length}</p>
-              <p className="text-sm text-muted-foreground">Total de Colaboradores</p>
+              <p className="text-3xl font-bold">{filteredEntries.length}</p>
+              <p className="text-sm text-muted-foreground">
+                {selectedEmployee === 'all' && !searchTerm ? 'Total de Colaboradores' : 'Colaboradores Filtrados'}
+              </p>
             </CardContent>
           </Card>
           <Card className="border-emerald-500/50">
@@ -379,18 +393,60 @@ export default function Matriz9Box() {
           </Card>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar colaborador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+        {/* Filters */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Filter className="h-5 w-5" />
+              Filtros
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Search by name */}
+              <div className="space-y-2">
+                <Label htmlFor="search">Buscar por Nome</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Buscar colaborador..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Filter by employee */}
+              <div className="space-y-2">
+                <Label htmlFor="employee-filter">Filtrar por Colaborador</Label>
+                <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                  <SelectTrigger id="employee-filter">
+                    <SelectValue placeholder="Selecione um colaborador" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Colaboradores</SelectItem>
+                    {employeeNames.map(name => (
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Filter summary */}
+            {(searchTerm || selectedEmployee !== 'all') && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground">
+                  Exibindo {filteredEntries.length} de {entries.length} colaboradores
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Info Card */}
         <Card className="mb-6 border-primary/50 bg-primary/5">
