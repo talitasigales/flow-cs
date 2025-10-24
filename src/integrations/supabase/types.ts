@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      knowledge_base: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          keywords: string[] | null
+          metadata: Json | null
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          keywords?: string[] | null
+          metadata?: Json | null
+          title: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          keywords?: string[] | null
+          metadata?: Json | null
+          title?: string
+        }
+        Relationships: []
+      }
       matriz_9box: {
         Row: {
           created_at: string | null
