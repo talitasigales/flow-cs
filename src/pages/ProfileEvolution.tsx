@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2, Filter, X } from 'lucide-react';
+import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2, Filter, X, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import { EditProfileDialog } from '@/components/EditProfileDialog';
@@ -34,6 +34,8 @@ export default function ProfileEvolution() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedName, setSelectedName] = useState<string>('all');
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [selectedYearA, setSelectedYearA] = useState<number | null>(null);
+  const [selectedYearB, setSelectedYearB] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     employee_name: '',
     year: new Date().getFullYear(),
@@ -62,6 +64,16 @@ export default function ProfileEvolution() {
     const years = profiles.map(p => p.year);
     return Array.from(new Set(years)).sort((a, b) => a - b);
   }, [profiles]);
+
+  // Set default comparison years (two most recent)
+  useEffect(() => {
+    if (uniqueYears.length >= 2 && !selectedYearA && !selectedYearB) {
+      setSelectedYearA(uniqueYears[uniqueYears.length - 2]);
+      setSelectedYearB(uniqueYears[uniqueYears.length - 1]);
+    } else if (uniqueYears.length === 1 && !selectedYearA) {
+      setSelectedYearA(uniqueYears[0]);
+    }
+  }, [uniqueYears, selectedYearA, selectedYearB]);
 
   // Filter profiles
   const filteredProfiles = useMemo(() => {
@@ -279,6 +291,45 @@ export default function ProfileEvolution() {
     return values.length > 0
       ? Math.round(values.reduce((a, b) => a + b, 0) / values.length)
       : 0;
+  };
+
+  // Helper function to calculate delta
+  const calculateDelta = (yearA: number | null, yearB: number | null, dimension: string) => {
+    if (!yearA || !yearB) return { value: 0, percentage: 0, trend: 'neutral' as const };
+    
+    const profileA = profiles.find(p => p.year === yearA);
+    const profileB = profiles.find(p => p.year === yearB);
+    
+    if (!profileA?.analysis_result || !profileB?.analysis_result) return { value: 0, percentage: 0, trend: 'neutral' as const };
+    
+    const valueA = profileA.analysis_result[dimension] || 0;
+    const valueB = profileB.analysis_result[dimension] || 0;
+    const diff = valueB - valueA;
+    const percentage = valueA !== 0 ? Math.round((diff / valueA) * 100) : 0;
+    
+    return {
+      value: diff,
+      percentage,
+      trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'neutral'
+    };
+  };
+
+  // Prepare radar chart data
+  const getRadarData = () => {
+    if (!selectedYearA && !selectedYearB) return [];
+    
+    const dimensions = ['r', 'e', 'p', 'n', 'a'];
+    
+    return dimensions.map(dim => {
+      const profileA = profiles.find(p => p.year === selectedYearA);
+      const profileB = profiles.find(p => p.year === selectedYearB);
+      
+      return {
+        dimension: getDimensionLabel(dim),
+        [selectedYearA || 'A']: profileA?.analysis_result?.[dim] || 0,
+        [selectedYearB || 'B']: profileB?.analysis_result?.[dim] || 0,
+      };
+    });
   };
 
   if (authLoading || loading) {
@@ -1016,49 +1067,253 @@ export default function ProfileEvolution() {
                 <CardHeader>
                   <CardTitle>Comparação Entre Anos</CardTitle>
                   <CardDescription>
-                    Visualize a evolução dos seus scores PDA
+                    Compare dois anos específicos e visualize as diferenças
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map(
-                      (dimension) => (
-                        <div key={dimension} className="space-y-3">
-                          <h4 className="font-semibold text-sm">
-                            {getDimensionLabel(dimension)}
-                          </h4>
-                          <div className="space-y-2">
-                            {profiles.map((profile) => {
-                              const value =
-                                profile.analysis_result?.[
-                                  dimension as keyof typeof profile.analysis_result
-                                ] as number;
-                              if (!value) return null;
-                              return (
-                                <div
-                                  key={profile.id}
-                                  className="flex items-center gap-4"
-                                >
-                                  <span className="text-sm font-medium w-16">
-                                    {profile.year}
-                                  </span>
-                                  <div className="flex-1">
-                                    <Progress
-                                      value={value}
-                                      className={`h-6 ${getProfileColor(dimension)}`}
-                                    />
-                                  </div>
-                                  <span className="text-sm text-muted-foreground w-12 text-right">
-                                    {value}%
-                                  </span>
-                                </div>
-                              );
-                            })}
+                <CardContent className="space-y-6">
+                  {/* Year Selectors */}
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <span className="text-sm font-medium">Comparar:</span>
+                    <Select
+                      value={selectedYearA?.toString() || ''}
+                      onValueChange={(value) => setSelectedYearA(parseInt(value))}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Ano base" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueYears.map(year => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm font-medium">vs</span>
+                    <Select
+                      value={selectedYearB?.toString() || ''}
+                      onValueChange={(value) => setSelectedYearB(parseInt(value))}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Ano comparação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueYears.map(year => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {selectedYearA && selectedYearB && (
+                    <>
+                      {/* Radar Chart */}
+                      <div className="bg-muted/20 rounded-lg p-6">
+                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                          <BarChart className="h-4 w-4" />
+                          Gráfico Comparativo REPNA
+                        </h4>
+                        <ResponsiveContainer width="100%" height={400}>
+                          <RadarChart data={getRadarData()}>
+                            <PolarGrid stroke="hsl(var(--border))" />
+                            <PolarAngleAxis 
+                              dataKey="dimension" 
+                              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                            />
+                            <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                            <Radar
+                              name={selectedYearA.toString()}
+                              dataKey={selectedYearA.toString()}
+                              stroke="hsl(var(--primary))"
+                              fill="hsl(var(--primary))"
+                              fillOpacity={0.3}
+                              strokeWidth={2}
+                            />
+                            <Radar
+                              name={selectedYearB.toString()}
+                              dataKey={selectedYearB.toString()}
+                              stroke="#22c55e"
+                              fill="#22c55e"
+                              fillOpacity={0.3}
+                              strokeWidth={2}
+                            />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                        <div className="flex items-center justify-center gap-6 mt-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded-full bg-primary" />
+                            <span className="text-sm font-medium">{selectedYearA}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded-full bg-[#22c55e]" />
+                            <span className="text-sm font-medium">{selectedYearB}</span>
                           </div>
                         </div>
-                      )
-                    )}
-                  </div>
+                      </div>
+
+                      {/* Delta Cards - REPNA */}
+                      <div>
+                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          Diferenças - Perfil REPNA
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                          {['r', 'e', 'p', 'n', 'a'].map((dim) => {
+                            const profileA = profiles.find(p => p.year === selectedYearA);
+                            const profileB = profiles.find(p => p.year === selectedYearB);
+                            const valueA = profileA?.analysis_result?.[dim] || 0;
+                            const valueB = profileB?.analysis_result?.[dim] || 0;
+                            const delta = calculateDelta(selectedYearA, selectedYearB, dim);
+                            
+                            return (
+                              <Card key={dim} className="p-4 border-border/50">
+                                <div className="text-center space-y-2">
+                                  <div className="text-2xl font-bold" style={{ color: getProfileColorHex(dim) }}>
+                                    {dim.toUpperCase()}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {valueA} → {valueB}
+                                  </div>
+                                  <div className={`flex items-center justify-center gap-1 text-sm font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-4 w-4" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-4 w-4" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-4 w-4" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                  </div>
+                                  {delta.percentage !== 0 && (
+                                    <div className="text-xs text-muted-foreground">
+                                      ({delta.percentage > 0 ? '+' : ''}{delta.percentage}%)
+                                    </div>
+                                  )}
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Delta Cards - Indicadores Complementares */}
+                      <div>
+                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                          <BarChart className="h-4 w-4" />
+                          Diferenças - Indicadores Complementares
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia'].map((dim) => {
+                            const profileA = profiles.find(p => p.year === selectedYearA);
+                            const profileB = profiles.find(p => p.year === selectedYearB);
+                            const valueA = profileA?.analysis_result?.[dim] || 0;
+                            const valueB = profileB?.analysis_result?.[dim] || 0;
+                            const delta = calculateDelta(selectedYearA, selectedYearB, dim);
+                            
+                            return (
+                              <Card key={dim} className="p-4 border-border/50">
+                                <div className="space-y-2">
+                                  <div className="text-sm font-medium line-clamp-2">
+                                    {getDimensionLabel(dim)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {valueA} → {valueB}
+                                  </div>
+                                  <div className={`flex items-center gap-1 text-sm font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-4 w-4" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-4 w-4" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-4 w-4" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                    {delta.percentage !== 0 && (
+                                      <span className="text-xs">
+                                        ({delta.percentage > 0 ? '+' : ''}{delta.percentage}%)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Simplified Comparison Table */}
+                      <div className="bg-muted/20 rounded-lg p-6">
+                        <h4 className="font-semibold mb-4">Tabela Comparativa Simplificada</h4>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-border">
+                                <th className="text-left py-3 px-4 font-semibold">Dimensão</th>
+                                <th className="text-center py-3 px-4 font-semibold">{selectedYearA}</th>
+                                <th className="text-center py-3 px-4 font-semibold">{selectedYearB}</th>
+                                <th className="text-center py-3 px-4 font-semibold">Variação</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {['r', 'e', 'p', 'n', 'a', 'tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((dimension, idx) => {
+                                const profileA = profiles.find(p => p.year === selectedYearA);
+                                const profileB = profiles.find(p => p.year === selectedYearB);
+                                const valueA = profileA?.analysis_result?.[dimension] || 0;
+                                const valueB = profileB?.analysis_result?.[dimension] || 0;
+                                const delta = calculateDelta(selectedYearA, selectedYearB, dimension);
+                                const isSignificant = Math.abs(delta.value) >= 10;
+                                
+                                return (
+                                  <tr 
+                                    key={dimension} 
+                                    className={`${idx % 2 === 0 ? 'bg-muted/30' : ''} ${isSignificant ? 'border-l-4 border-primary' : ''}`}
+                                  >
+                                    <td className="py-3 px-4 font-medium">
+                                      {getDimensionLabel(dimension)}
+                                    </td>
+                                    <td className="text-center py-3 px-4">
+                                      <span className="inline-flex items-center justify-center w-12 h-8 rounded bg-primary/10 text-foreground font-semibold">
+                                        {valueA}
+                                      </span>
+                                    </td>
+                                    <td className="text-center py-3 px-4">
+                                      <span className="inline-flex items-center justify-center w-12 h-8 rounded bg-primary/10 text-foreground font-semibold">
+                                        {valueB}
+                                      </span>
+                                    </td>
+                                    <td className="text-center py-3 px-4">
+                                      <div className={`inline-flex items-center gap-1 font-semibold ${
+                                        delta.trend === 'up' ? 'text-green-500' : 
+                                        delta.trend === 'down' ? 'text-red-500' : 
+                                        'text-muted-foreground'
+                                      }`}>
+                                        {delta.trend === 'up' && <ArrowUp className="h-3 w-3" />}
+                                        {delta.trend === 'down' && <ArrowDown className="h-3 w-3" />}
+                                        {delta.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                                        {delta.value > 0 ? '+' : ''}{delta.value}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-4">
+                          * Linhas destacadas indicam variações significativas (≥10 pontos)
+                        </p>
+                      </div>
+                    </>
+                  )}
+
+                  {(!selectedYearA || !selectedYearB) && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <BarChart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Selecione dois anos para visualizar a comparação</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
