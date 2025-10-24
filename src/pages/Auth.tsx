@@ -150,7 +150,7 @@ export default function Auth() {
             </div>
             <div className="glass-morphism p-6 rounded-lg">
               <p className="text-3xl font-bold">+4</p>
-              <p className="text-sm">recursos</p>
+              <p className="text-sm">ferramentas gratuitas</p>
             </div>
           </div>
         </div>
