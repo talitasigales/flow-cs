@@ -14,6 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
+import { EditProfileDialog } from '@/components/EditProfileDialog';
 
 interface ProfileEvolution {
   id: string;
@@ -559,14 +560,34 @@ export default function ProfileEvolution() {
                             {profile.analysis_result?.employee_name || 'Colaborador'}
                           </CardDescription>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDelete(profile.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {profile.analysis_result && (
+                            <EditProfileDialog
+                              profileId={profile.id}
+                              currentData={{
+                                r: profile.analysis_result.r || 0,
+                                e: profile.analysis_result.e || 0,
+                                p: profile.analysis_result.p || 0,
+                                n: profile.analysis_result.n || 0,
+                                a: profile.analysis_result.a || 0,
+                                tomada_decisoes: profile.analysis_result.tomada_decisoes || 0,
+                                intensidade_perfil: profile.analysis_result.intensidade_perfil || 0,
+                                energia: profile.analysis_result.energia || 0,
+                                equilibrio_energia: profile.analysis_result.equilibrio_energia || 0,
+                                modificacao_perfil: profile.analysis_result.modificacao_perfil || 0,
+                              }}
+                              onSuccess={fetchProfiles}
+                            />
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDelete(profile.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-6">
