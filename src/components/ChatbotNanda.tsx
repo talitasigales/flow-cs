@@ -27,11 +27,6 @@ export const ChatbotNanda = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Não renderizar se o usuário não estiver autenticado
-  if (!user) {
-    return null;
-  }
-
   useEffect(() => {
     // Atualizar base de conhecimento com REPNA correto
     const updateKnowledge = async () => {
@@ -96,6 +91,11 @@ export const ChatbotNanda = () => {
       setIsLoading(false);
     }
   };
+
+  // Não renderizar se o usuário não estiver autenticado
+  if (!user) {
+    return null;
+  }
 
   return (
     <>
