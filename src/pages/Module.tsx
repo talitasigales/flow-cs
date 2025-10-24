@@ -171,7 +171,7 @@ export default function Module() {
             </Button>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                Passo {module.module_order} de {allModules.length}
+                Módulo {module.module_order} de {allModules.length}
               </span>
               <Progress value={module.module_order / allModules.length * 100} className="w-24" />
             </div>
@@ -185,7 +185,7 @@ export default function Module() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-4xl font-bold gradient-text mb-2">
-                Passo {module.module_order}
+                Módulo {module.module_order}
               </h1>
               <p className="text-lg text-muted-foreground">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
@@ -282,7 +282,7 @@ export default function Module() {
             Ver Todos os Módulos
           </Button>
           <Button variant="outline" onClick={() => navigateToModule('next')} disabled={!hasNext}>
-            Próximo passo
+            Próximo módulo
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

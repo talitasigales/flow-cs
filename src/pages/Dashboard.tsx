@@ -142,7 +142,7 @@ export default function Dashboard() {
             <CardTitle>PROGRESSO GERAL</CardTitle>
             <CardDescription>
               Você completou {progress.filter(p => p.completed).length} de{' '}
-              {modules.length} passos
+              {modules.length} módulos
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -172,7 +172,7 @@ export default function Dashboard() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-xl font-semibold">
-                            Passo {module.module_order}
+                            Módulo {module.module_order}
                           </h4>
                         </div>
                         <p className="text-muted-foreground mb-4">

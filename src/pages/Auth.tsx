@@ -141,11 +141,11 @@ export default function Auth() {
           <h1 className="text-5xl font-bold mb-6">
             Evolua Continuamente
           </h1>
-          <p className="text-xl mb-8 max-w-md">Acompanhe sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 passos essenciais</p>
+          <p className="text-xl mb-8 max-w-md">Acompanhe sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais</p>
           <div className="grid grid-cols-2 gap-6 max-w-lg">
             <div className="glass-morphism p-4 rounded-lg">
               <p className="text-3xl font-bold">6</p>
-              <p className="text-sm">passos</p>
+              <p className="text-sm">módulos</p>
             </div>
             <div className="glass-morphism p-4 rounded-lg">
               <p className="text-3xl font-bold">+4</p>
