@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import { EditProfileDialog } from '@/components/EditProfileDialog';
@@ -30,6 +32,8 @@ export default function ProfileEvolution() {
   const [profiles, setProfiles] = useState<ProfileEvolution[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedName, setSelectedName] = useState<string>('all');
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
   const [formData, setFormData] = useState({
     employee_name: '',
     year: new Date().getFullYear(),
@@ -45,6 +49,41 @@ export default function ProfileEvolution() {
     modificacao_perfil: 50,
     notes: '',
   });
+
+  // Extract unique names and years
+  const uniqueNames = useMemo(() => {
+    const names = profiles
+      .map(p => p.analysis_result?.employee_name)
+      .filter((name): name is string => !!name);
+    return Array.from(new Set(names));
+  }, [profiles]);
+
+  const uniqueYears = useMemo(() => {
+    const years = profiles.map(p => p.year);
+    return Array.from(new Set(years)).sort((a, b) => a - b);
+  }, [profiles]);
+
+  // Filter profiles
+  const filteredProfiles = useMemo(() => {
+    return profiles.filter(profile => {
+      const nameMatch = selectedName === 'all' || profile.analysis_result?.employee_name === selectedName;
+      const yearMatch = selectedYears.length === 0 || selectedYears.includes(profile.year);
+      return nameMatch && yearMatch;
+    });
+  }, [profiles, selectedName, selectedYears]);
+
+  const toggleYear = (year: number) => {
+    setSelectedYears(prev => 
+      prev.includes(year) 
+        ? prev.filter(y => y !== year)
+        : [...prev, year]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedName('all');
+    setSelectedYears([]);
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -100,6 +139,7 @@ export default function ProfileEvolution() {
         employee_name: formData.employee_name,
         year: formData.year,
         analysis_result: {
+          employee_name: formData.employee_name,
           r: formData.r,
           e: formData.e,
           p: formData.p,
@@ -546,8 +586,81 @@ export default function ProfileEvolution() {
 
             {/* Timeline View - Comparative Side by Side */}
             <TabsContent value="timeline" className="space-y-6">
+              {/* Filters Section */}
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Filter className="h-5 w-5" />
+                    Filtros de Comparação
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Name Filter */}
+                    <div className="space-y-2">
+                      <Label>Colaborador</Label>
+                      <Select value={selectedName} onValueChange={setSelectedName}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um colaborador" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os colaboradores</SelectItem>
+                          {uniqueNames.map(name => (
+                            <SelectItem key={name} value={name}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Years Filter */}
+                    <div className="space-y-2">
+                      <Label>Anos para Comparar</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {uniqueYears.map(year => (
+                          <Badge
+                            key={year}
+                            variant={selectedYears.includes(year) ? "default" : "outline"}
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => toggleYear(year)}
+                          >
+                            {year}
+                            {selectedYears.includes(year) && (
+                              <X className="ml-1 h-3 w-3" />
+                            )}
+                          </Badge>
+                        ))}
+                        {uniqueYears.length === 0 && (
+                          <span className="text-sm text-muted-foreground">Nenhum ano disponível</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clear Filters */}
+                  {(selectedName !== 'all' || selectedYears.length > 0) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Limpar Filtros
+                    </Button>
+                  )}
+
+                  {/* Results count */}
+                  <div className="text-sm text-muted-foreground">
+                    Exibindo {filteredProfiles.length} de {profiles.length} perfis
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Profiles Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-                {profiles.map((profile) => (
+                {filteredProfiles.map((profile) => (
                   <Card key={profile.id} className="gradient-card border-border/50 overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
                       <div className="flex items-center justify-between">
