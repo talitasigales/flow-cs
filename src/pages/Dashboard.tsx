@@ -159,7 +159,7 @@ export default function Dashboard() {
               </Button>
               <Button variant="outline" onClick={() => navigate('/profile-evolution')}>
                 <TrendingUp className="mr-2 h-4 w-4" />
-                Evolução de Perfil
+                Evolução de Perfil PDA
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
