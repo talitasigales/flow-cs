@@ -293,93 +293,73 @@ export default function ProfileEvolution() {
                   </div>
 
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="r">R (Risco)</Label>
-                        <span className="text-sm font-medium">{formData.r}%</span>
-                      </div>
-                      <Slider
+                    <div className="space-y-2">
+                      <Label htmlFor="r">R (Risco) (0-100)</Label>
+                      <Input
                         id="r"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={[formData.r]}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, r: value[0] })
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.r}
+                        onChange={(e) =>
+                          setFormData({ ...formData, r: parseInt(e.target.value) || 0 })
                         }
-                        className="w-full"
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="e">E (Extroversão)</Label>
-                        <span className="text-sm font-medium">{formData.e}%</span>
-                      </div>
-                      <Slider
+                    <div className="space-y-2">
+                      <Label htmlFor="e">E (Extroversão) (0-100)</Label>
+                      <Input
                         id="e"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={[formData.e]}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, e: value[0] })
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.e}
+                        onChange={(e) =>
+                          setFormData({ ...formData, e: parseInt(e.target.value) || 0 })
                         }
-                        className="w-full"
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="p">P (Paciência)</Label>
-                        <span className="text-sm font-medium">{formData.p}%</span>
-                      </div>
-                      <Slider
+                    <div className="space-y-2">
+                      <Label htmlFor="p">P (Paciência) (0-100)</Label>
+                      <Input
                         id="p"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={[formData.p]}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, p: value[0] })
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.p}
+                        onChange={(e) =>
+                          setFormData({ ...formData, p: parseInt(e.target.value) || 0 })
                         }
-                        className="w-full"
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="n">N (Normas)</Label>
-                        <span className="text-sm font-medium">{formData.n}%</span>
-                      </div>
-                      <Slider
+                    <div className="space-y-2">
+                      <Label htmlFor="n">N (Normas) (0-100)</Label>
+                      <Input
                         id="n"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={[formData.n]}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, n: value[0] })
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.n}
+                        onChange={(e) =>
+                          setFormData({ ...formData, n: parseInt(e.target.value) || 0 })
                         }
-                        className="w-full"
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="a">A (Autocontrole)</Label>
-                        <span className="text-sm font-medium">{formData.a}%</span>
-                      </div>
-                      <Slider
+                    <div className="space-y-2">
+                      <Label htmlFor="a">A (Autocontrole) (0-100)</Label>
+                      <Input
                         id="a"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={[formData.a]}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, a: value[0] })
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.a}
+                        onChange={(e) =>
+                          setFormData({ ...formData, a: parseInt(e.target.value) || 0 })
                         }
-                        className="w-full"
                       />
                     </div>
 
