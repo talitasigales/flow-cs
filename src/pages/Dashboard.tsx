@@ -103,7 +103,6 @@ export default function Dashboard() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <TrendingUp className="h-8 w-8 text-primary" />
               <h1 className="gradient-text font-bold text-2xl">Plataforma de Sucesso da Grou</h1>
             </div>
             <div className="flex items-center gap-4">
