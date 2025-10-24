@@ -599,21 +599,33 @@ export default function ProfileEvolution() {
                                     rx="20"
                                   />
                                   
-                                  {/* Horizontal grid lines */}
+                                  {/* Horizontal grid lines and Y-axis labels */}
                                   {[0, 25, 50, 75, 100].map((value) => {
                                     const y = 340 - (value * 3.2);
                                     return (
-                                      <line
-                                        key={value}
-                                        x1="50"
-                                        y1={y}
-                                        x2="450"
-                                        y2={y}
-                                        stroke="hsl(var(--muted-foreground))"
-                                        strokeOpacity="0.2"
-                                        strokeDasharray="4,4"
-                                        clipPath="url(#roundedGrid)"
-                                      />
+                                      <g key={value}>
+                                        <line
+                                          x1="50"
+                                          y1={y}
+                                          x2="450"
+                                          y2={y}
+                                          stroke="hsl(var(--muted-foreground))"
+                                          strokeOpacity="0.2"
+                                          strokeDasharray="4,4"
+                                          clipPath="url(#roundedGrid)"
+                                        />
+                                        <text
+                                          x="35"
+                                          y={y}
+                                          textAnchor="end"
+                                          dominantBaseline="middle"
+                                          fill="hsl(var(--muted-foreground))"
+                                          fontSize="12"
+                                          fontWeight="500"
+                                        >
+                                          {value}
+                                        </text>
+                                      </g>
                                     );
                                   })}
                                   
