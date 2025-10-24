@@ -157,53 +157,6 @@ export default function Auth() {
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
         <img src={heroBackground} alt="Background" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-secondary/80" />
-        
-        {/* Animated Infinity Symbol */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-20">
-          <svg
-            width="800"
-            height="400"
-            viewBox="0 0 800 400"
-            className="animate-pulse"
-            style={{
-              animation: 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, float 6s ease-in-out infinite'
-            }}
-          >
-            <path
-              d="M 200,200 C 200,100 100,100 100,200 C 100,300 200,300 200,200 M 200,200 C 200,100 300,100 300,200 C 300,300 200,300 200,200"
-              fill="none"
-              stroke="white"
-              strokeWidth="3"
-              strokeLinecap="round"
-              style={{
-                strokeDasharray: '1000',
-                strokeDashoffset: '1000',
-                animation: 'drawInfinity 8s ease-in-out infinite'
-              }}
-            />
-          </svg>
-        </div>
-        
-        <style>{`
-          @keyframes drawInfinity {
-            0%, 100% {
-              stroke-dashoffset: 1000;
-            }
-            50% {
-              stroke-dashoffset: 0;
-            }
-          }
-          
-          @keyframes float {
-            0%, 100% {
-              transform: translateY(0px) scale(1);
-            }
-            50% {
-              transform: translateY(-20px) scale(1.05);
-            }
-          }
-        `}</style>
-        
         <div className="relative z-10 flex flex-col items-center justify-center text-center p-12 text-white w-full">
           <h1 className="text-5xl font-bold mb-6 text-center">
             Evolua Continuamente
