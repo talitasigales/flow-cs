@@ -16,10 +16,26 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
   const {
     user
   } = useAuth();
+  
+  const features = [
+    'IA especialista no PDA',
+    'Matriz 9Box gratuita',
+    'Evolução Comparativa de Perfis PDA'
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % features.length);
+    }, 3000); // Troca a cada 3 segundos
+
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
@@ -143,23 +159,48 @@ export default function Auth() {
             Evolua Continuamente
           </h1>
           <p className="text-xl mb-8 max-w-md text-center">Acompanhe sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>
-          <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
-            <div className="glass-morphism p-6 rounded-lg text-center">
-              <p className="text-3xl font-bold">6</p>
-              <p className="text-sm">módulos</p>
+          <div className="space-y-6 w-full max-w-2xl mx-auto">
+            <div className="flex gap-6 justify-center">
+              <div className="glass-morphism p-6 rounded-lg text-center">
+                <p className="text-3xl font-bold">6</p>
+                <p className="text-sm">módulos</p>
+              </div>
+              <div className="glass-morphism p-6 rounded-lg text-center">
+                <p className="text-3xl font-bold">+4</p>
+                <p className="text-sm">ferramentas gratuitas</p>
+              </div>
             </div>
-            <div className="glass-morphism p-6 rounded-lg text-center">
-              <p className="text-3xl font-bold">+4</p>
-              <p className="text-sm">ferramentas gratuitas</p>
+            
+            {/* Feature Slider */}
+            <div className="relative h-24 flex items-center justify-center">
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  className={`absolute w-full glass-morphism p-8 rounded-lg text-center transition-all duration-700 ${
+                    index === currentSlide 
+                      ? 'opacity-100 scale-100 translate-y-0' 
+                      : 'opacity-0 scale-95 translate-y-4 pointer-events-none'
+                  }`}
+                >
+                  <p className="text-xl font-semibold">{feature}</p>
+                </div>
+              ))}
             </div>
-            <div className="glass-morphism p-6 rounded-lg text-center col-span-2">
-              <p className="text-lg font-semibold">IA especialista no PDA</p>
-            </div>
-            <div className="glass-morphism p-6 rounded-lg text-center">
-              <p className="text-lg font-semibold">Matriz 9Box gratuita</p>
-            </div>
-            <div className="glass-morphism p-6 rounded-lg text-center">
-              <p className="text-lg font-semibold">Evolução Comparativa de Perfis PDA</p>
+            
+            {/* Slider Indicators */}
+            <div className="flex gap-2 justify-center">
+              {features.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    index === currentSlide 
+                      ? 'w-8 bg-white' 
+                      : 'w-2 bg-white/50 hover:bg-white/75'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
