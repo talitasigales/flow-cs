@@ -775,6 +775,20 @@ export default function ProfileEvolution() {
                                     
                                     return (
                                       <>
+                                        {/* Vertical colored bars for each dimension */}
+                                        {points.map((point, index) => (
+                                          <rect
+                                            key={`bar-${index}`}
+                                            x={point.x - 15}
+                                            y={point.y}
+                                            width="30"
+                                            height={340 - point.y}
+                                            fill={point.color}
+                                            opacity="0.15"
+                                            rx="4"
+                                          />
+                                        ))}
+                                        
                                         {/* Connecting lines */}
                                         {points.map((point, index) => {
                                           if (index === points.length - 1) return null;
