@@ -544,9 +544,9 @@ export default function ProfileEvolution() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Timeline View */}
+            {/* Timeline View - Comparative Side by Side */}
             <TabsContent value="timeline" className="space-y-6">
-              <div className="grid gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
                 {profiles.map((profile) => (
                   <Card key={profile.id} className="gradient-card border-border/50 overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
