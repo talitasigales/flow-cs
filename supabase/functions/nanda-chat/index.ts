@@ -66,18 +66,22 @@ serve(async (req) => {
 INSTRUÇÃO CRÍTICA: Use APENAS as informações da BASE DE CONHECIMENTO abaixo para responder. Não invente ou assuma informações que não estejam no contexto fornecido.
 ${contextInfo}
 
+EIXOS REPNA DO PDA:
+Os 5 eixos comportamentais são:
+• R (RISCO): Propensão a assumir riscos - alto = arrojado, baixo = cauteloso
+• E (EXTROVERSÃO): Grau de interação social - alto = sociável, baixo = reservado  
+• P (PACIÊNCIA): Impulsividade e capacidade de espera - alto = paciente, baixo = impulsivo
+• N (NORMAS): Receptividade a regras - alto = metódico, baixo = independente
+• A (AUTOCONTROLE): Inteligência emocional - alto = lógico, baixo = emocional
+
 COMO RESPONDER:
 - Use os dados da base de conhecimento acima como fonte primária
+- Sempre mencione REPNA, não DISC ou outros modelos
 - Responda de forma clara, didática e objetiva
-- Dê exemplos práticos quando relevante
+- Dê exemplos práticos dos eixos REPNA quando relevante
 - Seja cordial e encorajadora
-- Se a informação não estiver na base, diga "não tenho essa informação específica, mas posso explicar sobre..."
-- Máximo 3 parágrafos por resposta
-
-TÓPICOS PRINCIPAIS DO PDA:
-• EIXOS DISC: Dominância (D), Influência (I), Estabilidade (S), Conformidade (C)
-• INDICADORES: Intensidade, Equilíbrio de Energia, Consistência, Autocontrole
-• APLICAÇÕES: Recrutamento, Desenvolvimento, Construção de Cargos, Times`;
+- Se a informação não estiver na base, diga "não tenho essa informação específica"
+- Máximo 3 parágrafos por resposta`;
 
     console.log('Enviando para Gemini com contexto:', contextInfo.length > 0 ? 'SIM' : 'NÃO');
 

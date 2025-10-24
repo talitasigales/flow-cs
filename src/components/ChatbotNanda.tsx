@@ -24,15 +24,16 @@ export const ChatbotNanda = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Popular a base de conhecimento na primeira execução
-    const populateKnowledge = async () => {
+    // Atualizar base de conhecimento com REPNA correto
+    const updateKnowledge = async () => {
       try {
-        await supabase.functions.invoke('populate-knowledge');
+        const { data } = await supabase.functions.invoke('update-knowledge-repna');
+        console.log('Base atualizada:', data);
       } catch (error) {
-        console.error('Erro ao popular base:', error);
+        console.error('Erro ao atualizar base:', error);
       }
     };
-    populateKnowledge();
+    updateKnowledge();
   }, []);
 
   const handleSend = async () => {
