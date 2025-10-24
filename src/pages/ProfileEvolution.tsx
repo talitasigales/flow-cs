@@ -1320,6 +1320,57 @@ export default function ProfileEvolution() {
 
             {/* Analysis View */}
             <TabsContent value="analysis" className="space-y-4">
+              {/* Year Selectors */}
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Selecionar Anos para Análise
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Ano Base</Label>
+                      <Select 
+                        value={selectedYearA?.toString() || ''} 
+                        onValueChange={(value) => setSelectedYearA(parseInt(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o ano base" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniqueYears.map(year => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Ano Comparado</Label>
+                      <Select 
+                        value={selectedYearB?.toString() || ''} 
+                        onValueChange={(value) => setSelectedYearB(parseInt(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o ano comparado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniqueYears.map(year => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Overview Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="gradient-card border-border/50">
@@ -1369,7 +1420,7 @@ export default function ProfileEvolution() {
                     Dimensões REPNA
                   </CardTitle>
                   <CardDescription>
-                    Análise do perfil comportamental ao longo do tempo
+                    Mudanças no perfil comportamental entre {selectedYearA} e {selectedYearB}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1381,14 +1432,34 @@ export default function ProfileEvolution() {
                           <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xl">R</span>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <CardTitle className="text-lg">Risco</CardTitle>
-                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('r')}</p>
+                            {(() => {
+                              const delta = calculateDelta(selectedYearA, selectedYearB, 'r');
+                              const profileA = profiles.find(p => p.year === selectedYearA);
+                              const profileB = profiles.find(p => p.year === selectedYearB);
+                              const valueA = profileA?.analysis_result?.r || 0;
+                              const valueB = profileB?.analysis_result?.r || 0;
+                              return (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-muted-foreground">{valueA} → {valueB}</span>
+                                  <span className={`flex items-center font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-3 w-3" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-3 w-3" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <Progress value={calculateAverage('r')} className="mb-3 h-2" />
                         <p className="text-sm text-muted-foreground">
                           Gestão de incertezas e tomada de decisão sob pressão. Incrementos indicam maior inovação.
                         </p>
@@ -1402,14 +1473,34 @@ export default function ProfileEvolution() {
                           <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xl">E</span>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <CardTitle className="text-lg">Extroversão</CardTitle>
-                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('e')}</p>
+                            {(() => {
+                              const delta = calculateDelta(selectedYearA, selectedYearB, 'e');
+                              const profileA = profiles.find(p => p.year === selectedYearA);
+                              const profileB = profiles.find(p => p.year === selectedYearB);
+                              const valueA = profileA?.analysis_result?.e || 0;
+                              const valueB = profileB?.analysis_result?.e || 0;
+                              return (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-muted-foreground">{valueA} → {valueB}</span>
+                                  <span className={`flex items-center font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-3 w-3" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-3 w-3" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <Progress value={calculateAverage('e')} className="mb-3 h-2" />
                         <p className="text-sm text-muted-foreground">
                           Estratégia relacional e comunicacional. Elevações indicam expansão da rede de influência.
                         </p>
@@ -1423,14 +1514,34 @@ export default function ProfileEvolution() {
                           <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xl">P</span>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <CardTitle className="text-lg">Paciência</CardTitle>
-                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('p')}</p>
+                            {(() => {
+                              const delta = calculateDelta(selectedYearA, selectedYearB, 'p');
+                              const profileA = profiles.find(p => p.year === selectedYearA);
+                              const profileB = profiles.find(p => p.year === selectedYearB);
+                              const valueA = profileA?.analysis_result?.p || 0;
+                              const valueB = profileB?.analysis_result?.p || 0;
+                              return (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-muted-foreground">{valueA} → {valueB}</span>
+                                  <span className={`flex items-center font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-3 w-3" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-3 w-3" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <Progress value={calculateAverage('p')} className="mb-3 h-2" />
                         <p className="text-sm text-muted-foreground">
                           Ritmo de trabalho e gestão do tempo. Aumentos correlacionam-se com resiliência.
                         </p>
@@ -1444,14 +1555,34 @@ export default function ProfileEvolution() {
                           <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
                             <span className="text-white font-bold text-xl">N</span>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <CardTitle className="text-lg">Normas</CardTitle>
-                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('n')}</p>
+                            {(() => {
+                              const delta = calculateDelta(selectedYearA, selectedYearB, 'n');
+                              const profileA = profiles.find(p => p.year === selectedYearA);
+                              const profileB = profiles.find(p => p.year === selectedYearB);
+                              const valueA = profileA?.analysis_result?.n || 0;
+                              const valueB = profileB?.analysis_result?.n || 0;
+                              return (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-muted-foreground">{valueA} → {valueB}</span>
+                                  <span className={`flex items-center font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-3 w-3" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-3 w-3" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <Progress value={calculateAverage('n')} className="mb-3 h-2" />
                         <p className="text-sm text-muted-foreground">
                           Relação com estruturas e processos. Incrementos sugerem valorização de metodologias.
                         </p>
@@ -1465,14 +1596,34 @@ export default function ProfileEvolution() {
                           <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
                             <span className="text-white font-bold text-xl">A</span>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <CardTitle className="text-lg">Autocontrole</CardTitle>
-                            <p className="text-xs text-muted-foreground">Média: {calculateAverage('a')}</p>
+                            {(() => {
+                              const delta = calculateDelta(selectedYearA, selectedYearB, 'a');
+                              const profileA = profiles.find(p => p.year === selectedYearA);
+                              const profileB = profiles.find(p => p.year === selectedYearB);
+                              const valueA = profileA?.analysis_result?.a || 0;
+                              const valueB = profileB?.analysis_result?.a || 0;
+                              return (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-muted-foreground">{valueA} → {valueB}</span>
+                                  <span className={`flex items-center font-semibold ${
+                                    delta.trend === 'up' ? 'text-green-500' : 
+                                    delta.trend === 'down' ? 'text-red-500' : 
+                                    'text-muted-foreground'
+                                  }`}>
+                                    {delta.trend === 'up' && <ArrowUp className="h-3 w-3" />}
+                                    {delta.trend === 'down' && <ArrowDown className="h-3 w-3" />}
+                                    {delta.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                                    {delta.value > 0 ? '+' : ''}{delta.value}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <Progress value={calculateAverage('a')} className="mb-3 h-2" />
                         <p className="text-sm text-muted-foreground">
                           Gestão emocional e autorregulação. Elevações apontam sofisticação na diplomacia.
                         </p>
@@ -1490,65 +1641,46 @@ export default function ProfileEvolution() {
                     Indicadores Complementares
                   </CardTitle>
                   <CardDescription>
-                    Métricas adicionais de desempenho e energia
+                    Mudanças nas métricas adicionais entre {selectedYearA} e {selectedYearB}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Tomada de Decisões</span>
-                        <span className="text-2xl font-bold">{calculateAverage('tomada_decisoes')}</span>
-                      </div>
-                      <Progress value={calculateAverage('tomada_decisoes')} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Capacidade de avaliar cenários e escolher estratégias adequadas
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Intensidade do Perfil</span>
-                        <span className="text-2xl font-bold">{calculateAverage('intensidade_perfil')}</span>
-                      </div>
-                      <Progress value={calculateAverage('intensidade_perfil')} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Grau de expressão e consistência comportamental
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Energia</span>
-                        <span className="text-2xl font-bold">{calculateAverage('energia')}</span>
-                      </div>
-                      <Progress value={calculateAverage('energia')} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Nível de energia e disposição para atividades
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Equilíbrio de Energia</span>
-                        <span className="text-2xl font-bold">{calculateAverage('equilibrio_energia')}</span>
-                      </div>
-                      <Progress value={calculateAverage('equilibrio_energia')} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Distribuição balanceada de energia entre atividades
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Modificação de Perfil</span>
-                        <span className="text-2xl font-bold">{calculateAverage('modificacao_perfil')}</span>
-                      </div>
-                      <Progress value={calculateAverage('modificacao_perfil')} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        Grau de ajuste consciente do comportamento às demandas situacionais
-                      </p>
-                    </div>
+                    {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((dimension) => {
+                      const delta = calculateDelta(selectedYearA, selectedYearB, dimension);
+                      const profileA = profiles.find(p => p.year === selectedYearA);
+                      const profileB = profiles.find(p => p.year === selectedYearB);
+                      const valueA = profileA?.analysis_result?.[dimension] || 0;
+                      const valueB = profileB?.analysis_result?.[dimension] || 0;
+                      
+                      return (
+                        <div key={dimension} className="space-y-3 p-4 rounded-lg bg-muted/30">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{getDimensionLabel(dimension)}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">{valueA} → {valueB}</span>
+                              <span className={`flex items-center gap-1 text-lg font-bold ${
+                                delta.trend === 'up' ? 'text-green-500' : 
+                                delta.trend === 'down' ? 'text-red-500' : 
+                                'text-muted-foreground'
+                              }`}>
+                                {delta.trend === 'up' && <ArrowUp className="h-4 w-4" />}
+                                {delta.trend === 'down' && <ArrowDown className="h-4 w-4" />}
+                                {delta.trend === 'neutral' && <Minus className="h-4 w-4" />}
+                                {delta.value > 0 ? '+' : ''}{delta.value}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {dimension === 'tomada_decisoes' && 'Capacidade de avaliar cenários e escolher estratégias adequadas'}
+                            {dimension === 'intensidade_perfil' && 'Grau de expressão e consistência comportamental'}
+                            {dimension === 'energia' && 'Nível de energia e disposição para atividades'}
+                            {dimension === 'equilibrio_energia' && 'Distribuição balanceada de energia entre atividades'}
+                            {dimension === 'modificacao_perfil' && 'Grau de ajuste consciente do comportamento às demandas situacionais'}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
