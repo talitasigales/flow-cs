@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, TrendingUp } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
+import grouLogo from '@/assets/grou-logo.webp';
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,7 +85,49 @@ export default function Auth() {
   return <div className="min-h-screen flex">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
-        
+        <Card className="w-full max-w-md gradient-card border-border/50">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center gap-3 mb-6">
+              <img src={grouLogo} alt="Grou Logo" className="h-10 w-10" />
+              <h2 className="text-xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
+            </div>
+            <CardTitle className="text-2xl">
+              {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
+            </CardTitle>
+            <CardDescription>
+              {isLogin ? 'Entre com seu email e senha' : 'Cadastre-se para começar sua jornada'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAuth} className="space-y-4">
+              {!isLogin && <div className="space-y-2">
+                  <Label htmlFor="fullName">Nome completo</Label>
+                  <Input id="fullName" type="text" placeholder="Seu nome" value={fullName} onChange={e => setFullName(e.target.value)} required={!isLogin} disabled={loading} />
+                </div>}
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} />
+              </div>
+
+              {isLogin && <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required={isLogin} disabled={loading} />
+                </div>}
+
+              <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLogin ? 'Entrar' : 'Cadastrar'}
+              </Button>
+
+              <div className="text-center text-sm">
+                <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline" disabled={loading}>
+                  {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Right side - Hero */}
