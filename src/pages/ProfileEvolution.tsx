@@ -168,7 +168,7 @@ export default function ProfileEvolution() {
       case 'n':
         return 'bg-green-500';
       case 'a':
-        return 'bg-purple-500';
+        return 'bg-purple-600';
       case 'tomada_decisoes':
         return 'bg-cyan-500';
       case 'intensidade_perfil':
@@ -181,6 +181,23 @@ export default function ProfileEvolution() {
         return 'bg-teal-500';
       default:
         return 'bg-primary';
+    }
+  };
+
+  const getProfileColorHex = (dimension: string) => {
+    switch (dimension) {
+      case 'r':
+        return '#f97316'; // orange-500
+      case 'e':
+        return '#eab308'; // yellow-500
+      case 'p':
+        return '#3b82f6'; // blue-500
+      case 'n':
+        return '#22c55e'; // green-500
+      case 'a':
+        return '#9333ea'; // purple-600
+      default:
+        return '#3b82f6';
     }
   };
 
@@ -526,175 +543,131 @@ export default function ProfileEvolution() {
             </TabsList>
 
             {/* Timeline View */}
-            <TabsContent value="timeline" className="space-y-4">
-              <div className="grid gap-4">
-                {profiles.map((profile) => {
-                  const getInterpretation = (key: string, value: number) => {
-                    const interpretations: Record<string, Record<string, string>> = {
-                      r: {
-                        low: 'Perfil mais cauteloso e analítico nas decisões',
-                        medium: 'Equilibra análise e ousadia nas decisões',
-                        high: 'Perfil mais ousado e disposto a assumir riscos'
-                      },
-                      e: {
-                        low: 'Preferência por trabalho mais reservado e individual',
-                        medium: 'Equilíbrio entre interações sociais e trabalho individual',
-                        high: 'Perfil comunicativo e voltado para relacionamentos'
-                      },
-                      p: {
-                        low: 'Ritmo mais acelerado e dinâmico de trabalho',
-                        medium: 'Equilibra ritmo e constância nas atividades',
-                        high: 'Perfil paciente, constante e metódico'
-                      },
-                      n: {
-                        low: 'Maior flexibilidade e adaptabilidade às mudanças',
-                        medium: 'Equilíbrio entre seguir processos e flexibilidade',
-                        high: 'Valoriza estrutura, normas e procedimentos'
-                      },
-                      a: {
-                        low: 'Expressão mais espontânea e direta das emoções',
-                        medium: 'Equilíbrio entre expressão e controle emocional',
-                        high: 'Alto controle e gestão das reações emocionais'
-                      },
-                      tomada_decisoes: {
-                        low: 'Decisões mais reflexivas e consultivas',
-                        medium: 'Equilíbrio entre reflexão e ação nas decisões',
-                        high: 'Decisões mais rápidas e assertivas'
-                      },
-                      intensidade_perfil: {
-                        low: 'Perfil mais flexível e adaptável',
-                        medium: 'Intensidade moderada nas características',
-                        high: 'Características fortemente marcadas no comportamento'
-                      },
-                      energia: {
-                        low: 'Energia mais contida e reservada',
-                        medium: 'Nível equilibrado de energia',
-                        high: 'Alta energia e dinamismo no comportamento'
-                      },
-                      equilibrio_energia: {
-                        low: 'Energia concentrada em áreas específicas',
-                        medium: 'Distribuição moderada de energia',
-                        high: 'Energia bem distribuída entre diferentes áreas'
-                      },
-                      modificacao_perfil: {
-                        low: 'Comportamento mais natural e espontâneo',
-                        medium: 'Adaptação moderada ao contexto',
-                        high: 'Alta adaptação do comportamento ao ambiente'
-                      }
-                    };
-
-                    const level = value <= 33 ? 'low' : value <= 66 ? 'medium' : 'high';
-                    return interpretations[key]?.[level] || '';
-                  };
-
-                  return (
-                    <Card key={profile.id} className="gradient-card border-border/50">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="flex items-center gap-2">
-                              <Calendar className="h-5 w-5" />
-                              Ano {profile.year}
-                            </CardTitle>
-                            <CardDescription>
-                              Registrado em{' '}
-                              {new Date(profile.created_at).toLocaleDateString('pt-BR')}
-                            </CardDescription>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => handleDelete(profile.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+            <TabsContent value="timeline" className="space-y-6">
+              <div className="grid gap-6">
+                {profiles.map((profile) => (
+                  <Card key={profile.id} className="gradient-card border-border/50 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            <Calendar className="h-5 w-5" />
+                            {profile.year}
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            {profile.analysis_result?.employee_name || 'Colaborador'}
+                          </CardDescription>
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {profile.analysis_result && (
-                          <>
-                            {/* Perfil REPNA */}
-                            <div className="space-y-4">
-                              <h4 className="font-semibold text-sm flex items-center gap-2">
-                                <BarChart className="h-4 w-4" />
-                                Perfil Comportamental PDA
-                              </h4>
-                              <div className="space-y-3 pl-6 border-l-2 border-primary/20">
-                                {['r', 'e', 'p', 'n', 'a'].map((key) => {
-                                  const value = profile.analysis_result?.[key];
-                                  if (typeof value !== 'number') return null;
-                                  return (
-                                    <div key={key} className="space-y-1">
-                                      <div className="flex items-center justify-between">
-                                        <span className="font-medium text-sm">
-                                          {getDimensionLabel(key)}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground">
-                                          {value}/100
-                                        </span>
-                                      </div>
-                                      <p className="text-sm text-muted-foreground italic">
-                                        {getInterpretation(key, value)}
-                                      </p>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            {/* Análise Complementar */}
-                            <div className="space-y-4 pt-4 border-t border-border">
-                              <h4 className="font-semibold text-sm flex items-center gap-2">
-                                <TrendingUp className="h-4 w-4" />
-                                Análise Complementar
-                              </h4>
-                              <div className="space-y-4 pl-6 border-l-2 border-primary/20">
-                                {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
-                                  const value = profile.analysis_result?.[key];
-                                  if (typeof value !== 'number') return null;
-                                  return (
-                                    <div key={key} className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <span className="font-medium text-sm">
-                                          {getDimensionLabel(key)}
-                                        </span>
-                                        <span className="text-sm font-medium">
-                                          {value}%
-                                        </span>
-                                      </div>
-                                      <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                                        <div 
-                                          className="absolute left-0 top-0 h-full bg-primary transition-all rounded-full"
-                                          style={{ width: `${value}%` }}
-                                        />
-                                      </div>
-                                      <p className="text-xs text-muted-foreground italic">
-                                        {getInterpretation(key, value)}
-                                      </p>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </>
-                        )}
-                        
-                        {profile.analysis_result?.notes && (
-                          <div className="pt-4 border-t border-border">
-                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
-                              <FileText className="h-4 w-4" />
-                              Observações
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDelete(profile.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      {profile.analysis_result && (
+                        <div className="space-y-6">
+                          {/* REPNA Visual Grid */}
+                          <div className="space-y-4">
+                            <h4 className="font-semibold text-sm flex items-center gap-2">
+                              <BarChart className="h-4 w-4" />
+                              Perfil Comportamental REPNA
                             </h4>
-                            <p className="text-sm text-muted-foreground pl-6">
-                              {profile.analysis_result.notes}
-                            </p>
+                            <div className="grid grid-cols-5 gap-3">
+                              {['r', 'e', 'p', 'n', 'a'].map((key) => {
+                                const value = profile.analysis_result?.[key];
+                                if (typeof value !== 'number') return null;
+                                return (
+                                  <div 
+                                    key={key} 
+                                    className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all hover:scale-105"
+                                  >
+                                    <div 
+                                      className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg"
+                                      style={{ backgroundColor: getProfileColorHex(key) }}
+                                    >
+                                      {key.toUpperCase()}
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="text-2xl font-bold" style={{ color: getProfileColorHex(key) }}>
+                                        {value}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        {getDimensionLabel(key).split(' ')[1]?.replace('(', '').replace(')', '')}
+                                      </div>
+                                    </div>
+                                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                                      <div 
+                                        className="h-full transition-all rounded-full"
+                                        style={{ 
+                                          backgroundColor: getProfileColorHex(key),
+                                          width: `${value}%` 
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+
+                          {/* Análise Complementar */}
+                          <div className="space-y-4 pt-4 border-t border-border">
+                            <h4 className="font-semibold text-sm flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4" />
+                              Análise Complementar
+                            </h4>
+                            <div className="grid gap-3">
+                              {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
+                                const value = profile.analysis_result?.[key];
+                                if (typeof value !== 'number') return null;
+                                return (
+                                  <div 
+                                    key={key} 
+                                    className="p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-all"
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="font-medium text-sm">
+                                        {getDimensionLabel(key)}
+                                      </span>
+                                      <span className="text-lg font-bold text-primary">
+                                        {value}%
+                                      </span>
+                                    </div>
+                                    <div className="relative h-3 bg-muted rounded-full overflow-hidden">
+                                      <div 
+                                        className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/80 to-primary transition-all rounded-full"
+                                        style={{ width: `${value}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          
+                          {profile.analysis_result?.notes && (
+                            <div className="pt-4 border-t border-border">
+                              <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/20">
+                                <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-semibold text-sm mb-1">Observações</h4>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {profile.analysis_result.notes}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </TabsContent>
 
