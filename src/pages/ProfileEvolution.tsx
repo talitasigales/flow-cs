@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 
 interface ProfileEvolution {
   id: string;
@@ -571,82 +572,164 @@ export default function ProfileEvolution() {
                     <CardContent className="pt-6">
                       {profile.analysis_result && (
                         <div className="space-y-6">
-                          {/* REPNA Visual Grid */}
-                          <div className="space-y-4">
-                            <h4 className="font-semibold text-sm flex items-center gap-2">
-                              <BarChart className="h-4 w-4" />
-                              Perfil Comportamental REPNA
-                            </h4>
-                            <div className="grid grid-cols-5 gap-3">
-                              {['r', 'e', 'p', 'n', 'a'].map((key) => {
-                                const value = profile.analysis_result?.[key];
-                                if (typeof value !== 'number') return null;
-                                return (
-                                  <div 
-                                    key={key} 
-                                    className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all hover:scale-105"
+                          {/* Radar Chart + Energy Bar */}
+                          <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+                            {/* Radar Chart */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm flex items-center gap-2">
+                                <BarChart className="h-4 w-4" />
+                                Perfil Comportamental REPNA
+                              </h4>
+                              <div className="bg-muted/20 rounded-lg p-6">
+                                <ResponsiveContainer width="100%" height={400}>
+                                  <RadarChart
+                                    data={[
+                                      {
+                                        subject: 'R',
+                                        value: profile.analysis_result?.r || 0,
+                                        fullMark: 100,
+                                      },
+                                      {
+                                        subject: 'E',
+                                        value: profile.analysis_result?.e || 0,
+                                        fullMark: 100,
+                                      },
+                                      {
+                                        subject: 'P',
+                                        value: profile.analysis_result?.p || 0,
+                                        fullMark: 100,
+                                      },
+                                      {
+                                        subject: 'N',
+                                        value: profile.analysis_result?.n || 0,
+                                        fullMark: 100,
+                                      },
+                                      {
+                                        subject: 'A',
+                                        value: profile.analysis_result?.a || 0,
+                                        fullMark: 100,
+                                      },
+                                    ]}
                                   >
-                                    <div 
-                                      className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg"
-                                      style={{ backgroundColor: getProfileColorHex(key) }}
-                                    >
-                                      {key.toUpperCase()}
-                                    </div>
-                                    <div className="text-center">
-                                      <div className="text-2xl font-bold" style={{ color: getProfileColorHex(key) }}>
-                                        {value}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        {getDimensionLabel(key).split(' ')[1]?.replace('(', '').replace(')', '')}
-                                      </div>
-                                    </div>
-                                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                                      <div 
-                                        className="h-full transition-all rounded-full"
-                                        style={{ 
-                                          backgroundColor: getProfileColorHex(key),
-                                          width: `${value}%` 
-                                        }}
-                                      />
-                                    </div>
+                                    <PolarGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.3} />
+                                    <PolarAngleAxis
+                                      dataKey="subject"
+                                      tick={(props) => {
+                                        const { x, y, payload } = props;
+                                        const color = getProfileColorHex(payload.value.toLowerCase());
+                                        return (
+                                          <text
+                                            x={x}
+                                            y={y}
+                                            textAnchor="middle"
+                                            fill={color}
+                                            fontSize={16}
+                                            fontWeight="bold"
+                                          >
+                                            {payload.value}
+                                          </text>
+                                        );
+                                      }}
+                                    />
+                                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                                    <Radar
+                                      name="REPNA"
+                                      dataKey="value"
+                                      stroke="hsl(var(--primary))"
+                                      fill="hsl(var(--primary))"
+                                      fillOpacity={0.3}
+                                      strokeWidth={2}
+                                    />
+                                  </RadarChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
+
+                            {/* Energy Bar */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4" />
+                                Energia (NE)
+                              </h4>
+                              <div className="bg-muted/20 rounded-lg p-6 flex flex-col items-center justify-center h-[400px]">
+                                <div className="flex flex-col items-center gap-2 h-full w-full max-w-[120px]">
+                                  <div className="text-2xl font-bold text-green-500">+</div>
+                                  <div className="flex-1 w-full relative bg-muted rounded-lg overflow-hidden flex flex-col justify-end">
+                                    <div
+                                      className="w-full bg-gradient-to-t from-primary to-primary/60 transition-all duration-500 rounded-lg"
+                                      style={{
+                                        height: `${profile.analysis_result?.energia || 0}%`,
+                                      }}
+                                    />
                                   </div>
-                                );
-                              })}
+                                  <div className="text-2xl font-bold text-red-500">-</div>
+                                </div>
+                                <div className="text-3xl font-bold text-primary mt-4">
+                                  {profile.analysis_result?.energia || 0}%
+                                </div>
+                              </div>
                             </div>
                           </div>
 
-                          {/* Análise Complementar */}
+                          {/* Indicadores Horizontais */}
                           <div className="space-y-4 pt-4 border-t border-border">
                             <h4 className="font-semibold text-sm flex items-center gap-2">
                               <TrendingUp className="h-4 w-4" />
                               Indicadores
                             </h4>
                             <div className="grid gap-3">
-                              {['tomada_decisoes', 'intensidade_perfil', 'energia', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
+                              {['tomada_decisoes', 'intensidade_perfil', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
                                 const value = profile.analysis_result?.[key];
                                 if (typeof value !== 'number') return null;
                                 return (
-                                  <div 
-                                    key={key} 
-                                    className="p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-all"
-                                  >
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="font-medium text-sm">
-                                        {getDimensionLabel(key)}
-                                      </span>
-                                      <span className="text-lg font-bold text-primary">
-                                        {value}%
-                                      </span>
-                                    </div>
-                                    <div className="relative h-3 bg-muted rounded-full overflow-hidden">
-                                      <div 
-                                        className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/80 to-primary transition-all rounded-full"
+                                  <div key={key} className="flex items-center gap-4">
+                                    <span className="font-medium text-sm min-w-[180px]">
+                                      {getDimensionLabel(key)}
+                                    </span>
+                                    <div className="flex-1 relative h-8 bg-muted rounded-lg overflow-hidden">
+                                      <div
+                                        className="absolute left-0 top-0 h-full bg-primary transition-all rounded-lg"
                                         style={{ width: `${value}%` }}
                                       />
                                     </div>
+                                    <span className="text-lg font-bold text-primary min-w-[50px] text-right">
+                                      {value}%
+                                    </span>
                                   </div>
                                 );
                               })}
+                            </div>
+                          </div>
+
+                          {/* Tabela de Resumo */}
+                          <div className="pt-4 border-t border-border">
+                            <div className="bg-primary rounded-lg overflow-hidden">
+                              <div className="grid grid-cols-6 text-center text-white font-bold">
+                                <div className="py-4 px-2 border-r border-primary-foreground/20">
+                                  Perfil
+                                </div>
+                                {['R', 'E', 'P', 'N', 'A'].map((letter, idx) => (
+                                  <div
+                                    key={letter}
+                                    className={`py-4 px-2 ${idx < 4 ? 'border-r border-primary-foreground/20' : ''}`}
+                                  >
+                                    {letter}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="grid grid-cols-6 text-center bg-primary/90 text-white font-semibold text-lg">
+                                <div className="py-3 px-2 border-r border-primary-foreground/20">
+                                  {profile.year}
+                                </div>
+                                {['r', 'e', 'p', 'n', 'a'].map((key, idx) => (
+                                  <div
+                                    key={key}
+                                    className={`py-3 px-2 ${idx < 4 ? 'border-r border-primary-foreground/20' : ''}`}
+                                  >
+                                    {profile.analysis_result?.[key] || 0}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
                           
