@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import nandaAvatar from '@/assets/nanda-avatar.png';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -116,10 +118,16 @@ export const ChatbotNanda = () => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex ${
+                className={`flex gap-2 ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
+                {message.role === 'assistant' && (
+                  <Avatar className="h-8 w-8 mt-1">
+                    <AvatarImage src={nandaAvatar} alt="Nanda" />
+                    <AvatarFallback>N</AvatarFallback>
+                  </Avatar>
+                )}
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
                     message.role === 'user'
