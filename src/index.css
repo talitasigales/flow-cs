@@ -21,9 +21,9 @@ All colors MUST be HSL.
     --popover-foreground: 210 40% 98%;
 
     /* Primary - Cyan light */
-    --primary: 180 100% 75%;
+    --primary: 180 75% 55%;
     --primary-foreground: 230 50% 15%;
-    --primary-glow: 180 100% 85%;
+    --primary-glow: 180 70% 65%;
 
     /* Secondary - Purple light */
     --secondary: 270 70% 75%;
