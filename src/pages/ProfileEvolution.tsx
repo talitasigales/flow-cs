@@ -1538,6 +1538,17 @@ export default function ProfileEvolution() {
                         Distribuição balanceada de energia entre atividades
                       </p>
                     </div>
+
+                    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Modificação de Perfil</span>
+                        <span className="text-2xl font-bold">{calculateAverage('modificacao_perfil')}</span>
+                      </div>
+                      <Progress value={calculateAverage('modificacao_perfil')} className="h-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Grau de ajuste consciente do comportamento às demandas situacionais
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
