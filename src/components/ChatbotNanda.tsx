@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,18 @@ export const ChatbotNanda = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Popular a base de conhecimento na primeira execução
+    const populateKnowledge = async () => {
+      try {
+        await supabase.functions.invoke('populate-knowledge');
+      } catch (error) {
+        console.error('Erro ao popular base:', error);
+      }
+    };
+    populateKnowledge();
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;

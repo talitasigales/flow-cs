@@ -18,6 +18,31 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Extrair keywords da pergunta do usuário
+    const userQuestion = messages[messages.length - 1]?.content || '';
+    const keywords = userQuestion.toLowerCase()
+      .split(/\s+/)
+      .filter((word: string) => word.length > 3)
+      .slice(0, 5);
+
+    // Buscar contexto relevante na base de conhecimento
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.3');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: knowledgeDocs } = await supabase
+      .from('knowledge_base')
+      .select('title, content, category')
+      .or(`keywords.cs.{${keywords.join(',')}},content.ilike.%${keywords[0]}%`)
+      .limit(3);
+
+    let contextInfo = '';
+    if (knowledgeDocs && knowledgeDocs.length > 0) {
+      contextInfo = '\n\n📚 CONTEXTO DA BASE DE CONHECIMENTO:\n' + 
+        knowledgeDocs.map(doc => `[${doc.category}] ${doc.title}:\n${doc.content}`).join('\n\n');
+    }
+
     const systemPrompt = `Você é a Nanda, uma assistente virtual especializada em PDA Assessment (Personal Development Analysis).
 
 SOBRE PDA ASSESSMENT:
@@ -66,7 +91,8 @@ IMPORTANTE:
 - Sempre contextualize as respostas com exemplos do PDA
 - Incentive o uso das ferramentas da plataforma
 - Se não souber algo, seja honesta e sugira onde buscar a informação
-- Mantenha respostas concisas mas completas (máximo 3 parágrafos por resposta)`;
+- Mantenha respostas concisas mas completas (máximo 3 parágrafos por resposta)
+${contextInfo}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

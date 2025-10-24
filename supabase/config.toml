@@ -2,3 +2,6 @@ project_id = "gvzifvllfplxdtvhohjo"
 
 [functions.nanda-chat]
 verify_jwt = false
+
+[functions.populate-knowledge]
+verify_jwt = false
