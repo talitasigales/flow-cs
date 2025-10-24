@@ -85,19 +85,22 @@ export default function Auth() {
   return <div className="min-h-screen flex">
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
-        <Card className="w-full max-w-md gradient-card border-border/50">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center gap-3 mb-6">
-              <img src={grouLogo} alt="Grou Logo" className="h-10 w-10" />
-              <h2 className="text-xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
-            </div>
-            <CardTitle className="text-2xl">
-              {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
-            </CardTitle>
-            <CardDescription>
-              {isLogin ? 'Entre com seu email e senha' : 'Cadastre-se para começar sua jornada'}
-            </CardDescription>
-          </CardHeader>
+        <div className="w-full max-w-md space-y-6">
+          {/* Logo and Title above the card */}
+          <div className="flex items-center gap-3 justify-center">
+            <img src={grouLogo} alt="Grou Logo" className="h-12 w-12" />
+            <h2 className="text-xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
+          </div>
+          
+          <Card className="gradient-card border-border/50">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">
+                {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
+              </CardTitle>
+              <CardDescription>
+                {isLogin ? 'Entre com seu email e senha' : 'Cadastre-se para começar sua jornada'}
+              </CardDescription>
+            </CardHeader>
           <CardContent>
             <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && <div className="space-y-2">
@@ -128,6 +131,7 @@ export default function Auth() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Right side - Hero */}
