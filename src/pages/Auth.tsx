@@ -23,6 +23,9 @@ export default function Auth() {
   } = useAuth();
   
   const features = [
+    'Ferramentas gratuitas',
+    '6 módulos na trilha de sucesso',
+    'Biblioteca com materiais de apoio',
     'IA especialista no PDA',
     'Matriz 9Box gratuita',
     'Evolução Comparativa de Perfis PDA'
@@ -160,17 +163,6 @@ export default function Auth() {
           </h1>
           <p className="text-xl mb-8 max-w-md text-center">Acompanhe sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>
           <div className="space-y-6 w-full max-w-2xl mx-auto">
-            <div className="flex gap-6 justify-center">
-              <div className="glass-morphism p-6 rounded-lg text-center">
-                <p className="text-3xl font-bold">6</p>
-                <p className="text-sm">módulos</p>
-              </div>
-              <div className="glass-morphism p-6 rounded-lg text-center">
-                <p className="text-3xl font-bold">+4</p>
-                <p className="text-sm">ferramentas gratuitas</p>
-              </div>
-            </div>
-            
             {/* Feature Slider */}
             <div className="relative h-24 flex items-center justify-center">
               {features.map((feature, index) => (
