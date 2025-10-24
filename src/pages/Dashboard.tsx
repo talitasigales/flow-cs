@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut } from 'lucide-react';
+import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
@@ -76,6 +76,47 @@ export default function Dashboard() {
     const completedCount = progress.filter(p => p.completed).length;
     return Math.round(completedCount / modules.length * 100);
   };
+  const toggleModuleCompletion = async (moduleId: string, currentStatus: boolean, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent card click navigation
+    
+    try {
+      const moduleProgress = getModuleProgress(moduleId);
+      
+      if (moduleProgress) {
+        // Update existing progress
+        const { error } = await supabase
+          .from('user_progress')
+          .update({ 
+            completed: !currentStatus,
+            completed_at: !currentStatus ? new Date().toISOString() : null
+          })
+          .eq('user_id', user?.id)
+          .eq('module_id', moduleId);
+          
+        if (error) throw error;
+      } else {
+        // Create new progress record
+        const { error } = await supabase
+          .from('user_progress')
+          .insert({
+            user_id: user?.id,
+            module_id: moduleId,
+            completed: true,
+            completed_at: new Date().toISOString()
+          });
+          
+        if (error) throw error;
+      }
+      
+      // Refresh data
+      await fetchModulesAndProgress();
+      toast.success(!currentStatus ? 'Módulo marcado como concluído!' : 'Módulo desmarcado');
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Erro ao atualizar progresso');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const {
@@ -181,13 +222,24 @@ export default function Dashboard() {
                         <p className="text-muted-foreground mb-4">
                           Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                         </p>
-                        <div className="flex items-center gap-4 text-sm">
-                          {isWatched && <span className="flex items-center gap-1 text-primary">
-                              <Play className="h-4 w-4" />
-                              Vídeo assistido
-                            </span>}
-                          <Button size="sm" variant="outline">
-                            COMEÇAR
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-4 text-sm">
+                            {isWatched && <span className="flex items-center gap-1 text-primary">
+                                <Play className="h-4 w-4" />
+                                Vídeo assistido
+                              </span>}
+                            <Button size="sm" variant="outline">
+                              {isCompleted ? 'REVISAR' : 'COMEÇAR'}
+                            </Button>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant={isCompleted ? "default" : "outline"}
+                            className={isCompleted ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
+                            onClick={(e) => toggleModuleCompletion(module.id, !!isCompleted, e)}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            {isCompleted ? 'Concluído' : 'Marcar como concluído'}
                           </Button>
                         </div>
                       </div>
