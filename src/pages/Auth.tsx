@@ -86,8 +86,9 @@ export default function Auth() {
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-6">
-          {/* Title above the card */}
-          <div className="text-center">
+          {/* Logo and Title above the card */}
+          <div className="flex flex-col items-center gap-4">
+            <img src={grouLogo} alt="Grou Logo" className="h-16 w-16" />
             <h2 className="text-3xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
           </div>
           
