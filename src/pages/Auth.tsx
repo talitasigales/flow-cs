@@ -143,14 +143,23 @@ export default function Auth() {
             Evolua Continuamente
           </h1>
           <p className="text-xl mb-8 max-w-md text-center">Acompanhe sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>
-          <div className="flex gap-6 justify-center">
-            <div className="glass-morphism p-6 rounded-lg">
+          <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+            <div className="glass-morphism p-6 rounded-lg text-center">
               <p className="text-3xl font-bold">6</p>
               <p className="text-sm">módulos</p>
             </div>
-            <div className="glass-morphism p-6 rounded-lg">
+            <div className="glass-morphism p-6 rounded-lg text-center">
               <p className="text-3xl font-bold">+4</p>
               <p className="text-sm">ferramentas gratuitas</p>
+            </div>
+            <div className="glass-morphism p-6 rounded-lg text-center col-span-2">
+              <p className="text-lg font-semibold">IA especialista no PDA</p>
+            </div>
+            <div className="glass-morphism p-6 rounded-lg text-center">
+              <p className="text-lg font-semibold">Matriz 9Box gratuita</p>
+            </div>
+            <div className="glass-morphism p-6 rounded-lg text-center">
+              <p className="text-lg font-semibold">Evolução Comparativa de Perfis PDA</p>
             </div>
           </div>
         </div>
