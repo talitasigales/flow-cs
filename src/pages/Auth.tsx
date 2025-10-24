@@ -88,7 +88,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-6">
           {/* Title above the card */}
           <div className="text-center">
-            <h2 className="text-xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
+            <h2 className="text-3xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
           </div>
           
           <Card className="gradient-card border-border/50">
