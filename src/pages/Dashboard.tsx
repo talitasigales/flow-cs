@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Grid3x3, LogOut, MessageCircle, Users, FileText } from 'lucide-react';
 import { toast } from 'sonner';
@@ -178,24 +176,86 @@ export default function Dashboard() {
       </div>
 
       <div className="container mx-auto px-6 py-8 space-y-8">
-        {/* Overall Progress */}
-        <Card className="gradient-card border-border/50">
-          <CardHeader>
-            <CardTitle>PROGRESSO GERAL</CardTitle>
-            <CardDescription>
-              Você completou {progress.filter(p => p.completed).length} de{' '}
-              {modules.length} módulos
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Progress value={calculateOverallProgress()} className="h-3" />
-              <p className="text-sm text-muted-foreground text-right">
-                {calculateOverallProgress()}% completo
-              </p>
+        {/* Overall Progress - Modern Tech Design */}
+        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 via-card/60 to-primary/5 backdrop-blur-xl">
+          {/* Animated background effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary-glow/10 animate-pulse opacity-50" />
+          
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold gradient-text mb-2">Progresso Geral</h2>
+                <p className="text-sm text-muted-foreground">
+                  {progress.filter(p => p.completed).length} de {modules.length} módulos concluídos
+                </p>
+              </div>
+              
+              {/* Circular Progress Indicator */}
+              <div className="relative w-24 h-24">
+                <svg className="transform -rotate-90 w-24 h-24">
+                  <circle
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="transparent"
+                    className="text-muted/20"
+                  />
+                  <circle
+                    cx="48"
+                    cy="48"
+                    r="40"
+                    stroke="url(#gradient)"
+                    strokeWidth="6"
+                    fill="transparent"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - calculateOverallProgress() / 100)}`}
+                    className="transition-all duration-1000 ease-out"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" />
+                      <stop offset="100%" stopColor="hsl(var(--primary-glow))" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl font-bold gradient-text">{calculateOverallProgress()}%</span>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Progress Bar with Glow Effect */}
+            <div className="relative">
+              <div className="h-2 bg-muted/20 rounded-full overflow-hidden backdrop-blur">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary via-primary-glow to-primary rounded-full transition-all duration-1000 ease-out relative"
+                  style={{ width: `${calculateOverallProgress()}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                </div>
+              </div>
+              
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="glass-morphism p-4 rounded-lg border border-primary/10">
+                  <p className="text-xs text-muted-foreground mb-1">Concluídos</p>
+                  <p className="text-2xl font-bold text-primary">{progress.filter(p => p.completed).length}</p>
+                </div>
+                <div className="glass-morphism p-4 rounded-lg border border-primary/10">
+                  <p className="text-xs text-muted-foreground mb-1">Em Progresso</p>
+                  <p className="text-2xl font-bold text-primary-glow">{continueWatching.length}</p>
+                </div>
+                <div className="glass-morphism p-4 rounded-lg border border-primary/10">
+                  <p className="text-xs text-muted-foreground mb-1">Total</p>
+                  <p className="text-2xl font-bold">{modules.length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Hero Section */}
         {heroModule && (
