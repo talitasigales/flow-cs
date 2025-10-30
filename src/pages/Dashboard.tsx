@@ -274,6 +274,21 @@ export default function Dashboard() {
           />
         )}
 
+        {/* Available Modules (not started) */}
+        {modules.filter(module => {
+          const prog = getModuleProgress(module.id);
+          return !prog?.video_watched && !prog?.completed;
+        }).length > 0 && (
+          <ModuleCarousel 
+            title="Módulos Disponíveis" 
+            modules={modules.filter(module => {
+              const prog = getModuleProgress(module.id);
+              return !prog?.video_watched && !prog?.completed;
+            })}
+            progressData={progress}
+          />
+        )}
+
         {/* By Category */}
         {Object.entries(modulesByCategory).map(([category, categoryModules]) => (
           <ModuleCarousel 
