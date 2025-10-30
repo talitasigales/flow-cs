@@ -5,11 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Circle, Play, TrendingUp, Grid3x3, LogOut, Check, MessageCircle, Users, FileText } from 'lucide-react';
+import { TrendingUp, Grid3x3, LogOut, MessageCircle, Users, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { ModuleHero } from '@/components/ModuleHero';
+import { ModuleCarousel } from '@/components/ModuleCarousel';
 import grouLogo from '@/assets/grou-logo.webp';
 interface Module {
   id: string;
@@ -18,6 +20,10 @@ interface Module {
   module_order: number;
   video_url: string;
   materials: any;
+  thumbnail_url?: string;
+  category?: string;
+  duration_minutes?: number;
+  difficulty?: string;
 }
 interface UserProgress {
   module_id: string;
@@ -78,46 +84,33 @@ export default function Dashboard() {
     const completedCount = progress.filter(p => p.completed).length;
     return Math.round(completedCount / modules.length * 100);
   };
-  const toggleModuleCompletion = async (moduleId: string, currentStatus: boolean, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent card click navigation
-    
-    try {
-      const moduleProgress = getModuleProgress(moduleId);
-      
-      if (moduleProgress) {
-        // Update existing progress
-        const { error } = await supabase
-          .from('user_progress')
-          .update({ 
-            completed: !currentStatus,
-            completed_at: !currentStatus ? new Date().toISOString() : null
-          })
-          .eq('user_id', user?.id)
-          .eq('module_id', moduleId);
-          
-        if (error) throw error;
-      } else {
-        // Create new progress record
-        const { error } = await supabase
-          .from('user_progress')
-          .insert({
-            user_id: user?.id,
-            module_id: moduleId,
-            completed: true,
-            completed_at: new Date().toISOString()
-          });
-          
-        if (error) throw error;
-      }
-      
-      // Refresh data
-      await fetchModulesAndProgress();
-      toast.success(!currentStatus ? 'Módulo marcado como concluído!' : 'Módulo desmarcado');
-    } catch (error) {
-      console.error('Error updating progress:', error);
-      toast.error('Erro ao atualizar progresso');
-    }
-  };
+
+  // Categorize modules for different carousels
+  const continueWatching = modules.filter(module => {
+    const prog = getModuleProgress(module.id);
+    return prog?.video_watched && !prog?.completed;
+  });
+
+  const recommended = modules.filter(module => {
+    const prog = getModuleProgress(module.id);
+    return !prog?.completed;
+  });
+
+  const completed = modules.filter(module => {
+    const prog = getModuleProgress(module.id);
+    return prog?.completed;
+  });
+
+  // Get module for hero section (last accessed or first incomplete)
+  const heroModule = continueWatching[0] || recommended[0] || modules[0];
+
+  // Group by category
+  const modulesByCategory = modules.reduce((acc, module) => {
+    const category = module.category || 'Fundamentos';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(module);
+    return acc;
+  }, {} as Record<string, Module[]>);
 
   const handleLogout = async () => {
     try {
@@ -184,17 +177,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Bem-vindo à sua jornada de Sucesso do Cliente! 🚀</h2>
-          <p className="text-muted-foreground">Continue evoluindo através da nossa trilha de sucesso e atinja o potencial máximo do PDA Assessment na sua empresa.</p>
-        </div>
+      <div className="container mx-auto px-6 py-8 space-y-8">
+        {/* Hero Section */}
+        {heroModule && (
+          <ModuleHero 
+            module={heroModule} 
+            progress={getModuleProgress(heroModule.id)}
+          />
+        )}
 
         {/* Overall Progress */}
-        <Card className="mb-8 gradient-card border-border/50">
+        <Card className="gradient-card border-border/50">
           <CardHeader>
-            <CardTitle>PROGRESSO GERAL</CardTitle>
+            <CardTitle>SEU PROGRESSO</CardTitle>
             <CardDescription>
               Você completou {progress.filter(p => p.completed).length} de{' '}
               {modules.length} módulos
@@ -210,63 +205,42 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Modules Grid */}
-        <div className="space-y-4">
-          <h3 className="text-2xl font-bold mb-4">Trilha de Sucesso</h3>
-          <div className="grid gap-4">
-            {modules.map(module => {
-            const moduleProgress = getModuleProgress(module.id);
-            const isCompleted = moduleProgress?.completed;
-            const isWatched = moduleProgress?.video_watched;
-            return <Card key={module.id} className={`gradient-card border-border/50 hover:border-primary/50 transition-all cursor-pointer ${isCompleted ? 'border-primary/50 bg-primary/5' : ''}`} onClick={() => navigate(`/module/${module.id}`)}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0">
-                        {isCompleted ? (
-                          <div className="relative">
-                            <CheckCircle2 className="h-8 w-8 text-primary animate-in zoom-in duration-500" />
-                            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" style={{ animationDuration: '2s' }} />
-                          </div>
-                        ) : (
-                          <Circle className="h-8 w-8 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-xl font-semibold">
-                            {module.title}
-                          </h4>
-                        </div>
-                        <p className="text-muted-foreground mb-4">
-                          {module.description || 'Descrição não disponível'}
-                        </p>
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-4 text-sm">
-                            {isWatched && <span className="flex items-center gap-1 text-primary">
-                                <Play className="h-4 w-4" />
-                                Vídeo assistido
-                              </span>}
-                            <Button size="sm" variant="outline">
-                              {isCompleted ? 'REVISAR' : 'COMEÇAR'}
-                            </Button>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant={isCompleted ? "default" : "outline"}
-                            className={isCompleted ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}
-                            onClick={(e) => toggleModuleCompletion(module.id, !!isCompleted, e)}
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            {isCompleted ? 'Concluído' : 'Marcar como concluído'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>;
-          })}
-          </div>
-        </div>
+        {/* Continue Watching */}
+        {continueWatching.length > 0 && (
+          <ModuleCarousel 
+            title="Continue Assistindo" 
+            modules={continueWatching}
+            progressData={progress}
+          />
+        )}
+
+        {/* Recommended */}
+        {recommended.length > 0 && (
+          <ModuleCarousel 
+            title="Recomendados para Você" 
+            modules={recommended}
+            progressData={progress}
+          />
+        )}
+
+        {/* By Category */}
+        {Object.entries(modulesByCategory).map(([category, categoryModules]) => (
+          <ModuleCarousel 
+            key={category}
+            title={category} 
+            modules={categoryModules}
+            progressData={progress}
+          />
+        ))}
+
+        {/* Completed */}
+        {completed.length > 0 && (
+          <ModuleCarousel 
+            title="Módulos Concluídos" 
+            modules={completed}
+            progressData={progress}
+          />
+        )}
       </div>
     </div>;
 }

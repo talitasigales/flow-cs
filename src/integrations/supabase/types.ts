@@ -162,29 +162,41 @@ export type Database = {
       }
       modules: {
         Row: {
+          category: string | null
           created_at: string | null
           description: string | null
+          difficulty: string | null
+          duration_minutes: number | null
           id: string
           materials: Json | null
           module_order: number
+          thumbnail_url: string | null
           title: string
           video_url: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
           id?: string
           materials?: Json | null
           module_order: number
+          thumbnail_url?: string | null
           title: string
           video_url?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
           id?: string
           materials?: Json | null
           module_order?: number
+          thumbnail_url?: string | null
           title?: string
           video_url?: string | null
         }
