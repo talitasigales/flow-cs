@@ -178,18 +178,10 @@ export default function Dashboard() {
       </div>
 
       <div className="container mx-auto px-6 py-8 space-y-8">
-        {/* Hero Section */}
-        {heroModule && (
-          <ModuleHero 
-            module={heroModule} 
-            progress={getModuleProgress(heroModule.id)}
-          />
-        )}
-
         {/* Overall Progress */}
         <Card className="gradient-card border-border/50">
           <CardHeader>
-            <CardTitle>SEU PROGRESSO</CardTitle>
+            <CardTitle>PROGRESSO GERAL</CardTitle>
             <CardDescription>
               Você completou {progress.filter(p => p.completed).length} de{' '}
               {modules.length} módulos
@@ -205,20 +197,19 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* Hero Section */}
+        {heroModule && (
+          <ModuleHero 
+            module={heroModule} 
+            progress={getModuleProgress(heroModule.id)}
+          />
+        )}
+
         {/* Continue Watching */}
         {continueWatching.length > 0 && (
           <ModuleCarousel 
             title="Continue Assistindo" 
             modules={continueWatching}
-            progressData={progress}
-          />
-        )}
-
-        {/* Recommended */}
-        {recommended.length > 0 && (
-          <ModuleCarousel 
-            title="Recomendados para Você" 
-            modules={recommended}
             progressData={progress}
           />
         )}
