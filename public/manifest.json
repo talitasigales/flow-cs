@@ -1,0 +1,31 @@
+{
+  "name": "Plataforma de Sucesso Contínuo",
+  "short_name": "CS da Grou",
+  "description": "Trilha de sucesso estruturada em 6 módulos para evolução profissional através do PDA Assessment. Recursos exclusivos e suporte contínuo.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#10b981",
+  "background_color": "#0F172A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
