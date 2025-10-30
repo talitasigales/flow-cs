@@ -28,7 +28,7 @@ export function ModuleHero({ module, progress }: ModuleHeroProps) {
   const progressPercent = progress?.video_watched ? 65 : 0;
 
   return (
-    <div className="relative h-[70vh] min-h-[500px] w-full overflow-hidden rounded-xl">
+    <div className="relative h-[45vh] min-h-[350px] w-full overflow-hidden rounded-xl">
       {/* Background Image with Gradient Overlay */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
@@ -43,8 +43,8 @@ export function ModuleHero({ module, progress }: ModuleHeroProps) {
       </div>
 
       {/* Content */}
-      <div className="relative h-full flex items-end pb-16 px-12">
-        <div className="max-w-2xl space-y-6">
+      <div className="relative h-full flex items-end pb-8 px-12">
+        <div className="max-w-2xl space-y-3">
           {/* Category Badge */}
           {module.category && (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-morphism text-sm font-medium">
@@ -53,17 +53,17 @@ export function ModuleHero({ module, progress }: ModuleHeroProps) {
           )}
 
           {/* Title */}
-          <h1 className="text-5xl md:text-6xl font-bold gradient-text leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold gradient-text leading-tight">
             {module.title}
           </h1>
 
           {/* Description */}
-          <p className="text-lg text-muted-foreground max-w-xl">
+          <p className="text-base text-muted-foreground max-w-xl">
             {module.description || 'Descrição não disponível'}
           </p>
 
           {/* Meta Info */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
             {module.duration_minutes && (
               <span>{module.duration_minutes} minutos</span>
             )}
@@ -91,13 +91,13 @@ export function ModuleHero({ module, progress }: ModuleHeroProps) {
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-4 pt-4">
+          <div className="flex items-center gap-4 pt-2">
             <Button 
-              size="lg"
-              className="gap-2 px-8 py-6 text-lg font-semibold"
+              size="default"
+              className="gap-2 px-6"
               onClick={() => navigate(`/module/${module.id}`)}
             >
-              <Play className="h-5 w-5" />
+              <Play className="h-4 w-4" />
               {isCompleted ? 'Assistir Novamente' : progressPercent > 0 ? 'Continuar' : 'Começar'}
             </Button>
           </div>
