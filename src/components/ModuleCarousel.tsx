@@ -108,9 +108,29 @@ export function ModuleCarousel({ title, modules, progressData }: ModuleCarouselP
 
                   {/* Card Content */}
                   <div className="p-4 space-y-2">
-                    <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                      {module.title}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold group-hover:text-primary transition-colors flex-1">
+                        {module.title}
+                      </h3>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className={cn(
+                          "h-8 w-8 shrink-0 transition-colors",
+                          isCompleted && "text-primary hover:text-primary"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Implementar função de toggle de conclusão
+                          console.log('Toggle completion for module:', module.id);
+                        }}
+                      >
+                        <CheckCircle2 className={cn(
+                          "h-5 w-5",
+                          isCompleted ? "fill-current" : "stroke-current"
+                        )} />
+                      </Button>
+                    </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {module.description || 'Descrição não disponível'}
                     </p>
