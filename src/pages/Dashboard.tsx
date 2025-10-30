@@ -289,15 +289,17 @@ export default function Dashboard() {
           />
         )}
 
-        {/* By Category */}
-        {Object.entries(modulesByCategory).map(([category, categoryModules]) => (
-          <ModuleCarousel 
-            key={category}
-            title={category} 
-            modules={categoryModules}
-            progressData={progress}
-          />
-        ))}
+        {/* By Category (excluding Fundamentos) */}
+        {Object.entries(modulesByCategory)
+          .filter(([category]) => category !== 'Fundamentos')
+          .map(([category, categoryModules]) => (
+            <ModuleCarousel 
+              key={category}
+              title={category} 
+              modules={categoryModules}
+              progressData={progress}
+            />
+          ))}
 
         {/* Completed */}
         {completed.length > 0 && (
