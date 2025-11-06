@@ -9,6 +9,40 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ArrowRight, CheckCircle2, Download, Play, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { ModuleMaterials } from '@/components/ModuleMaterials';
+
+// Função para converter URLs do YouTube para formato embed
+const getYouTubeEmbedUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Se já estiver no formato embed, retorna como está
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  // Extrai o ID do vídeo de diferentes formatos de URL do YouTube
+  let videoId = '';
+  
+  // Formato: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = url.match(/[?&]v=([^&#]+)/);
+  if (watchMatch) {
+    videoId = watchMatch[1];
+  }
+  
+  // Formato: https://youtu.be/VIDEO_ID
+  const shortMatch = url.match(/youtu\.be\/([^?&#]+)/);
+  if (shortMatch) {
+    videoId = shortMatch[1];
+  }
+  
+  // Se encontrou um ID de vídeo, retorna a URL embed
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  
+  // Se não for YouTube, retorna a URL original
+  return url;
+};
+
 interface Module {
   id: string;
   title: string;
@@ -206,7 +240,7 @@ export default function Module() {
           </CardHeader>
           <CardContent>
             <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden">
-              {module.video_url ? <iframe src={module.video_url} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={markVideoWatched} /> : <div className="flex items-center justify-center h-full">
+              {module.video_url ? <iframe src={getYouTubeEmbedUrl(module.video_url)} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen onLoad={markVideoWatched} /> : <div className="flex items-center justify-center h-full">
                   <p className="text-muted-foreground">Vídeo em breve</p>
                 </div>}
             </div>
