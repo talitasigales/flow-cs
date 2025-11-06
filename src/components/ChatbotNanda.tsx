@@ -120,7 +120,7 @@ export const ChatbotNanda = () => {
         <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 gradient-card border-border/50 flex flex-col">
           <CardHeader className="border-b border-border/50">
             <CardTitle className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-12 w-12">
                 <AvatarImage src={nandaAvatar} alt="Nanda" />
                 <AvatarFallback>N</AvatarFallback>
               </Avatar>
@@ -136,7 +136,7 @@ export const ChatbotNanda = () => {
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <Avatar className="h-8 w-8 mt-1">
+                  <Avatar className="h-12 w-12 mt-1">
                     <AvatarImage src={nandaAvatar} alt="Nanda" />
                     <AvatarFallback>N</AvatarFallback>
                   </Avatar>

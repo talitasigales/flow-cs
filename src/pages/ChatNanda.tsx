@@ -96,7 +96,7 @@ export default function ChatNanda() {
                 Voltar
               </Button>
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+                <Avatar className="h-16 w-16">
                   <AvatarImage src={nandaAvatar} alt="Nanda" />
                   <AvatarFallback>N</AvatarFallback>
                 </Avatar>
@@ -116,7 +116,7 @@ export default function ChatNanda() {
         <Card className="gradient-card border-border/50 h-[calc(100vh-200px)] flex flex-col">
           <CardHeader className="border-b border-border/50">
             <CardTitle className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-12 w-12">
                 <AvatarImage src={nandaAvatar} alt="Nanda" />
                 <AvatarFallback>N</AvatarFallback>
               </Avatar>
@@ -132,7 +132,7 @@ export default function ChatNanda() {
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <Avatar className="h-10 w-10 mt-1 flex-shrink-0">
+                  <Avatar className="h-14 w-14 mt-1 flex-shrink-0">
                     <AvatarImage src={nandaAvatar} alt="Nanda" />
                     <AvatarFallback>N</AvatarFallback>
                   </Avatar>
@@ -155,7 +155,7 @@ export default function ChatNanda() {
             ))}
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                <Avatar className="h-10 w-10 mt-1 flex-shrink-0">
+                <Avatar className="h-14 w-14 mt-1 flex-shrink-0">
                   <AvatarImage src={nandaAvatar} alt="Nanda" />
                   <AvatarFallback>N</AvatarFallback>
                 </Avatar>
