@@ -102,13 +102,13 @@ export const ChatbotNanda = () => {
       {/* Floating Button */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 h-20 w-20 rounded-full shadow-lg gradient-primary z-50 p-0 overflow-hidden"
+        className="fixed bottom-6 right-6 h-24 w-24 rounded-full shadow-lg gradient-primary z-50 p-0 overflow-hidden"
         size="icon"
       >
         {isOpen ? (
-          <X className="h-8 w-8" />
+          <X className="h-10 w-10" />
         ) : (
-          <Avatar className="h-20 w-20">
+          <Avatar className="h-24 w-24">
             <AvatarImage src={nandaAvatar} alt="Nanda" />
             <AvatarFallback>N</AvatarFallback>
           </Avatar>
