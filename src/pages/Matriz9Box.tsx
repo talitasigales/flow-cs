@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Plus, Trash2, Edit, Info, Search, Filter } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Info, Search, Filter, Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -55,9 +55,11 @@ export default function Matriz9Box() {
   const [entries, setEntries] = useState<MatrizEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<MatrizEntry | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [isImporting, setIsImporting] = useState(false);
   const [formData, setFormData] = useState({
     employee_name: '',
     performance_score: 50,
@@ -229,6 +231,127 @@ export default function Matriz9Box() {
     return (sum / filteredEntries.length).toFixed(1);
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Por favor, selecione um arquivo CSV');
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        toast.error('Arquivo CSV vazio ou inválido');
+        setIsImporting(false);
+        return;
+      }
+
+      // Parse header
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      // Validar headers obrigatórios
+      const requiredHeaders = ['nome', 'performance', 'fit'];
+      const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+      
+      if (missingHeaders.length > 0) {
+        toast.error(`Colunas obrigatórias faltando: ${missingHeaders.join(', ')}`);
+        setIsImporting(false);
+        return;
+      }
+
+      const nameIndex = headers.indexOf('nome');
+      const performanceIndex = headers.indexOf('performance');
+      const fitIndex = headers.indexOf('fit');
+      const notesIndex = headers.indexOf('observacoes') !== -1 ? headers.indexOf('observacoes') : headers.indexOf('notas');
+
+      // Parse data
+      const dataToInsert = [];
+      const errors = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        
+        const name = values[nameIndex];
+        const performance = parseFloat(values[performanceIndex]);
+        const fit = parseInt(values[fitIndex]);
+        const notes = notesIndex !== -1 ? values[notesIndex] : '';
+
+        // Validações
+        if (!name) {
+          errors.push(`Linha ${i + 1}: Nome não pode estar vazio`);
+          continue;
+        }
+
+        if (isNaN(performance) || performance < 0 || performance > 100) {
+          errors.push(`Linha ${i + 1}: Performance deve ser um número entre 0 e 100`);
+          continue;
+        }
+
+        if (isNaN(fit) || fit < 0 || fit > 100) {
+          errors.push(`Linha ${i + 1}: Fit deve ser um número entre 0 e 100`);
+          continue;
+        }
+
+        dataToInsert.push({
+          user_id: user?.id,
+          employee_name: name,
+          performance_score: performance,
+          role_fit_score: fit,
+          notes: notes || ''
+        });
+      }
+
+      // Mostrar erros se houver
+      if (errors.length > 0) {
+        toast.error(`${errors.length} erro(s) encontrado(s). Verifique o console para detalhes.`);
+        console.error('Erros de importação:', errors);
+      }
+
+      // Inserir dados válidos
+      if (dataToInsert.length > 0) {
+        const { error } = await supabase
+          .from('matriz_9box')
+          .insert(dataToInsert);
+
+        if (error) throw error;
+
+        toast.success(`${dataToInsert.length} colaborador(es) importado(s) com sucesso!`);
+        setImportDialogOpen(false);
+        fetchEntries();
+      } else {
+        toast.error('Nenhum dado válido para importar');
+      }
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      toast.error('Erro ao importar arquivo CSV');
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const downloadTemplate = () => {
+    const template = 'nome,performance,fit,observacoes\nJoão Silva,85,75,Excelente colaborador\nMaria Santos,60,50,Em desenvolvimento';
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_matriz_9box.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    toast.success('Template baixado com sucesso!');
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -250,112 +373,176 @@ export default function Matriz9Box() {
               </Button>
               <h1 className="text-2xl font-bold gradient-text">Matriz 9Box</h1>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) resetForm();
-            }}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Adicionar Colaborador
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingEntry ? 'Editar' : 'Adicionar'} Colaborador
-                  </DialogTitle>
-                  <DialogDescription>
-                    Posicione o colaborador na matriz de acordo com seu desempenho e fit com a função
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Colaborador</Label>
-                    <Input 
-                      id="name" 
-                      value={formData.employee_name} 
-                      onChange={e => setFormData({...formData, employee_name: e.target.value})} 
-                      placeholder="Ex: João Silva" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="performance">
-                      Desempenho / Performance
-                      <span className="text-xs text-muted-foreground ml-2">(0-100)</span>
-                    </Label>
-                    <Input 
-                      id="performance"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      value={formData.performance_score} 
-                      onChange={e => {
-                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                        setFormData({...formData, performance_score: val});
-                      }}
-                      onBlur={e => {
-                        const val = parseFloat(e.target.value);
-                        if (isNaN(val) || val < 0) {
-                          setFormData({...formData, performance_score: 0});
-                        } else if (val > 100) {
-                          setFormData({...formData, performance_score: 100});
-                        }
-                      }}
-                      placeholder="Ex: 85"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="roleFit">
-                      Fit com a Função (% Compatibilidade)
-                      <span className="text-xs text-muted-foreground ml-2">(0-100%)</span>
-                    </Label>
-                    <Input 
-                      id="roleFit"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={formData.role_fit_score} 
-                      onChange={e => {
-                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
-                        setFormData({...formData, role_fit_score: val});
-                      }}
-                      onBlur={e => {
-                        const val = parseInt(e.target.value);
-                        if (isNaN(val) || val < 0) {
-                          setFormData({...formData, role_fit_score: 0});
-                        } else if (val > 100) {
-                          setFormData({...formData, role_fit_score: 100});
-                        }
-                      }}
-                      placeholder="Ex: 75"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Observações</Label>
-                    <Textarea 
-                      id="notes" 
-                      value={formData.notes} 
-                      onChange={e => setFormData({...formData, notes: e.target.value})} 
-                      placeholder="Adicione observações sobre o colaborador..." 
-                      rows={3} 
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => {
-                    setDialogOpen(false);
-                    resetForm();
-                  }}>
-                    Cancelar
+            <div className="flex gap-2">
+              <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Upload className="h-4 w-4" />
+                    Importar CSV
                   </Button>
-                  <Button onClick={handleSubmit}>
-                    {editingEntry ? 'Atualizar' : 'Adicionar'}
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Importar Colaboradores em Massa</DialogTitle>
+                    <DialogDescription>
+                      Faça upload de um arquivo CSV com os dados dos colaboradores
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Formato do Arquivo CSV</Label>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>O arquivo deve conter as seguintes colunas:</p>
+                        <ul className="list-disc list-inside ml-2">
+                          <li><strong>nome</strong>: Nome do colaborador (obrigatório)</li>
+                          <li><strong>performance</strong>: Pontuação de 0-100 (obrigatório)</li>
+                          <li><strong>fit</strong>: Pontuação de 0-100 (obrigatório)</li>
+                          <li><strong>observacoes</strong>: Notas adicionais (opcional)</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={downloadTemplate}
+                        className="w-full gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Baixar Template CSV
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="csv-upload">Selecionar Arquivo CSV</Label>
+                      <Input
+                        id="csv-upload"
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileUpload}
+                        disabled={isImporting}
+                      />
+                      {isImporting && (
+                        <p className="text-sm text-muted-foreground">Importando dados...</p>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setImportDialogOpen(false)}
+                      disabled={isImporting}
+                    >
+                      Fechar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Dialog open={dialogOpen} onOpenChange={(open) => {
+                setDialogOpen(open);
+                if (!open) resetForm();
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="gradient-primary">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar Colaborador
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingEntry ? 'Editar' : 'Adicionar'} Colaborador
+                    </DialogTitle>
+                    <DialogDescription>
+                      Posicione o colaborador na matriz de acordo com seu desempenho e fit com a função
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome do Colaborador</Label>
+                      <Input 
+                        id="name" 
+                        value={formData.employee_name} 
+                        onChange={e => setFormData({...formData, employee_name: e.target.value})} 
+                        placeholder="Ex: João Silva" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="performance">
+                        Desempenho / Performance
+                        <span className="text-xs text-muted-foreground ml-2">(0-100)</span>
+                      </Label>
+                      <Input 
+                        id="performance"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={formData.performance_score} 
+                        onChange={e => {
+                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                          setFormData({...formData, performance_score: val});
+                        }}
+                        onBlur={e => {
+                          const val = parseFloat(e.target.value);
+                          if (isNaN(val) || val < 0) {
+                            setFormData({...formData, performance_score: 0});
+                          } else if (val > 100) {
+                            setFormData({...formData, performance_score: 100});
+                          }
+                        }}
+                        placeholder="Ex: 85"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="roleFit">
+                        Fit com a Função (% Compatibilidade)
+                        <span className="text-xs text-muted-foreground ml-2">(0-100%)</span>
+                      </Label>
+                      <Input 
+                        id="roleFit"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.role_fit_score} 
+                        onChange={e => {
+                          const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                          setFormData({...formData, role_fit_score: val});
+                        }}
+                        onBlur={e => {
+                          const val = parseInt(e.target.value);
+                          if (isNaN(val) || val < 0) {
+                            setFormData({...formData, role_fit_score: 0});
+                          } else if (val > 100) {
+                            setFormData({...formData, role_fit_score: 100});
+                          }
+                        }}
+                        placeholder="Ex: 75"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Observações</Label>
+                      <Textarea 
+                        id="notes" 
+                        value={formData.notes} 
+                        onChange={e => setFormData({...formData, notes: e.target.value})} 
+                        placeholder="Adicione observações sobre o colaborador..." 
+                        rows={3} 
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => {
+                      setDialogOpen(false);
+                      resetForm();
+                    }}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleSubmit}>
+                      {editingEntry ? 'Atualizar' : 'Adicionar'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
       </div>
