@@ -13,6 +13,10 @@ import ProfileEvolution from "./pages/ProfileEvolution";
 import ChatNanda from "./pages/ChatNanda";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
+import PDI from "./pages/PDI";
+import PDIDetail from "./pages/PDIDetail";
+import PDIGuide from "./pages/PDIGuide";
+import PDICreate from "./pages/PDICreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +37,10 @@ const App = () => (
             <Route path="/chat-nanda" element={<ChatNanda />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
+            <Route path="/pdi" element={<PDI />} />
+            <Route path="/pdi/new" element={<PDICreate />} />
+            <Route path="/pdi/guide" element={<PDIGuide />} />
+            <Route path="/pdi/:pdiId" element={<PDIDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

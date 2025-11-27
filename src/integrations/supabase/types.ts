@@ -202,6 +202,284 @@ export type Database = {
         }
         Relationships: []
       }
+      pdi_actions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          evidence: string | null
+          how_to_do: string | null
+          id: string
+          learning_type: string
+          pdi_id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          what_to_do: string | null
+          when_to_do: string | null
+          where_to_do: string | null
+          why_to_do: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          evidence?: string | null
+          how_to_do?: string | null
+          id?: string
+          learning_type: string
+          pdi_id: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          what_to_do?: string | null
+          when_to_do?: string | null
+          where_to_do?: string | null
+          why_to_do?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          evidence?: string | null
+          how_to_do?: string | null
+          id?: string
+          learning_type?: string
+          pdi_id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          what_to_do?: string | null
+          when_to_do?: string | null
+          where_to_do?: string | null
+          why_to_do?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_actions_pdi_id_fkey"
+            columns: ["pdi_id"]
+            isOneToOne: false
+            referencedRelation: "pdis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdi_checkins: {
+        Row: {
+          best_moment: string | null
+          biggest_effort: string | null
+          checkin_date: string
+          checkin_number: number | null
+          created_at: string | null
+          created_by: string
+          id: string
+          new_ideas: string | null
+          obstacles: string | null
+          overall_status: string | null
+          pdi_id: string
+          what_didnt_work: string | null
+          what_worked: string | null
+          who_can_help: string | null
+        }
+        Insert: {
+          best_moment?: string | null
+          biggest_effort?: string | null
+          checkin_date: string
+          checkin_number?: number | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          new_ideas?: string | null
+          obstacles?: string | null
+          overall_status?: string | null
+          pdi_id: string
+          what_didnt_work?: string | null
+          what_worked?: string | null
+          who_can_help?: string | null
+        }
+        Update: {
+          best_moment?: string | null
+          biggest_effort?: string | null
+          checkin_date?: string
+          checkin_number?: number | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          new_ideas?: string | null
+          obstacles?: string | null
+          overall_status?: string | null
+          pdi_id?: string
+          what_didnt_work?: string | null
+          what_worked?: string | null
+          who_can_help?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_checkins_pdi_id_fkey"
+            columns: ["pdi_id"]
+            isOneToOne: false
+            referencedRelation: "pdis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdi_closures: {
+        Row: {
+          closure_date: string
+          created_at: string | null
+          created_by: string
+          gains: string | null
+          how_finishing: string | null
+          id: string
+          learnings: string | null
+          next_steps: string | null
+          pdi_id: string
+          satisfaction_score: number | null
+          still_to_develop: string | null
+          what_accomplished: string | null
+          what_not_accomplished: string | null
+          what_was_missing: string | null
+        }
+        Insert: {
+          closure_date: string
+          created_at?: string | null
+          created_by: string
+          gains?: string | null
+          how_finishing?: string | null
+          id?: string
+          learnings?: string | null
+          next_steps?: string | null
+          pdi_id: string
+          satisfaction_score?: number | null
+          still_to_develop?: string | null
+          what_accomplished?: string | null
+          what_not_accomplished?: string | null
+          what_was_missing?: string | null
+        }
+        Update: {
+          closure_date?: string
+          created_at?: string | null
+          created_by?: string
+          gains?: string | null
+          how_finishing?: string | null
+          id?: string
+          learnings?: string | null
+          next_steps?: string | null
+          pdi_id?: string
+          satisfaction_score?: number | null
+          still_to_develop?: string | null
+          what_accomplished?: string | null
+          what_not_accomplished?: string | null
+          what_was_missing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_closures_pdi_id_fkey"
+            columns: ["pdi_id"]
+            isOneToOne: false
+            referencedRelation: "pdis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdi_mentors: {
+        Row: {
+          contact_info: string | null
+          created_at: string | null
+          id: string
+          mentor_name: string
+          mentor_role: string | null
+          notes: string | null
+          pdi_id: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string | null
+          id?: string
+          mentor_name: string
+          mentor_role?: string | null
+          notes?: string | null
+          pdi_id: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string | null
+          id?: string
+          mentor_name?: string
+          mentor_role?: string | null
+          notes?: string | null
+          pdi_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_mentors_pdi_id_fkey"
+            columns: ["pdi_id"]
+            isOneToOne: false
+            referencedRelation: "pdis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdis: {
+        Row: {
+          behavior_ratings: Json | null
+          created_at: string | null
+          current_step: number | null
+          employee_department: string | null
+          employee_name: string
+          employee_role: string | null
+          id: string
+          notes: string | null
+          overall_progress: number | null
+          pda_axis: string
+          reflective_answers: Json | null
+          start_date: string | null
+          status: string | null
+          target_date: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          behavior_ratings?: Json | null
+          created_at?: string | null
+          current_step?: number | null
+          employee_department?: string | null
+          employee_name: string
+          employee_role?: string | null
+          id?: string
+          notes?: string | null
+          overall_progress?: number | null
+          pda_axis: string
+          reflective_answers?: Json | null
+          start_date?: string | null
+          status?: string | null
+          target_date?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          behavior_ratings?: Json | null
+          created_at?: string | null
+          current_step?: number | null
+          employee_department?: string | null
+          employee_name?: string
+          employee_role?: string | null
+          id?: string
+          notes?: string | null
+          overall_progress?: number | null
+          pda_axis?: string
+          reflective_answers?: Json | null
+          start_date?: string | null
+          status?: string | null
+          target_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_evolution: {
         Row: {
           analysis_result: Json | null
