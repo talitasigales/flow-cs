@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Grid3x3, LogOut, MessageCircle, Users, FileText } from 'lucide-react';
+import { TrendingUp, Grid3x3, LogOut, MessageCircle, Users, FileText, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
