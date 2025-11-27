@@ -20,7 +20,7 @@ export const ChatbotNanda = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Olá! Sou a Nanda, sua assistente PDA. Como posso ajudá-lo hoje?',
+      content: '👋 Olá! Que bom ter você aqui!\n\nSou a Nanda, sua parceira de desenvolvimento humano especializada em PDA e PDI. 💚\n\nPosso ajudar você com:\n• Entender os eixos comportamentais REPNA\n• Orientar sobre criação e acompanhamento de PDIs\n• Esclarecer dúvidas sobre perfis comportamentais\n• Dar dicas de desenvolvimento baseadas nos modelos PDA\n\nComo posso ajudar você hoje?',
     },
   ]);
   const [input, setInput] = useState('');
@@ -28,11 +28,11 @@ export const ChatbotNanda = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Atualizar base de conhecimento com REPNA correto
+    // Atualizar base de conhecimento completa com REPNA e todos os modelos de PDI
     const updateKnowledge = async () => {
       try {
-        const { data } = await supabase.functions.invoke('update-knowledge-repna');
-        console.log('Base atualizada:', data);
+        const { data } = await supabase.functions.invoke('update-knowledge-complete');
+        console.log('Base de conhecimento completa atualizada:', data);
       } catch (error) {
         console.error('Erro ao atualizar base:', error);
       }
