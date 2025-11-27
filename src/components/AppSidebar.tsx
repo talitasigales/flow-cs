@@ -1,172 +1,229 @@
-import { MessageCircle, Grid3x3, TrendingUp, Users, FileText, LogOut } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
-import grouLogo from "@/assets/grou-logo-verde.webp";
-
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import {
+  MessageSquare,
+  Grid3x3,
+  TrendingUp,
+  Users,
+  FileText,
+  ClipboardList,
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarTrigger,
   useSidebar,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar';
+import { UserAvatarMenu } from './UserAvatarMenu';
+import { Separator } from '@/components/ui/separator';
+import groLogo from '@/assets/grou-logo-verde.webp';
 
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useSidebar();
   const { isAdmin } = useIsAdmin();
-  const collapsed = state === "collapsed";
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/auth');
-      toast.success('Logout realizado com sucesso');
-    } catch (error) {
-      toast.error('Erro ao fazer logout');
-    }
-  };
-
-  const menuItems = [
-    {
-      title: "Fale com a Nanda",
-      url: "/chat-nanda",
-      icon: MessageCircle,
-      description: "Especialista PDA",
-    },
-    {
-      title: "Matriz 9Box",
-      url: "/matriz-9box",
-      icon: Grid3x3,
-    },
-    {
-      title: "Evolução de Perfil",
-      url: "/profile-evolution",
-      icon: TrendingUp,
-      description: "PDA",
-    },
-  ];
-
-  const adminItems = isAdmin ? [
-    {
-      title: "Gerenciar Usuários",
-      url: "/admin/users",
-      icon: Users,
-    },
-    {
-      title: "Logs",
-      url: "/admin/logs",
-      icon: FileText,
-    },
-  ] : [];
+  const { state } = useSidebar();
 
   const isActive = (path: string) => location.pathname === path;
 
+  const mainMenuItems = [
+    {
+      title: 'Fale com a Nanda',
+      icon: MessageSquare,
+      path: '/chat-nanda',
+      badge: null,
+    },
+    {
+      title: 'Matriz 9Box',
+      icon: Grid3x3,
+      path: '/matriz-9box',
+      badge: null,
+    },
+    {
+      title: 'Evolução de Perfil PDA',
+      icon: TrendingUp,
+      path: '/profile-evolution',
+      badge: null,
+    },
+    {
+      title: 'PDI',
+      icon: ClipboardList,
+      path: '/pdi',
+      badge: null,
+    },
+  ];
+
+  const adminMenuItems = [
+    {
+      title: 'Gerenciar Usuários',
+      icon: Users,
+      path: '/admin/users',
+    },
+    {
+      title: 'Logs',
+      icon: FileText,
+      path: '/admin/logs',
+    },
+  ];
+
   return (
     <Sidebar
-      className={`${collapsed ? "w-14" : "w-64"} border-r border-border/50 bg-card/95 backdrop-blur-xl transition-all duration-300`}
       collapsible="icon"
+      className="border-r border-sidebar-border"
+      variant="floating"
     >
-      <SidebarHeader className="border-b border-border/50 p-4">
-        <div className="flex items-center gap-3">
-          <img src={grouLogo} alt="Grou Logo" className="h-8 flex-shrink-0" />
-          {!collapsed && (
-            <div>
-              <h1 className="gradient-text font-bold text-sm leading-tight">
+      {/* Header com Logo e Título */}
+      <SidebarHeader className="border-b border-sidebar-border/50 pb-4">
+        <div className="flex items-center gap-3 px-2">
+          <div className="relative group/logo">
+            <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover/logo:bg-primary/30 transition-colors" />
+            <img 
+              src={groLogo} 
+              alt="Grou Logo" 
+              className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300"
+            />
+          </div>
+          {state === 'expanded' && (
+            <div className="flex-1 overflow-hidden">
+              <h2 className="text-lg font-bold gradient-text whitespace-nowrap">
+                CS da Grou
+              </h2>
+              <p className="text-xs text-muted-foreground truncate">
                 Plataforma de Sucesso do Cliente
-              </h1>
+              </p>
             </div>
           )}
         </div>
+        
+        {/* Trigger Button */}
+        <div className="absolute -right-4 top-4">
+          <SidebarTrigger className="h-8 w-8 rounded-full bg-sidebar border border-sidebar-border hover:bg-sidebar-accent shadow-md transition-all hover:scale-110" />
+        </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      {/* Main Content */}
+      <SidebarContent className="px-2">
+        {/* Menu Principal */}
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-2">
+            Menu Principal
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => navigate(item.url)}
-                    isActive={isActive(item.url)}
-                    className={`${
-                      isActive(item.url)
-                        ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-                        : "hover:bg-muted/50"
-                    } transition-colors`}
+              {mainMenuItems.map((item, index) => {
+                const active = isActive(item.path);
+                return (
+                  <SidebarMenuItem 
+                    key={item.path}
+                    className="animate-fade-in-up"
+                    style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
                   >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {!collapsed && (
-                      <div className="flex flex-col">
-                        <span className="text-sm">{item.title}</span>
-                        {item.description && (
-                          <span className="text-xs text-muted-foreground">{item.description}</span>
-                        )}
-                      </div>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {adminItems.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administração</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      onClick={() => navigate(item.url)}
-                      isActive={isActive(item.url)}
-                      className={`${
-                        isActive(item.url)
-                          ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-                          : "hover:bg-muted/50"
-                      } transition-colors`}
+                      onClick={() => navigate(item.path)}
+                      isActive={active}
+                      tooltip={state === 'collapsed' ? item.title : undefined}
+                      className={`
+                        group/item relative overflow-hidden transition-all duration-300
+                        ${active 
+                          ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm glow-effect' 
+                          : 'hover:bg-sidebar-accent/50'
+                        }
+                      `}
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
-                      {!collapsed && <span className="text-sm">{item.title}</span>}
+                      <div className={`
+                        flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300
+                        ${active 
+                          ? 'bg-gradient-primary text-primary-foreground shadow-md' 
+                          : 'bg-muted/50 text-muted-foreground group-hover/item:bg-primary/10 group-hover/item:text-primary'
+                        }
+                      `}>
+                        <item.icon className="w-4 h-4" />
+                      </div>
+                      {state === 'expanded' && (
+                        <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
+                          {item.title}
+                        </span>
+                      )}
+                      {item.badge && state === 'expanded' && (
+                        <span className="ml-auto bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleLogout}
-                  className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-                >
-                  <LogOut className="h-4 w-4 flex-shrink-0" />
-                  {!collapsed && <span className="text-sm">Sair</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Admin Menu */}
+        {isAdmin && (
+          <>
+            <Separator className="my-2" />
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground px-2">
+                Administração
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminMenuItems.map((item, index) => {
+                    const active = isActive(item.path);
+                    return (
+                      <SidebarMenuItem 
+                        key={item.path}
+                        className="animate-fade-in-up"
+                        style={{ animationDelay: `${(mainMenuItems.length + index) * 50}ms`, animationFillMode: 'both' }}
+                      >
+                        <SidebarMenuButton
+                          onClick={() => navigate(item.path)}
+                          isActive={active}
+                          tooltip={state === 'collapsed' ? item.title : undefined}
+                          className={`
+                            group/item relative overflow-hidden transition-all duration-300
+                            ${active 
+                              ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm glow-effect' 
+                              : 'hover:bg-sidebar-accent/50'
+                            }
+                          `}
+                        >
+                          <div className={`
+                            flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300
+                            ${active 
+                              ? 'bg-gradient-primary text-primary-foreground shadow-md' 
+                              : 'bg-muted/50 text-muted-foreground group-hover/item:bg-primary/10 group-hover/item:text-primary'
+                            }
+                          `}>
+                            <item.icon className="w-4 h-4" />
+                          </div>
+                          {state === 'expanded' && (
+                            <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
+                              {item.title}
+                            </span>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
 
-      <div className="absolute top-4 right-2">
-        <SidebarTrigger className="hover:bg-muted/50 rounded-md" />
-      </div>
+      {/* Footer com User Avatar */}
+      <SidebarFooter className="border-t border-sidebar-border/50 pt-4">
+        <UserAvatarMenu />
+      </SidebarFooter>
     </Sidebar>
   );
 }
