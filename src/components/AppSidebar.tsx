@@ -19,8 +19,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
-  useSidebar,
 } from '@/components/ui/sidebar';
 import { UserAvatarMenu } from './UserAvatarMenu';
 import { Separator } from '@/components/ui/separator';
@@ -30,7 +28,6 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useIsAdmin();
-  const { state } = useSidebar();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -76,7 +73,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      collapsible="icon"
+      collapsible="none"
       className="border-r border-sidebar-border"
       variant="floating"
     >
@@ -91,21 +88,14 @@ export function AppSidebar() {
               className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300"
             />
           </div>
-          {state === 'expanded' && (
-            <div className="flex-1 overflow-hidden">
-              <h2 className="text-lg font-bold gradient-text whitespace-nowrap">
-                CS da Grou
-              </h2>
-              <p className="text-xs text-muted-foreground truncate">
-                Plataforma de Sucesso do Cliente
-              </p>
-            </div>
-          )}
-        </div>
-        
-        {/* Trigger Button */}
-        <div className="absolute -right-4 top-4">
-          <SidebarTrigger className="h-8 w-8 rounded-full bg-sidebar border border-sidebar-border hover:bg-sidebar-accent shadow-md transition-all hover:scale-110" />
+          <div className="flex-1 overflow-hidden">
+            <h2 className="text-lg font-bold gradient-text whitespace-nowrap">
+              CS da Grou
+            </h2>
+            <p className="text-xs text-muted-foreground truncate">
+              Plataforma de Sucesso do Cliente
+            </p>
+          </div>
         </div>
       </SidebarHeader>
 
@@ -129,7 +119,6 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       onClick={() => navigate(item.path)}
                       isActive={active}
-                      tooltip={state === 'collapsed' ? item.title : undefined}
                       className={`
                         group/item relative overflow-hidden transition-all duration-300
                         ${active 
@@ -147,12 +136,10 @@ export function AppSidebar() {
                       `}>
                         <item.icon className="w-4 h-4" />
                       </div>
-                      {state === 'expanded' && (
-                        <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
-                          {item.title}
-                        </span>
-                      )}
-                      {item.badge && state === 'expanded' && (
+                      <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
+                        {item.title}
+                      </span>
+                      {item.badge && (
                         <span className="ml-auto bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
                           {item.badge}
                         </span>
@@ -186,7 +173,6 @@ export function AppSidebar() {
                         <SidebarMenuButton
                           onClick={() => navigate(item.path)}
                           isActive={active}
-                          tooltip={state === 'collapsed' ? item.title : undefined}
                           className={`
                             group/item relative overflow-hidden transition-all duration-300
                             ${active 
@@ -204,11 +190,9 @@ export function AppSidebar() {
                           `}>
                             <item.icon className="w-4 h-4" />
                           </div>
-                          {state === 'expanded' && (
-                            <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
-                              {item.title}
-                            </span>
-                          )}
+                          <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
+                            {item.title}
+                          </span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
