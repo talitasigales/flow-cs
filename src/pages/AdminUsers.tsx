@@ -50,7 +50,7 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       // Fetch all profiles with their roles
-      const { data: profiles, error: profilesError } = await supabase
+      const { data: profiles, error: profilesError } = await (supabase as any)
         .from('profiles')
         .select('id, email, full_name, company, created_at')
         .order('created_at', { ascending: false });
@@ -58,20 +58,20 @@ const AdminUsers = () => {
       if (profilesError) throw profilesError;
 
       // Fetch all user roles
-      const { data: roles, error: rolesError } = await supabase
+      const { data: roles, error: rolesError } = await (supabase as any)
         .from('user_roles')
         .select('user_id, role');
 
       if (rolesError) throw rolesError;
 
       // Combine profiles with roles
-      const usersWithRoles = profiles?.map(profile => {
-        const userRole = roles?.find(r => r.user_id === profile.id);
+      const usersWithRoles = (profiles || []).map((profile: any) => {
+        const userRole = (roles || []).find((r: any) => r.user_id === profile.id);
         return {
           ...profile,
           role: userRole?.role || null
         };
-      }) || [];
+      });
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -113,7 +113,7 @@ const AdminUsers = () => {
     try {
       if (currentRole === 'admin') {
         // Remove admin role
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
@@ -123,7 +123,7 @@ const AdminUsers = () => {
         toast.success('Permissões de admin removidas');
       } else {
         // Add admin role
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_roles')
           .insert({ user_id: userId, role: 'admin' });
 

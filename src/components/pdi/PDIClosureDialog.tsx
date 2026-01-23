@@ -42,7 +42,7 @@ export default function PDIClosureDialog({
     setLoading(true);
 
     try {
-      const { error: closureError } = await supabase
+      const { error: closureError } = await (supabase as any)
         .from('pdi_closures')
         .insert({
           ...formData,
@@ -53,7 +53,7 @@ export default function PDIClosureDialog({
       if (closureError) throw closureError;
 
       // Atualizar PDI para "Fechamento" (etapa 5) e status "completed"
-      const { error: pdiError } = await supabase
+      const { error: pdiError } = await (supabase as any)
         .from('pdis')
         .update({ 
           current_step: 5,

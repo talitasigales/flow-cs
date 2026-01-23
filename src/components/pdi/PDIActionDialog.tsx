@@ -48,7 +48,7 @@ export default function PDIActionDialog({
 
     try {
       if (action) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('pdi_actions')
           .update(formData)
           .eq('id', action.id);
@@ -56,7 +56,7 @@ export default function PDIActionDialog({
         if (error) throw error;
         toast.success('Ação atualizada com sucesso!');
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('pdi_actions')
           .insert({ ...formData, pdi_id: pdiId });
         

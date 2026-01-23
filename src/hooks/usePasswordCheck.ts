@@ -15,7 +15,7 @@ export function usePasswordCheck() {
       }
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("profiles")
           .select("password_changed")
           .eq("id", user.id)
@@ -39,7 +39,7 @@ export function usePasswordCheck() {
   const refetch = async () => {
     if (!user) return;
     
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("profiles")
       .select("password_changed")
       .eq("id", user.id)

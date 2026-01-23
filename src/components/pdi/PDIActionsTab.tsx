@@ -60,7 +60,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
         updateData.completed_at = new Date().toISOString();
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('pdi_actions')
         .update(updateData)
         .eq('id', actionId);
@@ -78,7 +78,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
     if (!actionToDelete) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('pdi_actions')
         .delete()
         .eq('id', actionToDelete);

@@ -43,7 +43,7 @@ export default function PDICheckinDialog({
     setLoading(true);
 
     try {
-      const { error: checkinError } = await supabase
+      const { error: checkinError } = await (supabase as any)
         .from('pdi_checkins')
         .insert({
           ...formData,
@@ -55,7 +55,7 @@ export default function PDICheckinDialog({
       if (checkinError) throw checkinError;
 
       // Atualizar etapa do PDI para "Acompanhamento" (etapa 4)
-      const { error: pdiError } = await supabase
+      const { error: pdiError } = await (supabase as any)
         .from('pdis')
         .update({ 
           current_step: 4,

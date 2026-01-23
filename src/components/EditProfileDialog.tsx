@@ -62,7 +62,7 @@ export function EditProfileDialog({ profileId, currentData, onSuccess }: EditPro
       
       setLoading(true);
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profile_evolution')
         .update({
           analysis_result: validatedData

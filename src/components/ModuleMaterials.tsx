@@ -49,7 +49,7 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
 
   const fetchMaterials = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('module_materials')
         .select('*')
         .eq('module_id', moduleId)
@@ -108,7 +108,7 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
         url = publicUrl;
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('module_materials')
         .insert({
           module_id: moduleId,
@@ -144,7 +144,7 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
           .remove([filePath]);
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('module_materials')
         .delete()
         .eq('id', materialId);

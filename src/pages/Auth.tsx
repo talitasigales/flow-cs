@@ -62,7 +62,7 @@ export default function Auth() {
         if (data.user) {
           const {
             data: profile
-          } = await supabase.from('profiles').select('password_changed').eq('id', data.user.id).single();
+          } = await (supabase as any).from('profiles').select('password_changed').eq('id', data.user.id).single();
           if (profile && profile.password_changed === false) {
             toast.info('Por segurança, você precisará trocar sua senha provisória.');
           }
