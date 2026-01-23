@@ -1,13 +1,1 @@
-project_id = "gvzifvllfplxdtvhohjo"
-
-[functions.analyze-profile]
-verify_jwt = false
-
-[functions.nanda-chat]
-verify_jwt = false
-
-[functions.populate-knowledge]
-verify_jwt = false
-
-[functions.update-knowledge-repna]
-verify_jwt = false
+project_id = "hapzzpwywnahovmddlej"
