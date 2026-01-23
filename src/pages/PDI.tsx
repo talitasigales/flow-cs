@@ -40,7 +40,7 @@ export default function PDI() {
 
   const fetchPDIs = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('pdis')
         .select('*')
         .eq('user_id', user?.id)

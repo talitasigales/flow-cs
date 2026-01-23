@@ -90,7 +90,7 @@ export default function Module() {
       const {
         data: modulesData,
         error: modulesError
-      } = await supabase.from('modules').select('*').order('module_order');
+      } = await (supabase as any).from('modules').select('*').order('module_order');
       if (modulesError) throw modulesError;
       setAllModules(modulesData || []);
 
@@ -98,7 +98,7 @@ export default function Module() {
       const {
         data: moduleData,
         error: moduleError
-      } = await supabase.from('modules').select('*').eq('id', moduleId).single();
+      } = await (supabase as any).from('modules').select('*').eq('id', moduleId).single();
       if (moduleError) throw moduleError;
       setModule(moduleData);
 
@@ -106,7 +106,7 @@ export default function Module() {
       const {
         data: progressData,
         error: progressError
-      } = await supabase.from('user_progress').select('*').eq('user_id', user?.id).eq('module_id', moduleId).maybeSingle();
+      } = await (supabase as any).from('user_progress').select('*').eq('user_id', user?.id).eq('module_id', moduleId).maybeSingle();
       if (progressError) throw progressError;
       if (progressData) {
         setProgress(progressData);
@@ -115,7 +115,7 @@ export default function Module() {
         const {
           data: newProgress,
           error: createError
-        } = await supabase.from('user_progress').insert({
+        } = await (supabase as any).from('user_progress').insert({
           user_id: user?.id,
           module_id: moduleId,
           completed: false,
@@ -137,7 +137,7 @@ export default function Module() {
     try {
       const {
         error
-      } = await supabase.from('user_progress').update(updates).eq('id', progress.id);
+      } = await (supabase as any).from('user_progress').update(updates).eq('id', progress.id);
       if (error) throw error;
       setProgress({
         ...progress,

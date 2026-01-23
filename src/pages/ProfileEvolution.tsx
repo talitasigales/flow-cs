@@ -113,7 +113,7 @@ export default function ProfileEvolution() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('profile_evolution')
         .select('*')
         .eq('user_id', user?.id)
@@ -148,7 +148,7 @@ export default function ProfileEvolution() {
     }
 
     try {
-      const { error } = await supabase.from('profile_evolution').insert({
+      const { error } = await (supabase as any).from('profile_evolution').insert({
         user_id: user?.id,
         employee_name: formData.employee_name,
         year: formData.year,
@@ -181,7 +181,7 @@ export default function ProfileEvolution() {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profile_evolution')
         .delete()
         .eq('id', id);

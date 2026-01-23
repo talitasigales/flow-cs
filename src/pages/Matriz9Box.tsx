@@ -87,7 +87,7 @@ export default function Matriz9Box() {
 
   const fetchEntries = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('matriz_9box')
         .select('*')
         .eq('user_id', user?.id);
@@ -110,7 +110,7 @@ export default function Matriz9Box() {
 
     try {
       if (editingEntry) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('matriz_9box')
           .update({
             employee_name: formData.employee_name,
@@ -123,7 +123,7 @@ export default function Matriz9Box() {
         if (error) throw error;
         toast.success('Colaborador atualizado com sucesso');
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('matriz_9box')
           .insert({
             user_id: user?.id,
@@ -148,7 +148,7 @@ export default function Matriz9Box() {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('matriz_9box')
         .delete()
         .eq('id', id);
@@ -316,7 +316,7 @@ export default function Matriz9Box() {
 
       // Inserir dados válidos
       if (dataToInsert.length > 0) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('matriz_9box')
           .insert(dataToInsert);
 

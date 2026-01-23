@@ -63,7 +63,7 @@ export default function PDICreate() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('pdis')
         .insert({
           user_id: user.id,
@@ -91,7 +91,7 @@ export default function PDICreate() {
       if (error) throw error;
 
       toast.success('PDI criado com sucesso!');
-      navigate(`/pdi/${data.id}`);
+      navigate(`/pdi/${data?.id}`);
     } catch (error) {
       console.error('Erro ao criar PDI:', error);
       toast.error('Erro ao criar PDI');

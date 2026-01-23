@@ -63,12 +63,12 @@ export default function Dashboard() {
       const {
         data: modulesData,
         error: modulesError
-      } = await supabase.from('modules').select('*').order('module_order');
+      } = await (supabase as any).from('modules').select('*').order('module_order');
       if (modulesError) throw modulesError;
       const {
         data: progressData,
         error: progressError
-      } = await supabase.from('user_progress').select('*').eq('user_id', user?.id);
+      } = await (supabase as any).from('user_progress').select('*').eq('user_id', user?.id);
       if (progressError) throw progressError;
       setModules(modulesData || []);
       setProgress(progressData || []);

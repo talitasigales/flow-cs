@@ -37,7 +37,7 @@ export default function PDIDetail() {
   const fetchPDIData = async () => {
     try {
       // Fetch PDI
-      const { data: pdiData, error: pdiError } = await supabase
+      const { data: pdiData, error: pdiError } = await (supabase as any)
         .from('pdis')
         .select('*')
         .eq('id', pdiId)
@@ -48,7 +48,7 @@ export default function PDIDetail() {
       setPdi(pdiData);
 
       // Fetch Actions
-      const { data: actionsData, error: actionsError } = await supabase
+      const { data: actionsData, error: actionsError } = await (supabase as any)
         .from('pdi_actions')
         .select('*')
         .eq('pdi_id', pdiId)
@@ -58,7 +58,7 @@ export default function PDIDetail() {
       setActions(actionsData || []);
 
       // Fetch Check-ins
-      const { data: checkinsData, error: checkinsError } = await supabase
+      const { data: checkinsData, error: checkinsError } = await (supabase as any)
         .from('pdi_checkins')
         .select('*')
         .eq('pdi_id', pdiId)
@@ -68,7 +68,7 @@ export default function PDIDetail() {
       setCheckins(checkinsData || []);
 
       // Fetch Closure
-      const { data: closureData, error: closureError } = await supabase
+      const { data: closureData, error: closureError } = await (supabase as any)
         .from('pdi_closures')
         .select('*')
         .eq('pdi_id', pdiId)

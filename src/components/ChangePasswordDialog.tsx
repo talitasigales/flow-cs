@@ -58,7 +58,7 @@ export const ChangePasswordDialog = ({ onPasswordChanged }: ChangePasswordDialog
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        const { error: profileError } = await supabase
+        const { error: profileError } = await (supabase as any)
           .from("profiles")
           .update({
             password_changed: true,
