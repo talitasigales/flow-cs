@@ -28,6 +28,7 @@ const App = () => (
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Auth />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/module/:moduleId" element={<Module />} />
           <Route path="/matriz-9box" element={<Matriz9Box />} />
