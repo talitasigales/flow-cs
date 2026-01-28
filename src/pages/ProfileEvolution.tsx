@@ -213,6 +213,8 @@ export default function ProfileEvolution() {
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit chamado', { formData, userId: user?.id });
+    
     if (!formData.employee_name.trim()) {
       toast.error('Nome é obrigatório');
       return;
@@ -674,7 +676,7 @@ export default function ProfileEvolution() {
                   >
                     Cancelar
                   </Button>
-                  <Button onClick={handleSubmit}>Adicionar</Button>
+                  <Button type="button" onClick={handleSubmit}>Adicionar</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
