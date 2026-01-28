@@ -13,7 +13,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   risco_alto: {
     name: 'Risco Alto',
     icon: 'TrendingUp',
-    color: 'hsl(0, 84%, 60%)',
+    color: 'hsl(25, 95%, 53%)', // Orange
     description: 'Para perfis com alta tolerância ao risco e orientação para resultados',
     behaviors: [
       'Costumo tomar decisões rapidamente, sem analisar adequadamente prós e contras.',
@@ -39,7 +39,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   risco_baixo: {
     name: 'Risco Baixo',
     icon: 'TrendingDown',
-    color: 'hsl(217, 91%, 60%)',
+    color: 'hsl(25, 95%, 53%)', // Orange
     description: 'Para perfis cautelosos e orientados para análise detalhada',
     behaviors: [
       'Sinto que demoro para tomar decisões, necessito me certificar de muitos dados e fatos para conseguir prosseguir.',
@@ -65,7 +65,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   extroversao_alta: {
     name: 'Extroversão Alta',
     icon: 'Users',
-    color: 'hsl(39, 100%, 57%)',
+    color: 'hsl(45, 93%, 47%)', // Yellow
     description: 'Para perfis sociáveis e comunicativos',
     behaviors: [
       'Sinto que perco o foco com facilidade, me distraio facilmente.',
@@ -91,7 +91,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   extroversao_baixa: {
     name: 'Extroversão Baixa',
     icon: 'User',
-    color: 'hsl(262, 83%, 58%)',
+    color: 'hsl(45, 93%, 47%)', // Yellow
     description: 'Para perfis reservados e discretos',
     behaviors: [
       'Por ser discreto, tenho dificuldade de tomar a iniciativa de iniciar uma conversa.',
@@ -117,7 +117,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   paciencia_alta: {
     name: 'Paciência Alta',
     icon: 'Clock',
-    color: 'hsl(142, 71%, 45%)',
+    color: 'hsl(217, 91%, 60%)', // Blue
     description: 'Para perfis pacientes e orientados para estabilidade',
     behaviors: [
       'Fico frustrado(a) ou ansioso(a) quando confrontado(a) com a mudança.',
@@ -143,7 +143,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   paciencia_baixa: {
     name: 'Paciência Baixa',
     icon: 'Zap',
-    color: 'hsl(25, 95%, 53%)',
+    color: 'hsl(217, 91%, 60%)', // Blue
     description: 'Para perfis dinâmicos e orientados para ação',
     behaviors: [
       'Fico irritado(a) ou ansioso(a) quando as coisas não acontecem no meu ritmo.',
@@ -169,7 +169,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   normas_altas: {
     name: 'Normas Altas',
     icon: 'Shield',
-    color: 'hsl(221, 83%, 53%)',
+    color: 'hsl(142, 71%, 45%)', // Green
     description: 'Para perfis orientados para regras e procedimentos',
     behaviors: [
       'Fico frustrado(a) ou ansioso(a) quando as normas e regras não estão sendo cumpridas.',
@@ -195,7 +195,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   normas_baixas: {
     name: 'Normas Baixas',
     icon: 'Lightbulb',
-    color: 'hsl(280, 79%, 57%)',
+    color: 'hsl(142, 71%, 45%)', // Green
     description: 'Para perfis autônomos e inovadores',
     behaviors: [
       'Fico frustrado(a) quando não tenho liberdade de questionar ou criar minhas próprias regras.',
