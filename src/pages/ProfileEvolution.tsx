@@ -19,12 +19,40 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import { EditProfileDialog } from '@/components/EditProfileDialog';
 import { AIAnalysis } from '@/components/AIAnalysis';
 
+interface ProfileEvolutionAnalysis {
+  employee_name: string;
+  r: number;
+  e: number;
+  p: number;
+  n: number;
+  a: number;
+  tomada_decisoes: number;
+  intensidade_perfil: number;
+  energia: number;
+  equilibrio_energia: number;
+  modificacao_perfil: number;
+  notes: string | null;
+}
+
 interface ProfileEvolution {
   id: string;
-  year: number;
-  file_url: string | null;
-  analysis_result: any;
+  employee_name: string;
+  assessment_date: string;
+  r_value: number | null;
+  e_value: number | null;
+  p_value: number | null;
+  n_value: number | null;
+  a_value: number | null;
+  decision_making: number | null;
+  profile_intensity: number | null;
+  energy: number | null;
+  energy_balance: number | null;
+  notes: string | null;
   created_at: string;
+  // Computed for frontend use
+  year: number;
+  // Computed analysis_result for backward compatibility
+  analysis_result: ProfileEvolutionAnalysis;
 }
 
 export default function ProfileEvolution() {
@@ -53,10 +81,27 @@ export default function ProfileEvolution() {
     notes: '',
   });
 
+  // Helper to get profile values
+  const getProfileValue = (profile: ProfileEvolution, key: string): number => {
+    const mappings: Record<string, keyof ProfileEvolution> = {
+      r: 'r_value',
+      e: 'e_value',
+      p: 'p_value',
+      n: 'n_value',
+      a: 'a_value',
+      tomada_decisoes: 'decision_making',
+      intensidade_perfil: 'profile_intensity',
+      energia: 'energy',
+      equilibrio_energia: 'energy_balance',
+    };
+    const dbKey = mappings[key] || key;
+    return (profile[dbKey as keyof ProfileEvolution] as number) || 0;
+  };
+
   // Extract unique names and years
   const uniqueNames = useMemo(() => {
     const names = profiles
-      .map(p => p.analysis_result?.employee_name || (p as any).employee_name)
+      .map(p => p.employee_name)
       .filter((name): name is string => !!name && name.trim() !== '');
     return Array.from(new Set(names));
   }, [profiles]);
@@ -79,7 +124,7 @@ export default function ProfileEvolution() {
   // Filter profiles
   const filteredProfiles = useMemo(() => {
     return profiles.filter(profile => {
-      const profileName = profile.analysis_result?.employee_name || (profile as any).employee_name;
+      const profileName = profile.employee_name;
       const nameMatch = selectedName === 'all' || profileName === selectedName;
       const yearMatch = selectedYears.length === 0 || selectedYears.includes(profile.year);
       return nameMatch && yearMatch;
@@ -113,14 +158,52 @@ export default function ProfileEvolution() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('profile_evolution')
         .select('*')
         .eq('user_id', user?.id)
-        .order('year', { ascending: true });
+        .order('assessment_date', { ascending: true });
 
       if (error) throw error;
-      setProfiles(data || []);
+      
+      // Map database data to frontend format with computed year and analysis_result
+      const mappedData: ProfileEvolution[] = (data || []).map(item => {
+        const year = new Date(item.assessment_date).getFullYear();
+        return {
+          id: item.id,
+          employee_name: item.employee_name,
+          assessment_date: item.assessment_date,
+          r_value: item.r_value,
+          e_value: item.e_value,
+          p_value: item.p_value,
+          n_value: item.n_value,
+          a_value: item.a_value,
+          decision_making: item.decision_making,
+          profile_intensity: item.profile_intensity,
+          energy: item.energy,
+          energy_balance: item.energy_balance,
+          notes: item.notes,
+          created_at: item.created_at,
+          year,
+          // Computed analysis_result for backward compatibility with UI
+          analysis_result: {
+            employee_name: item.employee_name,
+            r: item.r_value || 0,
+            e: item.e_value || 0,
+            p: item.p_value || 0,
+            n: item.n_value || 0,
+            a: item.a_value || 0,
+            tomada_decisoes: item.decision_making || 0,
+            intensidade_perfil: item.profile_intensity || 0,
+            energia: item.energy || 0,
+            equilibrio_energia: item.energy_balance || 0,
+            modificacao_perfil: 0, // Not in new schema
+            notes: item.notes,
+          },
+        };
+      });
+      
+      setProfiles(mappedData);
     } catch (error) {
       console.error('Error fetching profiles:', error);
       toast.error('Erro ao carregar perfis');
@@ -148,24 +231,20 @@ export default function ProfileEvolution() {
     }
 
     try {
-      const { error } = await (supabase as any).from('profile_evolution').insert({
+      const { error } = await supabase.from('profile_evolution').insert({
         user_id: user?.id,
         employee_name: formData.employee_name,
-        year: formData.year,
-        analysis_result: {
-          employee_name: formData.employee_name,
-          r: formData.r,
-          e: formData.e,
-          p: formData.p,
-          n: formData.n,
-          a: formData.a,
-          tomada_decisoes: formData.tomada_decisoes,
-          intensidade_perfil: formData.intensidade_perfil,
-          energia: formData.energia,
-          equilibrio_energia: formData.equilibrio_energia,
-          modificacao_perfil: formData.modificacao_perfil,
-          notes: formData.notes,
-        },
+        assessment_date: `${formData.year}-01-01`,
+        r_value: formData.r,
+        e_value: formData.e,
+        p_value: formData.p,
+        n_value: formData.n,
+        a_value: formData.a,
+        decision_making: formData.tomada_decisoes,
+        profile_intensity: formData.intensidade_perfil,
+        energy: formData.energia,
+        energy_balance: formData.equilibrio_energia,
+        notes: formData.notes,
       });
 
       if (error) throw error;
@@ -287,8 +366,8 @@ export default function ProfileEvolution() {
   const calculateAverage = (dimension: keyof typeof formData) => {
     if (profiles.length === 0) return 0;
     const values = profiles
-      .map((p) => p.analysis_result?.[dimension as keyof typeof p.analysis_result] as number)
-      .filter((v) => v !== undefined);
+      .map((p) => getProfileValue(p, dimension as string))
+      .filter((v) => v !== undefined && v !== null);
     return values.length > 0
       ? Math.round(values.reduce((a, b) => a + b, 0) / values.length)
       : 0;
@@ -301,10 +380,10 @@ export default function ProfileEvolution() {
     const profileA = profiles.find(p => p.year === yearA);
     const profileB = profiles.find(p => p.year === yearB);
     
-    if (!profileA?.analysis_result || !profileB?.analysis_result) return { value: 0, percentage: 0, trend: 'neutral' as const };
+    if (!profileA || !profileB) return { value: 0, percentage: 0, trend: 'neutral' as const };
     
-    const valueA = profileA.analysis_result[dimension] || 0;
-    const valueB = profileB.analysis_result[dimension] || 0;
+    const valueA = getProfileValue(profileA, dimension);
+    const valueB = getProfileValue(profileB, dimension);
     const diff = valueB - valueA;
     const percentage = valueA !== 0 ? Math.round((diff / valueA) * 100) : 0;
     
@@ -327,8 +406,8 @@ export default function ProfileEvolution() {
       
       return {
         dimension: getDimensionLabel(dim),
-        [selectedYearA || 'A']: profileA?.analysis_result?.[dim] || 0,
-        [selectedYearB || 'B']: profileB?.analysis_result?.[dim] || 0,
+        [selectedYearA || 'A']: profileA ? getProfileValue(profileA, dim) : 0,
+        [selectedYearB || 'B']: profileB ? getProfileValue(profileB, dim) : 0,
       };
     });
   };
@@ -745,7 +824,7 @@ export default function ProfileEvolution() {
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
                       {filteredProfiles.map((profile) => (
-                  <Card key={profile.id} className="gradient-card border-border/50 overflow-hidden">
+                        <Card key={profile.id} className="gradient-card border-border/50 overflow-hidden">
                     <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
                       <div className="flex items-center justify-between">
                         <div>
@@ -754,28 +833,26 @@ export default function ProfileEvolution() {
                             {profile.year}
                           </CardTitle>
                           <CardDescription className="mt-1">
-                            {profile.analysis_result?.employee_name || (profile as any).employee_name || 'Colaborador'}
+                            {profile.employee_name || 'Colaborador'}
                           </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
-                          {profile.analysis_result && (
-                            <EditProfileDialog
-                              profileId={profile.id}
-                              currentData={{
-                                r: profile.analysis_result.r || 0,
-                                e: profile.analysis_result.e || 0,
-                                p: profile.analysis_result.p || 0,
-                                n: profile.analysis_result.n || 0,
-                                a: profile.analysis_result.a || 0,
-                                tomada_decisoes: profile.analysis_result.tomada_decisoes || 0,
-                                intensidade_perfil: profile.analysis_result.intensidade_perfil || 0,
-                                energia: profile.analysis_result.energia || 0,
-                                equilibrio_energia: profile.analysis_result.equilibrio_energia || 0,
-                                modificacao_perfil: profile.analysis_result.modificacao_perfil || 0,
-                              }}
-                              onSuccess={fetchProfiles}
-                            />
-                          )}
+                          <EditProfileDialog
+                            profileId={profile.id}
+                            currentData={{
+                              r: getProfileValue(profile, 'r'),
+                              e: getProfileValue(profile, 'e'),
+                              p: getProfileValue(profile, 'p'),
+                              n: getProfileValue(profile, 'n'),
+                              a: getProfileValue(profile, 'a'),
+                              tomada_decisoes: getProfileValue(profile, 'tomada_decisoes'),
+                              intensidade_perfil: getProfileValue(profile, 'intensidade_perfil'),
+                              energia: getProfileValue(profile, 'energia'),
+                              equilibrio_energia: getProfileValue(profile, 'equilibrio_energia'),
+                              modificacao_perfil: 0,
+                            }}
+                            onSuccess={fetchProfiles}
+                          />
                           <Button
                             variant="ghost"
                             size="icon"
@@ -788,8 +865,7 @@ export default function ProfileEvolution() {
                       </div>
                     </CardHeader>
                     <CardContent className="pt-6">
-                      {profile.analysis_result && (
-                        <div className="space-y-6">
+                      <div className="space-y-6">
                           {/* REPNA Grid + Energy Bar */}
                           <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
                             {/* REPNA Grid Chart */}
@@ -851,7 +927,7 @@ export default function ProfileEvolution() {
                                   {(() => {
                                     const dimensions = ['r', 'e', 'p', 'n', 'a'];
                                     const points = dimensions.map((dim, index) => {
-                                      const value = profile.analysis_result?.[dim] || 0;
+                                      const value = (profile.analysis_result as any)?.[dim] || 0;
                                       const x = 50 + (index * 100) + 50;
                                       const y = 340 - (value * 3.2);
                                       return { x, y, value, dim, color: getProfileColorHex(dim) };
@@ -970,7 +1046,7 @@ export default function ProfileEvolution() {
                             </h4>
                             <div className="grid gap-3">
                               {['tomada_decisoes', 'intensidade_perfil', 'equilibrio_energia', 'modificacao_perfil'].map((key) => {
-                                const value = profile.analysis_result?.[key];
+                                const value = profile.analysis_result?.[key as keyof ProfileEvolutionAnalysis];
                                 if (typeof value !== 'number') return null;
                                 return (
                                   <div key={key} className="flex items-center gap-4">
@@ -1031,39 +1107,38 @@ export default function ProfileEvolution() {
                                     className="py-3 px-2"
                                     style={{ backgroundColor: `${color}dd` }}
                                   >
-                                    {profile.analysis_result?.[key] || 0}
+                                    {getProfileValue(profile, key)}
                                   </div>
                                 ))}
                               </div>
                             </div>
                           </div>
                           
-                          {profile.analysis_result?.notes && (
+                          {profile.notes && (
                             <div className="pt-4 border-t border-border">
                               <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/20">
                                 <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                 <div>
                                   <h4 className="font-semibold text-sm mb-1">Observações</h4>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {profile.analysis_result.notes}
+                                    {profile.notes}
                                   </p>
                                 </div>
                               </div>
                             </div>
                           )}
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-                  )}
-                </>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
-            </TabsContent>
+            </>
+          )}
+        </TabsContent>
 
-            {/* Comparison View */}
-            <TabsContent value="comparison" className="space-y-4">
+          {/* Comparison View */}
+          <TabsContent value="comparison" className="space-y-4">
               <Card className="gradient-card border-border/50">
                 <CardHeader>
                   <CardTitle>Comparação Entre Anos</CardTitle>
