@@ -15,11 +15,11 @@ export function usePasswordCheck() {
       }
 
       try {
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
           .from("profiles")
           .select("password_changed")
-          .eq("id", user.id)
-          .single();
+          .eq("user_id", user.id)
+          .maybeSingle();
 
         if (error) throw error;
 
@@ -39,11 +39,11 @@ export function usePasswordCheck() {
   const refetch = async () => {
     if (!user) return;
     
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("profiles")
       .select("password_changed")
-      .eq("id", user.id)
-      .single();
+      .eq("user_id", user.id)
+      .maybeSingle();
 
     setNeedsPasswordChange(data?.password_changed === false);
   };
