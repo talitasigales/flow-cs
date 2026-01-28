@@ -87,13 +87,21 @@ export default function Matriz9Box() {
 
   const fetchEntries = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('matriz_9box')
         .select('*')
         .eq('user_id', user?.id);
       
       if (error) throw error;
-      setEntries(data || []);
+      // Map database column names to frontend names
+      const mappedData = (data || []).map(item => ({
+        id: item.id,
+        employee_name: item.employee_name,
+        performance_score: item.performance,
+        role_fit_score: item.potential,
+        notes: item.notes || ''
+      }));
+      setEntries(mappedData);
     } catch (error) {
       console.error('Error fetching entries:', error);
       toast.error('Erro ao carregar dados da matriz');
@@ -110,12 +118,12 @@ export default function Matriz9Box() {
 
     try {
       if (editingEntry) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('matriz_9box')
           .update({
             employee_name: formData.employee_name,
-            performance_score: formData.performance_score,
-            role_fit_score: formData.role_fit_score,
+            performance: formData.performance_score,
+            potential: formData.role_fit_score,
             notes: formData.notes
           })
           .eq('id', editingEntry.id);
@@ -123,13 +131,13 @@ export default function Matriz9Box() {
         if (error) throw error;
         toast.success('Colaborador atualizado com sucesso');
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('matriz_9box')
           .insert({
             user_id: user?.id,
             employee_name: formData.employee_name,
-            performance_score: formData.performance_score,
-            role_fit_score: formData.role_fit_score,
+            performance: formData.performance_score,
+            potential: formData.role_fit_score,
             notes: formData.notes
           });
         
@@ -148,7 +156,7 @@ export default function Matriz9Box() {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('matriz_9box')
         .delete()
         .eq('id', id);
@@ -302,8 +310,8 @@ export default function Matriz9Box() {
         dataToInsert.push({
           user_id: user?.id,
           employee_name: name,
-          performance_score: performance,
-          role_fit_score: fit,
+          performance: performance,
+          potential: fit,
           notes: notes || ''
         });
       }
@@ -316,7 +324,7 @@ export default function Matriz9Box() {
 
       // Inserir dados válidos
       if (dataToInsert.length > 0) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('matriz_9box')
           .insert(dataToInsert);
 
