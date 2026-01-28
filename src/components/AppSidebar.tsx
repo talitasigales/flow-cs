@@ -7,6 +7,7 @@ import {
   Users,
   FileText,
   ClipboardList,
+  GraduationCap,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -32,6 +33,12 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   const mainMenuItems = [
+    {
+      title: 'Trilhas de Sucesso',
+      icon: GraduationCap,
+      path: '/dashboard',
+      badge: null,
+    },
     {
       title: 'Fale com a Nanda',
       icon: MessageSquare,
