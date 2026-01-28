@@ -16,6 +16,8 @@ import PDI from "./pages/PDI";
 import PDIDetail from "./pages/PDIDetail";
 import PDIGuide from "./pages/PDIGuide";
 import PDICreate from "./pages/PDICreate";
+import JobConstruction from "./pages/JobConstruction";
+import JobConstructionResult from "./pages/JobConstructionResult";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
           <Route path="/pdi/new" element={<PDICreate />} />
           <Route path="/pdi/guide" element={<PDIGuide />} />
           <Route path="/pdi/:pdiId" element={<PDIDetail />} />
+          <Route path="/job-construction" element={<JobConstruction />} />
+          <Route path="/job-construction/result" element={<JobConstructionResult />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
