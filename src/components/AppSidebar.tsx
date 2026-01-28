@@ -8,6 +8,7 @@ import {
   FileText,
   ClipboardList,
   GraduationCap,
+  Briefcase,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -61,6 +62,12 @@ export function AppSidebar() {
       title: 'PDI',
       icon: ClipboardList,
       path: '/pdi',
+      badge: null,
+    },
+    {
+      title: 'Construção de Cargos',
+      icon: Briefcase,
+      path: '/job-construction',
       badge: null,
     },
   ];
