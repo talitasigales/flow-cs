@@ -1,23 +1,20 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { CheckCircle2, Play, Clock } from 'lucide-react';
+import { CheckCircle2, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface Module {
   id: string;
   title: string;
-  description: string;
-  thumbnail_url?: string;
-  duration_minutes?: number;
-  category?: string;
+  description: string | null;
+  thumbnail_url: string | null;
 }
 
 interface UserProgress {
   module_id: string;
-  completed: boolean;
-  video_watched: boolean;
+  completed: boolean | null;
 }
 
 interface ModuleCarouselProps {
@@ -50,7 +47,6 @@ export function ModuleCarousel({ title, modules, progressData }: ModuleCarouselP
           {modules.map((module) => {
             const progress = getProgress(module.id);
             const isCompleted = progress?.completed;
-            const isWatched = progress?.video_watched;
 
             return (
               <CarouselItem key={module.id} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
@@ -89,21 +85,6 @@ export function ModuleCarousel({ title, modules, progressData }: ModuleCarouselP
                         <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}
-
-                    {/* Duration Badge */}
-                    {module.duration_minutes && (
-                      <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur px-2 py-1 rounded text-xs text-white flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {module.duration_minutes}min
-                      </div>
-                    )}
-
-                    {/* Progress Bar */}
-                    {isWatched && !isCompleted && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
-                        <div className="h-full bg-primary w-2/3" />
-                      </div>
-                    )}
                   </div>
 
                   {/* Card Content */}
@@ -121,7 +102,6 @@ export function ModuleCarousel({ title, modules, progressData }: ModuleCarouselP
                         )}
                         onClick={(e) => {
                           e.stopPropagation();
-                          // TODO: Implementar função de toggle de conclusão
                           console.log('Toggle completion for module:', module.id);
                         }}
                       >
