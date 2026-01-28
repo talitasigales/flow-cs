@@ -14,20 +14,15 @@ import { AppSidebar } from '@/components/AppSidebar';
 interface Module {
   id: string;
   title: string;
-  description: string;
-  module_order: number;
-  video_url: string;
-  materials: any;
-  thumbnail_url?: string;
-  category?: string;
-  duration_minutes?: number;
-  difficulty?: string;
+  description: string | null;
+  order_number: number;
+  video_url: string | null;
+  thumbnail_url: string | null;
 }
 
 interface UserProgress {
   module_id: string;
-  completed: boolean;
-  video_watched: boolean;
+  completed: boolean | null;
 }
 
 export default function Dashboard() {
@@ -63,13 +58,15 @@ export default function Dashboard() {
       const {
         data: modulesData,
         error: modulesError
-      } = await (supabase as any).from('modules').select('*').order('module_order');
+      } = await supabase.from('modules').select('*').order('order_number');
       if (modulesError) throw modulesError;
+      
       const {
         data: progressData,
         error: progressError
-      } = await (supabase as any).from('user_progress').select('*').eq('user_id', user?.id);
+      } = await supabase.from('user_progress').select('*').eq('user_id', user?.id);
       if (progressError) throw progressError;
+      
       setModules(modulesData || []);
       setProgress(progressData || []);
     } catch (error) {
@@ -90,32 +87,20 @@ export default function Dashboard() {
     return Math.round(completedCount / modules.length * 100);
   };
 
-  // Categorize modules for different carousels
-  const continueWatching = modules.filter(module => {
-    const prog = getModuleProgress(module.id);
-    return prog?.video_watched && !prog?.completed;
-  });
-
-  const recommended = modules.filter(module => {
+  // Get modules not started
+  const notStartedModules = modules.filter(module => {
     const prog = getModuleProgress(module.id);
     return !prog?.completed;
   });
 
-  const completed = modules.filter(module => {
+  // Get completed modules
+  const completedModules = modules.filter(module => {
     const prog = getModuleProgress(module.id);
     return prog?.completed;
   });
 
-  // Get module for hero section (last accessed or first incomplete)
-  const heroModule = continueWatching[0] || recommended[0] || modules[0];
-
-  // Group by category
-  const modulesByCategory = modules.reduce((acc, module) => {
-    const category = module.category || 'Fundamentos';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(module);
-    return acc;
-  }, {} as Record<string, Module[]>);
+  // Get module for hero section (first incomplete or first module)
+  const heroModule = notStartedModules[0] || modules[0];
 
   if (authLoading || loading || passwordCheckLoading) {
     return (
@@ -209,8 +194,8 @@ export default function Dashboard() {
                       <p className="text-2xl font-bold text-primary">{progress.filter(p => p.completed).length}</p>
                     </div>
                     <div className="glass-morphism p-4 rounded-lg border border-primary/10">
-                      <p className="text-xs text-muted-foreground mb-1">Em Progresso</p>
-                      <p className="text-2xl font-bold text-primary-glow">{continueWatching.length}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Pendentes</p>
+                      <p className="text-2xl font-bold text-primary-glow">{notStartedModules.length}</p>
                     </div>
                     <div className="glass-morphism p-4 rounded-lg border border-primary/10">
                       <p className="text-xs text-muted-foreground mb-1">Total</p>
@@ -229,47 +214,20 @@ export default function Dashboard() {
               />
             )}
 
-            {/* Continue Watching */}
-            {continueWatching.length > 0 && (
-              <ModuleCarousel 
-                title="Continue Assistindo" 
-                modules={continueWatching}
-                progressData={progress}
-              />
-            )}
-
-            {/* Available Modules (not started) */}
-            {modules.filter(module => {
-              const prog = getModuleProgress(module.id);
-              return !prog?.video_watched && !prog?.completed;
-            }).length > 0 && (
+            {/* Available Modules */}
+            {notStartedModules.length > 0 && (
               <ModuleCarousel 
                 title="Módulos Disponíveis" 
-                modules={modules.filter(module => {
-                  const prog = getModuleProgress(module.id);
-                  return !prog?.video_watched && !prog?.completed;
-                })}
+                modules={notStartedModules}
                 progressData={progress}
               />
             )}
 
-            {/* By Category (excluding Fundamentos) */}
-            {Object.entries(modulesByCategory)
-              .filter(([category]) => category !== 'Fundamentos')
-              .map(([category, categoryModules]) => (
-                <ModuleCarousel 
-                  key={category}
-                  title={category} 
-                  modules={categoryModules}
-                  progressData={progress}
-                />
-              ))}
-
             {/* Completed */}
-            {completed.length > 0 && (
+            {completedModules.length > 0 && (
               <ModuleCarousel 
                 title="Módulos Concluídos" 
-                modules={completed}
+                modules={completedModules}
                 progressData={progress}
               />
             )}
