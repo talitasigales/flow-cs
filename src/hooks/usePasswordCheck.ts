@@ -36,6 +36,10 @@ export function usePasswordCheck() {
     checkPassword();
   }, [user]);
 
+  const markPasswordChanged = () => {
+    setNeedsPasswordChange(false);
+  };
+
   const refetch = async () => {
     if (!user) return;
     
@@ -48,5 +52,5 @@ export function usePasswordCheck() {
     setNeedsPasswordChange(data?.password_changed === false);
   };
 
-  return { needsPasswordChange, loading, refetch };
+  return { needsPasswordChange, loading, refetch, markPasswordChanged };
 }

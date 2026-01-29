@@ -38,7 +38,7 @@ export default function Dashboard() {
   const {
     needsPasswordChange,
     loading: passwordCheckLoading,
-    refetch
+    markPasswordChanged
   } = usePasswordCheck();
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function Dashboard() {
   if (needsPasswordChange) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <ChangePasswordDialog onPasswordChanged={refetch} />
+        <ChangePasswordDialog onPasswordChanged={markPasswordChanged} />
       </div>
     );
   }
