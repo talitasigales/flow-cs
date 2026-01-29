@@ -7,20 +7,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
 import grouLogo from '@/assets/grou-logo-verde.webp';
+
+type AuthMode = 'login' | 'signup' | 'forgot-password';
+
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   
   const features = [
     'Ferramentas gratuitas',
@@ -34,7 +35,7 @@ export default function Auth() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % features.length);
-    }, 3000); // Troca a cada 3 segundos
+    }, 3000);
 
     return () => clearInterval(timer);
   }, []);
@@ -44,37 +45,54 @@ export default function Auth() {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error('Por favor, insira seu email.');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
+      setMode('login');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast.error(error.message || 'Erro ao enviar email de redefinição.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
-        const {
-          data,
-          error
-        } = await supabase.auth.signInWithPassword({
+      if (mode === 'login') {
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         if (error) throw error;
 
-        // Check if user needs to change password
         if (data.user) {
-          const {
-            data: profile
-          } = await (supabase as any).from('profiles').select('password_changed').eq('id', data.user.id).single();
+          const { data: profile } = await (supabase as any).from('profiles').select('password_changed').eq('id', data.user.id).single();
           if (profile && profile.password_changed === false) {
             toast.info('Por segurança, você precisará trocar sua senha provisória.');
           }
         }
         toast.success('Login realizado com sucesso!');
         navigate('/dashboard');
-      } else {
-        // For signup, use email prefix as password
+      } else if (mode === 'signup') {
         const provisionalPassword = email.split('@')[0];
-        const {
-          error
-        } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password: provisionalPassword,
           options: {
@@ -114,40 +132,121 @@ export default function Auth() {
           <Card className="gradient-card border-border/50">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">
-                {isLogin ? 'Bem-vindo de volta' : 'Criar conta'}
+                {mode === 'login' && 'Bem-vindo de volta'}
+                {mode === 'signup' && 'Criar conta'}
+                {mode === 'forgot-password' && 'Redefinir senha'}
               </CardTitle>
               <CardDescription>
-                {isLogin ? 'Entre com seu email e senha' : 'Cadastre-se para começar sua jornada'}
+                {mode === 'login' && 'Entre com seu email e senha'}
+                {mode === 'signup' && 'Cadastre-se para começar sua jornada'}
+                {mode === 'forgot-password' && 'Insira seu email para receber o link de redefinição'}
               </CardDescription>
             </CardHeader>
           <CardContent>
-            <form onSubmit={handleAuth} className="space-y-4">
-              {!isLogin && <div className="space-y-2">
-                  <Label htmlFor="fullName">Nome completo</Label>
-                  <Input id="fullName" type="text" placeholder="Seu nome" value={fullName} onChange={e => setFullName(e.target.value)} required={!isLogin} disabled={loading} />
-                </div>}
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} />
-              </div>
+            {mode === 'forgot-password' ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                    disabled={loading} 
+                  />
+                </div>
 
-              {isLogin && <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required={isLogin} disabled={loading} />
-                </div>}
+                <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar link de redefinição
+                </Button>
 
-              <Button type="submit" className="w-full gradient-primary" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLogin ? 'Entrar' : 'Cadastrar'}
-              </Button>
+                <div className="text-center text-sm">
+                  <button 
+                    type="button" 
+                    onClick={() => setMode('login')} 
+                    className="text-primary hover:underline inline-flex items-center gap-1" 
+                    disabled={loading}
+                  >
+                    <ArrowLeft className="h-3 w-3" />
+                    Voltar ao login
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleAuth} className="space-y-4">
+                {mode === 'signup' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Nome completo</Label>
+                    <Input 
+                      id="fullName" 
+                      type="text" 
+                      placeholder="Seu nome" 
+                      value={fullName} 
+                      onChange={e => setFullName(e.target.value)} 
+                      required 
+                      disabled={loading} 
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                    disabled={loading} 
+                  />
+                </div>
 
-              <div className="text-center text-sm">
-                <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline" disabled={loading}>
-                  {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
-                </button>
-              </div>
-            </form>
+                {mode === 'login' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Senha</Label>
+                      <button 
+                        type="button" 
+                        onClick={() => setMode('forgot-password')} 
+                        className="text-xs text-primary hover:underline"
+                        disabled={loading}
+                      >
+                        Esqueceu a senha?
+                      </button>
+                    </div>
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      required 
+                      disabled={loading} 
+                    />
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {mode === 'login' ? 'Entrar' : 'Cadastrar'}
+                </Button>
+
+                <div className="text-center text-sm">
+                  <button 
+                    type="button" 
+                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} 
+                    className="text-primary hover:underline" 
+                    disabled={loading}
+                  >
+                    {mode === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
+                  </button>
+                </div>
+              </form>
+            )}
           </CardContent>
         </Card>
         </div>
