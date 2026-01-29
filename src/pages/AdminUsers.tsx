@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, UserPlus, Shield, User, Trash2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserData {
@@ -33,6 +33,14 @@ const AdminUsers = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'admin' | 'user'>('user');
   const [inviting, setInviting] = useState(false);
+  
+  // Reset password states
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetUserEmail, setResetUserEmail] = useState('');
+  const [resetUserName, setResetUserName] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -136,6 +144,44 @@ const AdminUsers = () => {
       console.error('Error toggling role:', error);
       toast.error('Erro ao alterar permissões');
     }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetUserEmail) return;
+    
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        body: { email: resetUserEmail }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      setGeneratedPassword(data.provisionalPassword);
+      toast.success('Senha resetada com sucesso!');
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast.error(error.message || 'Erro ao resetar senha');
+      setResetDialogOpen(false);
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const openResetDialog = (email: string, name: string | null) => {
+    setResetUserEmail(email);
+    setResetUserName(name || email);
+    setGeneratedPassword('');
+    setCopied(false);
+    setResetDialogOpen(true);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedPassword);
+    setCopied(true);
+    toast.success('Senha copiada!');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (adminLoading || loading) {
@@ -259,7 +305,15 @@ const AdminUsers = () => {
                     <TableCell>
                       {new Date(userData.created_at).toLocaleDateString('pt-BR')}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openResetDialog(userData.email, userData.full_name)}
+                      >
+                        <KeyRound className="h-3 w-3 mr-1" />
+                        Resetar Senha
+                      </Button>
                       <Button
                         size="sm"
                         variant={userData.role === 'admin' ? 'destructive' : 'outline'}
@@ -275,6 +329,59 @@ const AdminUsers = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Reset Password Dialog */}
+        <Dialog open={resetDialogOpen} onOpenChange={(open) => {
+          if (!open) {
+            setResetDialogOpen(false);
+            setGeneratedPassword('');
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Resetar Senha</DialogTitle>
+              <DialogDescription>
+                {generatedPassword 
+                  ? `A senha de ${resetUserName} foi resetada com sucesso.`
+                  : `Tem certeza que deseja resetar a senha de ${resetUserName}?`
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            {generatedPassword ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <Label className="text-sm text-muted-foreground">Nova senha provisória:</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <code className="flex-1 p-3 bg-background rounded border text-lg font-mono">
+                      {generatedPassword}
+                    </code>
+                    <Button size="icon" variant="outline" onClick={copyToClipboard}>
+                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  O usuário será obrigado a trocar a senha no próximo login.
+                </p>
+                <DialogFooter>
+                  <Button onClick={() => setResetDialogOpen(false)}>
+                    Fechar
+                  </Button>
+                </DialogFooter>
+              </div>
+            ) : (
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setResetDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleResetPassword} disabled={resetting}>
+                  {resetting ? 'Resetando...' : 'Confirmar Reset'}
+                </Button>
+              </DialogFooter>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

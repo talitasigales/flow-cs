@@ -14,6 +14,13 @@ serve(async (req) => {
   try {
     const { email, newPassword } = await req.json();
 
+    if (!email) {
+      return new Response(
+        JSON.stringify({ error: 'Email é obrigatório' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -41,10 +48,13 @@ serve(async (req) => {
       );
     }
 
+    // Generate provisional password if not provided (email prefix)
+    const provisionalPassword = newPassword || email.split('@')[0];
+
     // Update password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       user.id,
-      { password: newPassword }
+      { password: provisionalPassword }
     );
 
     if (updateError) {
@@ -56,6 +66,20 @@ serve(async (req) => {
       .from('profiles')
       .update({ password_changed: false })
       .eq('user_id', user.id);
+
+    console.log(`Password reset for user: ${email}, provisional: ${!newPassword}`);
+
+    // Return response with provisional password if it was auto-generated
+    if (!newPassword) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Senha resetada com sucesso',
+          provisionalPassword: provisionalPassword 
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: 'Senha resetada com sucesso' }),
