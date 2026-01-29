@@ -10,9 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Plus, Trash2, Edit, Info, Search, Filter, Upload, Download } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Info, Search, Filter, Upload, Download, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { exportMatriz9Box } from '@/utils/exportUtils';
 
 interface MatrizEntry {
   id: string;
@@ -382,6 +383,18 @@ export default function Matriz9Box() {
               <h1 className="text-2xl font-bold gradient-text">Matriz 9Box</h1>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => {
+                  exportMatriz9Box(entries);
+                  toast.success('Dados exportados com sucesso!');
+                }}
+                disabled={entries.length === 0}
+              >
+                <FileDown className="h-4 w-4" />
+                Exportar
+              </Button>
               <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="gap-2">

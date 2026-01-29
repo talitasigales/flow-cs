@@ -3,7 +3,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, ArrowLeft } from 'lucide-react';
+import { RefreshCw, ArrowLeft, FileDown } from 'lucide-react';
+import { toast } from 'sonner';
+import { exportJobProfile } from '@/utils/exportUtils';
 import { ResultDisplay } from '@/components/job-construction';
 import { JobProfileScores } from '@/utils/jobProfileCalculator';
 
@@ -56,7 +58,18 @@ export default function JobConstructionResult() {
             <ResultDisplay scores={scores} />
 
             {/* Action Buttons */}
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center gap-3 pt-4">
+              <Button 
+                onClick={() => {
+                  exportJobProfile(scores);
+                  toast.success('Perfil exportado com sucesso!');
+                }}
+                variant="outline"
+                className="gap-2"
+              >
+                <FileDown className="w-4 h-4" />
+                Exportar
+              </Button>
               <Button 
                 onClick={handleNewAnalysis}
                 variant="outline"

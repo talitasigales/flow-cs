@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Search, BookOpen, Target, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Search, BookOpen, Target, TrendingUp, CheckCircle2, AlertCircle, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { PDA_AXES } from '@/data/pdiTemplates';
+import { exportPDIs } from '@/utils/exportUtils';
 
 interface PDI {
   id: string;
@@ -120,6 +121,27 @@ export default function PDI() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const axisLabels = Object.fromEntries(
+                    Object.entries(PDA_AXES).map(([key, val]) => [key, val.name])
+                  );
+                  exportPDIs(pdis.map(p => ({
+                    employee_name: p.employee_name,
+                    pda_axis: p.pda_axis,
+                    status: p.status,
+                    current_stage: p.current_step,
+                    start_date: p.start_date,
+                    target_date: p.target_date
+                  })), axisLabels);
+                  toast.success('Dados exportados com sucesso!');
+                }}
+                disabled={pdis.length === 0}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                Exportar
+              </Button>
               <Button variant="outline" onClick={() => navigate('/pdi/guide')}>
                 <BookOpen className="h-4 w-4 mr-2" />
                 Guia de Condução

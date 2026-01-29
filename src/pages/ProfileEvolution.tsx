@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Filter, X, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { ArrowLeft, Plus, TrendingUp, FileText, Calendar, BarChart, Filter, X, ArrowUp, ArrowDown, Minus, FileDown } from 'lucide-react';
+import { toast } from 'sonner';
+import { exportProfileEvolution } from '@/utils/exportUtils';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts';
 import { AIAnalysis } from '@/components/AIAnalysis';
 import {
@@ -81,13 +83,42 @@ export default function ProfileEvolution() {
               </Button>
               <h1 className="text-2xl font-bold gradient-text">Evolução de Perfil PDA</h1>
             </div>
-            <ProfileFormDialog
-              open={dialogOpen}
-              onOpenChange={setDialogOpen}
-              existingYears={uniqueYears}
-              onSuccess={fetchProfiles}
-              userId={userId}
-            />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  const exportData = filteredProfiles.map(p => ({
+                    employee_name: p.employee_name,
+                    year: p.year,
+                    r: p.analysis_result?.r || 0,
+                    e: p.analysis_result?.e || 0,
+                    p: p.analysis_result?.p || 0,
+                    n: p.analysis_result?.n || 0,
+                    a: p.analysis_result?.a || 0,
+                    tomada_decisoes: p.analysis_result?.tomada_decisoes || 0,
+                    intensidade_perfil: p.analysis_result?.intensidade_perfil || 0,
+                    energia: p.analysis_result?.energia || 0,
+                    equilibrio_energia: p.analysis_result?.equilibrio_energia || 0,
+                    modificacao_perfil: p.analysis_result?.modificacao_perfil || 0,
+                    notes: p.notes
+                  }));
+                  exportProfileEvolution(exportData);
+                  toast.success('Dados exportados com sucesso!');
+                }}
+                disabled={filteredProfiles.length === 0}
+              >
+                <FileDown className="h-4 w-4" />
+                Exportar
+              </Button>
+              <ProfileFormDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                existingYears={uniqueYears}
+                onSuccess={fetchProfiles}
+                userId={userId}
+              />
+            </div>
           </div>
         </div>
       </div>
