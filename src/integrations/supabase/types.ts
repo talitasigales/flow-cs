@@ -523,6 +523,7 @@ export type Database = {
         Row: {
           analysis_result: Json | null
           avatar_url: string | null
+          company: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -534,6 +535,7 @@ export type Database = {
         Insert: {
           analysis_result?: Json | null
           avatar_url?: string | null
+          company?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -545,6 +547,7 @@ export type Database = {
         Update: {
           analysis_result?: Json | null
           avatar_url?: string | null
+          company?: string | null
           created_at?: string
           full_name?: string | null
           id?: string

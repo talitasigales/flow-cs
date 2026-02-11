@@ -22,6 +22,7 @@ interface AuditLog {
   new_data: any;
   created_at: string;
   user_name?: string;
+  user_company?: string;
 }
 
 const AdminLogs = () => {
@@ -33,6 +34,7 @@ const AdminLogs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [resourceFilter, setResourceFilter] = useState<string>('all');
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -59,24 +61,25 @@ const AdminLogs = () => {
 
       // Fetch profile names for user_ids
       const userIds = [...new Set((data || []).map((l: any) => l.user_id).filter(Boolean))];
-      let profileMap: Record<string, string> = {};
+      let profileMap: Record<string, { name: string; company: string }> = {};
 
       if (userIds.length > 0) {
         const { data: profiles } = await (supabase as any)
           .from('profiles')
-          .select('user_id, full_name')
+          .select('user_id, full_name, company')
           .in('user_id', userIds);
 
         if (profiles) {
           profileMap = Object.fromEntries(
-            profiles.map((p: any) => [p.user_id, p.full_name || 'Sem nome'])
+            profiles.map((p: any) => [p.user_id, { name: p.full_name || 'Sem nome', company: p.company || '' }])
           );
         }
       }
 
       const enrichedLogs = (data || []).map((log: any) => ({
         ...log,
-        user_name: log.user_id ? (profileMap[log.user_id] || 'Desconhecido') : 'Sistema',
+        user_name: log.user_id ? (profileMap[log.user_id]?.name || 'Desconhecido') : 'Sistema',
+        user_company: log.user_id ? (profileMap[log.user_id]?.company || '') : '',
       }));
 
       setLogs(enrichedLogs);
@@ -122,15 +125,18 @@ const AdminLogs = () => {
     const matchesSearch =
       searchTerm === '' ||
       log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (log.table_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (log.table_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.user_company || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesAction = actionFilter === 'all' || log.action === actionFilter;
     const matchesResource = resourceFilter === 'all' || log.table_name === resourceFilter;
+    const matchesCompany = companyFilter === 'all' || log.user_company === companyFilter;
 
-    return matchesSearch && matchesAction && matchesResource;
+    return matchesSearch && matchesAction && matchesResource && matchesCompany;
   });
 
   const uniqueResourceTypes = Array.from(new Set(logs.map(log => log.table_name).filter(Boolean))) as string[];
+  const uniqueCompanies = Array.from(new Set(logs.map(log => log.user_company).filter(Boolean))) as string[];
 
   if (adminLoading || loading) {
     return (
@@ -164,10 +170,10 @@ const AdminLogs = () => {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
-            <CardDescription>Filtre os logs por termo, ação ou recurso</CardDescription>
+            <CardDescription>Filtre os logs por termo, ação, recurso ou empresa</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">Pesquisar</label>
                 <div className="relative">
@@ -205,6 +211,22 @@ const AdminLogs = () => {
                     {uniqueResourceTypes.map(type => (
                       <SelectItem key={type} value={type}>
                         {getResourceName(type)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Empresa</label>
+                <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {uniqueCompanies.map(company => (
+                      <SelectItem key={company} value={company}>
+                        {company}
                       </SelectItem>
                     ))}
                   </SelectContent>
