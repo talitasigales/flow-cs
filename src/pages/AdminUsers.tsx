@@ -16,9 +16,8 @@ import { toast } from 'sonner';
 
 interface UserData {
   id: string;
-  email: string;
+  user_id: string;
   full_name: string | null;
-  company: string | null;
   created_at: string;
   role: 'admin' | 'user' | null;
 }
@@ -60,7 +59,7 @@ const AdminUsers = () => {
       // Fetch all profiles with their roles
       const { data: profiles, error: profilesError } = await (supabase as any)
         .from('profiles')
-        .select('id, email, full_name, company, created_at')
+        .select('id, user_id, full_name, created_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -74,7 +73,7 @@ const AdminUsers = () => {
 
       // Combine profiles with roles
       const usersWithRoles = (profiles || []).map((profile: any) => {
-        const userRole = (roles || []).find((r: any) => r.user_id === profile.id);
+        const userRole = (roles || []).find((r: any) => r.user_id === profile.user_id);
         return {
           ...profile,
           role: userRole?.role || null
@@ -274,8 +273,6 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Empresa</TableHead>
                   <TableHead>Permissão</TableHead>
                   <TableHead>Cadastrado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -287,8 +284,6 @@ const AdminUsers = () => {
                     <TableCell className="font-medium">
                       {userData.full_name || 'Sem nome'}
                     </TableCell>
-                    <TableCell>{userData.email}</TableCell>
-                    <TableCell>{userData.company || '-'}</TableCell>
                     <TableCell>
                       {userData.role === 'admin' ? (
                         <Badge variant="default">
@@ -309,7 +304,7 @@ const AdminUsers = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openResetDialog(userData.email, userData.full_name)}
+                        onClick={() => openResetDialog(userData.full_name || '', userData.full_name)}
                       >
                         <KeyRound className="h-3 w-3 mr-1" />
                         Resetar Senha
@@ -317,8 +312,8 @@ const AdminUsers = () => {
                       <Button
                         size="sm"
                         variant={userData.role === 'admin' ? 'destructive' : 'outline'}
-                        onClick={() => handleToggleRole(userData.id, userData.role)}
-                        disabled={userData.id === user?.id}
+                        onClick={() => handleToggleRole(userData.user_id, userData.role)}
+                        disabled={userData.user_id === user?.id}
                       >
                         {userData.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                       </Button>
