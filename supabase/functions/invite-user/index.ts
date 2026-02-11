@@ -87,14 +87,15 @@ serve(async (req) => {
       }
     );
 
-    // Check if user already exists
-    const { data: existingUser } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
+    // Check if user already exists in auth
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 50,
+    });
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingAuthUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
 
-    if (existingUser) {
+    if (existingAuthUser) {
       return new Response(
         JSON.stringify({ error: 'Usuário já existe no sistema' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
