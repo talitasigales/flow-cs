@@ -9,17 +9,19 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search, Filter } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AuditLog {
   id: string;
-  user_email: string | null;
+  user_id: string | null;
   action: string;
-  resource_type: string;
-  resource_id: string | null;
-  details: any;
+  table_name: string | null;
+  record_id: string | null;
+  old_data: any;
+  new_data: any;
   created_at: string;
+  user_name?: string;
 }
 
 const AdminLogs = () => {
@@ -55,7 +57,29 @@ const AdminLogs = () => {
 
       if (error) throw error;
 
-      setLogs(data || []);
+      // Fetch profile names for user_ids
+      const userIds = [...new Set((data || []).map((l: any) => l.user_id).filter(Boolean))];
+      let profileMap: Record<string, string> = {};
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await (supabase as any)
+          .from('profiles')
+          .select('user_id, full_name')
+          .in('user_id', userIds);
+
+        if (profiles) {
+          profileMap = Object.fromEntries(
+            profiles.map((p: any) => [p.user_id, p.full_name || 'Sem nome'])
+          );
+        }
+      }
+
+      const enrichedLogs = (data || []).map((log: any) => ({
+        ...log,
+        user_name: log.user_id ? (profileMap[log.user_id] || 'Desconhecido') : 'Sistema',
+      }));
+
+      setLogs(enrichedLogs);
     } catch (error) {
       console.error('Error fetching logs:', error);
       toast.error('Erro ao carregar logs');
@@ -77,31 +101,36 @@ const AdminLogs = () => {
     }
   };
 
-  const getResourceName = (resourceType: string) => {
+  const getResourceName = (tableName: string | null) => {
+    if (!tableName) return '-';
     const mapping: Record<string, string> = {
       'user_roles': 'Permissões',
       'module_materials': 'Materiais',
       'modules': 'Módulos',
       'profiles': 'Perfis',
       'matriz_9box': 'Matriz 9Box',
-      'profile_evolution': 'Evolução de Perfil'
+      'profile_evolution': 'Evolução de Perfil',
+      'pdis': 'PDIs',
+      'pdi_actions': 'Ações PDI',
+      'pdi_checkins': 'Check-ins PDI',
+      'pdi_closures': 'Encerramento PDI',
     };
-    return mapping[resourceType] || resourceType;
+    return mapping[tableName] || tableName;
   };
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = 
-      searchTerm === '' || 
-      log.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.resource_type.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      searchTerm === '' ||
+      log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (log.table_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesAction = actionFilter === 'all' || log.action === actionFilter;
-    const matchesResource = resourceFilter === 'all' || log.resource_type === resourceFilter;
+    const matchesResource = resourceFilter === 'all' || log.table_name === resourceFilter;
 
     return matchesSearch && matchesAction && matchesResource;
   });
 
-  const uniqueResourceTypes = Array.from(new Set(logs.map(log => log.resource_type)));
+  const uniqueResourceTypes = Array.from(new Set(logs.map(log => log.table_name).filter(Boolean))) as string[];
 
   if (adminLoading || loading) {
     return (
@@ -144,7 +173,7 @@ const AdminLogs = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Email ou recurso..."
+                    placeholder="Nome ou recurso..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9"
@@ -217,11 +246,11 @@ const AdminLogs = () => {
                         <TableCell className="font-mono text-sm">
                           {new Date(log.created_at).toLocaleString('pt-BR')}
                         </TableCell>
-                        <TableCell>{log.user_email || 'Sistema'}</TableCell>
+                        <TableCell>{log.user_name}</TableCell>
                         <TableCell>{getActionBadge(log.action)}</TableCell>
-                        <TableCell>{getResourceName(log.resource_type)}</TableCell>
+                        <TableCell>{getResourceName(log.table_name)}</TableCell>
                         <TableCell className="font-mono text-xs text-muted-foreground">
-                          {log.resource_id?.substring(0, 8)}...
+                          {log.record_id ? `${log.record_id.substring(0, 8)}...` : '-'}
                         </TableCell>
                       </TableRow>
                     ))
