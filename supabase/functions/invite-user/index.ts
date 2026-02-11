@@ -96,9 +96,46 @@ serve(async (req) => {
     const existingAuthUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
 
     if (existingAuthUser) {
+      // User already exists - just update their role if needed
+      console.log(`User ${email} already exists (id: ${existingAuthUser.id}), updating role to ${role}`);
+      
+      if (role === 'admin') {
+        // Check if already admin
+        const { data: existingRole } = await supabaseAdmin
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', existingAuthUser.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+
+        if (!existingRole) {
+          const { error: roleInsertError } = await supabaseAdmin
+            .from('user_roles')
+            .insert({ user_id: existingAuthUser.id, role: 'admin' });
+
+          if (roleInsertError) {
+            console.error('Error adding admin role:', roleInsertError);
+          } else {
+            console.log(`Admin role added to existing user ${existingAuthUser.id}`);
+          }
+        }
+      } else {
+        // Remove admin role if demoting
+        await supabaseAdmin
+          .from('user_roles')
+          .delete()
+          .eq('user_id', existingAuthUser.id)
+          .eq('role', 'admin');
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Usuário já existe no sistema' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          success: true,
+          message: 'Usuário já existia. Permissões atualizadas com sucesso.',
+          email,
+          existingUser: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -129,16 +166,10 @@ serve(async (req) => {
     if (role === 'admin') {
       const { error: roleInsertError } = await supabaseAdmin
         .from('user_roles')
-        .insert({
-          user_id: newUser.user.id,
-          role: 'admin'
-        });
+        .insert({ user_id: newUser.user.id, role: 'admin' });
 
       if (roleInsertError) {
         console.error('Error adding admin role:', roleInsertError);
-        // Don't fail the request, user was created successfully
-      } else {
-        console.log(`Admin role added to user ${newUser.user.id}`);
       }
     }
 
@@ -156,8 +187,6 @@ serve(async (req) => {
       console.error('Error recording invite:', inviteError);
     }
 
-    // In a production environment, you would send an email here with the temporary password
-    // For now, we'll return it in the response (NOT RECOMMENDED FOR PRODUCTION)
     console.log(`Temporary password for ${email}: ${tempPassword}`);
 
     return new Response(
@@ -165,8 +194,8 @@ serve(async (req) => {
         success: true,
         message: 'Usuário convidado com sucesso',
         email,
-        tempPassword, // REMOVE THIS IN PRODUCTION
-        note: 'IMPORTANTE: Envie esta senha temporária ao usuário de forma segura. O usuário deve alterar a senha no primeiro login.'
+        tempPassword,
+        note: 'IMPORTANTE: Envie esta senha temporária ao usuário de forma segura.'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
