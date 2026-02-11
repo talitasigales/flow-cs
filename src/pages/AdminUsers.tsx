@@ -129,10 +129,10 @@ const AdminUsers = () => {
         if (error) throw error;
         toast.success('Permissões de admin removidas');
       } else {
-        // Add admin role
+        // Add admin role (upsert to avoid duplicate key error)
         const { error } = await (supabase as any)
           .from('user_roles')
-          .insert({ user_id: userId, role: 'admin' });
+          .upsert({ user_id: userId, role: 'admin' }, { onConflict: 'user_id,role' });
 
         if (error) throw error;
         toast.success('Usuário promovido a admin');
