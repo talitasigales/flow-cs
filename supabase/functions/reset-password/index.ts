@@ -32,18 +32,29 @@ serve(async (req) => {
       }
     );
 
-    // Find user by email using filter (handles pagination correctly)
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1,
-      filter: email,
-    });
+    // Search for user by exact email match with pagination
+    const normalizedEmail = email.trim().toLowerCase();
+    let user = null;
+    let page = 1;
+    const perPage = 50;
     
-    if (listError) {
-      throw new Error(`Error listing users: ${listError.message}`);
+    while (!user) {
+      const { data, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+      
+      if (listError) {
+        throw new Error(`Error listing users: ${listError.message}`);
+      }
+      
+      user = data?.users?.find(u => u.email?.toLowerCase() === normalizedEmail) || null;
+      
+      if (!data?.users || data.users.length < perPage) {
+        break;
+      }
+      page++;
     }
-
-    const user = users.users?.[0];
     
     if (!user) {
       return new Response(
@@ -71,7 +82,7 @@ serve(async (req) => {
       .update({ password_changed: false })
       .eq('user_id', user.id);
 
-    console.log(`Password reset for user: ${email}, provisional: ${!newPassword}`);
+    console.log(`Password reset for user: ${user.email} (${user.id}), provisional: ${!newPassword}`);
 
     // Return response with provisional password if it was auto-generated
     if (!newPassword) {
