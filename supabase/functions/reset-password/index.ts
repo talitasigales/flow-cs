@@ -32,14 +32,18 @@ serve(async (req) => {
       }
     );
 
-    // Find user by email
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    // Find user by email using filter (handles pagination correctly)
+    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1,
+      filter: email,
+    });
     
     if (listError) {
       throw new Error(`Error listing users: ${listError.message}`);
     }
 
-    const user = users.users.find(u => u.email === email);
+    const user = users.users?.[0];
     
     if (!user) {
       return new Response(
