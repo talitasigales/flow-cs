@@ -18,6 +18,7 @@ interface UserData {
   id: string;
   user_id: string;
   full_name: string | null;
+  company: string | null;
   created_at: string;
   role: 'admin' | 'user' | null;
 }
@@ -59,7 +60,7 @@ const AdminUsers = () => {
       // Fetch all profiles with their roles
       const { data: profiles, error: profilesError } = await (supabase as any)
         .from('profiles')
-        .select('id, user_id, full_name, created_at')
+        .select('id, user_id, full_name, company, created_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -273,6 +274,7 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Empresa</TableHead>
                   <TableHead>Permissão</TableHead>
                   <TableHead>Cadastrado em</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -284,6 +286,7 @@ const AdminUsers = () => {
                     <TableCell className="font-medium">
                       {userData.full_name || 'Sem nome'}
                     </TableCell>
+                    <TableCell>{userData.company || '-'}</TableCell>
                     <TableCell>
                       {userData.role === 'admin' ? (
                         <Badge variant="default">
