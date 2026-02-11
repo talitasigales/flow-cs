@@ -28,8 +28,17 @@ serve(async (req) => {
       }
     );
 
-    // Verify the requesting user is an admin
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Verify the requesting user via token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Não autenticado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !user) {
       console.error('Authentication error:', userError);
