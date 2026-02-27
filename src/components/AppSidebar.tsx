@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Briefcase,
   User,
-  History,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -76,12 +75,6 @@ export function AppSidebar() {
       title: 'Meu Perfil',
       icon: User,
       path: '/profile',
-      badge: null,
-    },
-    {
-      title: 'Histórico',
-      icon: History,
-      path: '/activity-history',
       badge: null,
     },
   ];
