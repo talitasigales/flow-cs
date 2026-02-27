@@ -1,13 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Users2 } from 'lucide-react';
+import { Plus, Search, Users2, Flame } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PostCard, PostData } from '@/components/community/PostCard';
 import { NewPostDialog } from '@/components/community/NewPostDialog';
+import { NotificationCenter } from '@/components/community/NotificationCenter';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollows } from '@/hooks/useFollows';
@@ -32,7 +34,8 @@ export default function Community() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const { isFollowing, toggleFollow } = useFollows();
+  const [feedTab, setFeedTab] = useState<'all' | 'following' | 'trending'>('all');
+  const { isFollowing, toggleFollow, followingIds } = useFollows();
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -48,8 +51,13 @@ export default function Community() {
     let query = (supabase as any)
       .from('community_posts')
       .select('*')
-      .order('created_at', { ascending: false })
       .range(from, to);
+
+    if (feedTab === 'trending') {
+      query = query.order('likes_count', { ascending: false });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
 
     if (category !== 'all') {
       query = query.eq('category', category);
@@ -61,8 +69,15 @@ export default function Community() {
     const { data: postsData, error } = await query;
     if (error) { console.error(error); setLoading(false); return; }
 
+    let filteredPosts = postsData || [];
+
+    // Client-side filter for "following" tab
+    if (feedTab === 'following') {
+      filteredPosts = filteredPosts.filter((p: any) => followingIds.has(p.user_id));
+    }
+
     // Fetch profiles for posts
-    const userIds = [...new Set((postsData || []).map((p: any) => p.user_id))];
+    const userIds = [...new Set(filteredPosts.map((p: any) => p.user_id))];
     let profilesMap: Record<string, any> = {};
     if (userIds.length > 0) {
       const { data: profiles } = await (supabase as any)
@@ -72,22 +87,37 @@ export default function Community() {
       (profiles || []).forEach((p: any) => { profilesMap[p.user_id] = p; });
     }
 
-    // Fetch user likes
-    const postIds = (postsData || []).map((p: any) => p.id);
-    let likedSet = new Set<string>();
+    // Fetch user reactions
+    const postIds = filteredPosts.map((p: any) => p.id);
+    let userReactions: Record<string, string> = {};
+    let reactionCountsMap: Record<string, Record<string, number>> = {};
     if (postIds.length > 0) {
-      const { data: likes } = await (supabase as any)
-        .from('community_likes')
-        .select('post_id')
-        .eq('user_id', user.id)
-        .in('post_id', postIds);
-      (likes || []).forEach((l: any) => likedSet.add(l.post_id));
+      const [userLikesRes, allLikesRes] = await Promise.all([
+        (supabase as any)
+          .from('community_likes')
+          .select('post_id, reaction_type')
+          .eq('user_id', user.id)
+          .in('post_id', postIds),
+        (supabase as any)
+          .from('community_likes')
+          .select('post_id, reaction_type')
+          .in('post_id', postIds),
+      ]);
+      (userLikesRes.data || []).forEach((l: any) => {
+        userReactions[l.post_id] = l.reaction_type;
+      });
+      (allLikesRes.data || []).forEach((l: any) => {
+        if (!reactionCountsMap[l.post_id]) reactionCountsMap[l.post_id] = {};
+        reactionCountsMap[l.post_id][l.reaction_type] = (reactionCountsMap[l.post_id][l.reaction_type] || 0) + 1;
+      });
     }
 
-    const enriched: PostData[] = (postsData || []).map((p: any) => ({
+    const enriched: PostData[] = filteredPosts.map((p: any) => ({
       ...p,
       profile: profilesMap[p.user_id] || null,
-      is_liked: likedSet.has(p.id),
+      is_liked: !!userReactions[p.id],
+      current_reaction: userReactions[p.id] || null,
+      reaction_counts: reactionCountsMap[p.id] || {},
     }));
 
     if (reset) {
@@ -96,13 +126,13 @@ export default function Community() {
     } else {
       setPosts(prev => [...prev, ...enriched]);
     }
-    setHasMore((postsData || []).length === PAGE_SIZE);
+    setHasMore(filteredPosts.length === PAGE_SIZE);
     setLoading(false);
-  }, [user, category, search, page]);
+  }, [user, category, search, page, feedTab, followingIds]);
 
   useEffect(() => {
     if (user) fetchPosts(true);
-  }, [user, category]);
+  }, [user, category, feedTab]);
 
   const handleSearch = () => {
     fetchPosts(true);
@@ -127,10 +157,24 @@ export default function Community() {
                   <p className="text-sm text-muted-foreground">Compartilhe e aprenda com profissionais de outras empresas</p>
                 </div>
               </div>
-              <Button onClick={() => setDialogOpen(true)} className="gap-2">
-                <Plus className="h-4 w-4" /> Nova Publicação
-              </Button>
+              <div className="flex items-center gap-2">
+                <NotificationCenter />
+                <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" /> Nova Publicação
+                </Button>
+              </div>
             </div>
+
+            {/* Feed tabs */}
+            <Tabs value={feedTab} onValueChange={v => setFeedTab(v as any)}>
+              <TabsList>
+                <TabsTrigger value="all">🌐 Todos</TabsTrigger>
+                <TabsTrigger value="following">👥 Seguindo</TabsTrigger>
+                <TabsTrigger value="trending">
+                  <Flame className="h-4 w-4 mr-1" /> Em Alta
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
             {/* Filters */}
             <div className="flex gap-2">
@@ -170,7 +214,7 @@ export default function Community() {
               {posts.length === 0 && !loading && (
                 <div className="text-center py-12 text-muted-foreground">
                   <Users2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p>Nenhuma publicação ainda. Seja o primeiro!</p>
+                  <p>{feedTab === 'following' ? 'Nenhuma publicação de quem você segue.' : 'Nenhuma publicação ainda. Seja o primeiro!'}</p>
                 </div>
               )}
               {hasMore && posts.length > 0 && (

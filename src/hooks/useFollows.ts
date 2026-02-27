@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export function useFollows() {
+export function useFollows(onFollowNotify?: (targetUserId: string, isNowFollowing: boolean) => void) {
   const { user } = useAuth();
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [followerCounts, setFollowerCounts] = useState<Record<string, number>>({});
@@ -42,6 +42,15 @@ export function useFollows() {
         .from('user_follows')
         .insert({ follower_id: user.id, following_id: targetUserId });
       setFollowingIds(prev => new Set(prev).add(targetUserId));
+      // Create notification for the target user
+      await (supabase as any)
+        .from('notifications')
+        .insert({
+          user_id: targetUserId,
+          actor_id: user.id,
+          type: 'follow',
+          message: 'começou a te seguir',
+        });
     }
     setLoading(false);
   }, [user, followingIds]);

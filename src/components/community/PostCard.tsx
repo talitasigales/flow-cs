@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { LikeButton } from './LikeButton';
+import { ReactionButton } from './ReactionButton';
 import { FollowButton } from './FollowButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
@@ -45,6 +45,8 @@ export interface PostData {
     pda_a_value?: number | null;
   };
   is_liked?: boolean;
+  current_reaction?: string | null;
+  reaction_counts?: Record<string, number>;
 }
 
 interface PostCardProps {
@@ -79,12 +81,19 @@ export function PostCard({ post, onRefresh, isFollowing, onToggleFollow }: PostC
     }
   };
 
+  const handleAuthorClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!post.is_anonymous) {
+      navigate(`/profile/${post.user_id}`);
+    }
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/community/${post.id}`)}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-10 w-10 cursor-pointer" onClick={handleAuthorClick}>
               {!post.is_anonymous && post.profile?.avatar_url && (
                 <AvatarImage src={post.profile.avatar_url} />
               )}
@@ -94,7 +103,12 @@ export function PostCard({ post, onRefresh, isFollowing, onToggleFollow }: PostC
             </Avatar>
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-sm">{authorName}</p>
+                <p
+                  className="font-semibold text-sm hover:underline cursor-pointer"
+                  onClick={handleAuthorClick}
+                >
+                  {authorName}
+                </p>
                 {!post.is_anonymous && post.profile?.pda_r_value != null && (
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-mono">
                     R:{post.profile.pda_r_value} E:{post.profile.pda_e_value} P:{post.profile.pda_p_value} N:{post.profile.pda_n_value} A:{post.profile.pda_a_value}
@@ -135,10 +149,11 @@ export function PostCard({ post, onRefresh, isFollowing, onToggleFollow }: PostC
       </CardContent>
       <CardFooter className="pt-0 flex items-center justify-between">
         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          <LikeButton
+          <ReactionButton
             postId={post.id}
             likesCount={post.likes_count}
-            isLiked={post.is_liked || false}
+            currentReaction={post.current_reaction || null}
+            reactionCounts={post.reaction_counts}
             onToggle={onRefresh}
           />
           <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => navigate(`/community/${post.id}`)}>

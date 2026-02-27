@@ -114,7 +114,7 @@ export default function Members() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map(member => (
-                  <Card key={member.user_id} className="hover:shadow-md transition-shadow">
+                  <Card key={member.user_id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/profile/${member.user_id}`)}>
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <Avatar className="h-12 w-12">
@@ -122,7 +122,7 @@ export default function Members() {
                           <AvatarFallback>{member.full_name?.charAt(0) || 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate">{member.full_name || 'Usuário'}</p>
+                          <p className="font-semibold text-sm truncate hover:underline">{member.full_name || 'Usuário'}</p>
                           {(member.job_title || member.company) && (
                             <p className="text-xs text-muted-foreground truncate">
                               {[member.job_title, member.company].filter(Boolean).join(' · ')}
