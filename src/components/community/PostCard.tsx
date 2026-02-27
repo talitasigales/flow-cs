@@ -34,6 +34,8 @@ export interface PostData {
     company: string | null;
     job_title: string | null;
     avatar_url: string | null;
+    pda_profile_name?: string | null;
+    pda_dominant_axis?: string | null;
   };
   is_liked?: boolean;
 }
@@ -82,7 +84,15 @@ export function PostCard({ post, onRefresh }: PostCardProps) {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">{authorName}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-sm">{authorName}</p>
+                {!post.is_anonymous && post.profile?.pda_profile_name && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
+                    PDA: {post.profile.pda_profile_name}
+                    {post.profile.pda_dominant_axis ? ` (${post.profile.pda_dominant_axis})` : ''}
+                  </Badge>
+                )}
+              </div>
               {(authorJob || authorCompany) && (
                 <p className="text-xs text-muted-foreground">
                   {[authorJob, authorCompany].filter(Boolean).join(' · ')}

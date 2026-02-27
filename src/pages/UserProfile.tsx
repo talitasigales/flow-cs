@@ -28,6 +28,13 @@ interface ProfileData {
   linkedin_url: string | null;
   bio: string | null;
   phone: string | null;
+  pda_profile_name: string | null;
+  pda_dominant_axis: string | null;
+  pda_r_value: number | null;
+  pda_e_value: number | null;
+  pda_p_value: number | null;
+  pda_n_value: number | null;
+  pda_a_value: number | null;
   lgpd_accepted: boolean | null;
   lgpd_accepted_at: string | null;
   last_password_change: string | null;
@@ -68,6 +75,15 @@ export default function UserProfile() {
   const [stats, setStats] = useState<Stats>({ activePDIs: 0, pdaProfiles: 0, ninebox: 0, completedModules: 0 });
   const [latestPDA, setLatestPDA] = useState<any>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  // PDA public profile state
+  const [pdaProfileName, setPdaProfileName] = useState('');
+  const [pdaDominantAxis, setPdaDominantAxis] = useState('');
+  const [pdaR, setPdaR] = useState(0);
+  const [pdaE, setPdaE] = useState(0);
+  const [pdaP, setPdaP] = useState(0);
+  const [pdaN, setPdaN] = useState(0);
+  const [pdaA, setPdaA] = useState(0);
+  const [savingPda, setSavingPda] = useState(false);
 
   // Activity history state
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -91,9 +107,9 @@ export default function UserProfile() {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('profiles')
-        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed')
+        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, pda_profile_name, pda_dominant_axis, pda_r_value, pda_e_value, pda_p_value, pda_n_value, pda_a_value, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed')
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
@@ -105,6 +121,13 @@ export default function UserProfile() {
       setBio(data?.bio || '');
       setPhone(data?.phone || '');
       setAvatarUrl(data?.avatar_url || null);
+      setPdaProfileName(data?.pda_profile_name || '');
+      setPdaDominantAxis(data?.pda_dominant_axis || '');
+      setPdaR(data?.pda_r_value || 0);
+      setPdaE(data?.pda_e_value || 0);
+      setPdaP(data?.pda_p_value || 0);
+      setPdaN(data?.pda_n_value || 0);
+      setPdaA(data?.pda_a_value || 0);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -213,6 +236,31 @@ export default function UserProfile() {
       toast.error('Erro ao salvar perfil');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSavePda = async () => {
+    setSavingPda(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('profiles')
+        .update({
+          pda_profile_name: pdaProfileName || null,
+          pda_dominant_axis: pdaDominantAxis || null,
+          pda_r_value: pdaR,
+          pda_e_value: pdaE,
+          pda_p_value: pdaP,
+          pda_n_value: pdaN,
+          pda_a_value: pdaA,
+        })
+        .eq('user_id', user!.id);
+      if (error) throw error;
+      toast.success('Perfil PDA público atualizado!');
+      setProfile(prev => prev ? { ...prev, pda_profile_name: pdaProfileName, pda_dominant_axis: pdaDominantAxis, pda_r_value: pdaR, pda_e_value: pdaE, pda_p_value: pdaP, pda_n_value: pdaN, pda_a_value: pdaA } : prev);
+    } catch {
+      toast.error('Erro ao salvar perfil PDA');
+    } finally {
+      setSavingPda(false);
     }
   };
 
@@ -400,43 +448,142 @@ export default function UserProfile() {
 
               {/* Dados PDA */}
               <TabsContent value="pda">
-                <Card className="border-border/50">
-                  <CardHeader>
-                    <CardTitle>Último Perfil PDA</CardTitle>
-                    <CardDescription>
-                      {latestPDA
-                        ? `${latestPDA.employee_name} — ${format(new Date(latestPDA.assessment_date), "dd/MM/yyyy", { locale: ptBR })}`
-                        : 'Nenhum perfil PDA cadastrado'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {latestPDA ? (
-                      <div className="space-y-6">
-                        <div className="h-[300px]">
+                <div className="space-y-6">
+                  {/* Perfil PDA Público */}
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle>Meu Perfil PDA Público</CardTitle>
+                      <CardDescription>
+                        Essas informações ficam visíveis para outros usuários na comunidade, gerando conexão por similaridade de perfil
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nome do Perfil</Label>
+                          <Input value={pdaProfileName} onChange={e => setPdaProfileName(e.target.value)} placeholder="Ex: Executor, Comunicador, Planejador..." />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Eixo Dominante</Label>
+                          <Select value={pdaDominantAxis} onValueChange={setPdaDominantAxis}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="R">R — Risco / Dominância</SelectItem>
+                              <SelectItem value="E">E — Extroversão</SelectItem>
+                              <SelectItem value="P">P — Paciência</SelectItem>
+                              <SelectItem value="N">N — Normas / Conformidade</SelectItem>
+                              <SelectItem value="A">A — Autocontrole</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">Valores REPNA (0–100)</Label>
+                        <div className="grid grid-cols-5 gap-3">
+                          {[
+                            { label: 'R', value: pdaR, set: setPdaR },
+                            { label: 'E', value: pdaE, set: setPdaE },
+                            { label: 'P', value: pdaP, set: setPdaP },
+                            { label: 'N', value: pdaN, set: setPdaN },
+                            { label: 'A', value: pdaA, set: setPdaA },
+                          ].map(item => (
+                            <div key={item.label} className="space-y-1 text-center">
+                              <Label className="text-xs font-bold">{item.label}</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={item.value}
+                                onChange={e => item.set(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                                className="text-center"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Mini radar preview */}
+                      {(pdaR > 0 || pdaE > 0 || pdaP > 0 || pdaN > 0 || pdaA > 0) && (
+                        <div className="h-[200px]">
                           <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart data={radarData}>
+                            <RadarChart data={[
+                              { dimension: 'R', value: pdaR },
+                              { dimension: 'E', value: pdaE },
+                              { dimension: 'P', value: pdaP },
+                              { dimension: 'N', value: pdaN },
+                              { dimension: 'A', value: pdaA },
+                            ]}>
                               <PolarGrid stroke="hsl(var(--border))" />
                               <PolarAngleAxis dataKey="dimension" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
-                              <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} />
                               <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} strokeWidth={2} />
                             </RadarChart>
                           </ResponsiveContainer>
                         </div>
-                        <div className="flex justify-center">
-                          <Button variant="outline" onClick={() => navigate('/profile-evolution')}>
-                            Ver Evolução Completa
-                          </Button>
+                      )}
+
+                      {latestPDA && !pdaProfileName && (
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setPdaR(latestPDA.r_value || 0);
+                          setPdaE(latestPDA.e_value || 0);
+                          setPdaP(latestPDA.p_value || 0);
+                          setPdaN(latestPDA.n_value || 0);
+                          setPdaA(latestPDA.a_value || 0);
+                          toast.info('Valores importados do último PDA. Ajuste e salve.');
+                        }}>
+                          <RefreshCw className="h-4 w-4 mr-2" /> Importar do último PDA
+                        </Button>
+                      )}
+
+                      <Button onClick={handleSavePda} disabled={savingPda} className="gap-2">
+                        <Save className="h-4 w-4" />
+                        {savingPda ? 'Salvando...' : 'Salvar Perfil PDA Público'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Último PDA cadastrado */}
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle>Último Perfil PDA Cadastrado</CardTitle>
+                      <CardDescription>
+                        {latestPDA
+                          ? `${latestPDA.employee_name} — ${format(new Date(latestPDA.assessment_date), "dd/MM/yyyy", { locale: ptBR })}`
+                          : 'Nenhum perfil PDA cadastrado na evolução'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {latestPDA ? (
+                        <div className="space-y-6">
+                          <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RadarChart data={radarData}>
+                                <PolarGrid stroke="hsl(var(--border))" />
+                                <PolarAngleAxis dataKey="dimension" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                                <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                                <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} strokeWidth={2} />
+                              </RadarChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="flex justify-center">
+                            <Button variant="outline" onClick={() => navigate('/profile-evolution')}>
+                              Ver Evolução Completa
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-4">Nenhum perfil PDA cadastrado ainda</p>
-                        <Button onClick={() => navigate('/profile-evolution')}>Cadastrar Perfil PDA</Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      ) : (
+                        <div className="text-center py-8">
+                          <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground mb-4">Nenhum perfil PDA cadastrado ainda</p>
+                          <Button onClick={() => navigate('/profile-evolution')}>Cadastrar Perfil PDA</Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               {/* Histórico de Atividades */}
