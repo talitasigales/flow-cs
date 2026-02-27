@@ -1,0 +1,183 @@
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Users2 } from 'lucide-react';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PostCard, PostData } from '@/components/community/PostCard';
+import { NewPostDialog } from '@/components/community/NewPostDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+const CATEGORIES = [
+  { value: 'all', label: 'Todas' },
+  { value: 'dica', label: '💡 Dicas' },
+  { value: 'duvida', label: '❓ Dúvidas' },
+  { value: 'case', label: '📋 Cases' },
+  { value: 'reflexao', label: '💭 Reflexões' },
+];
+
+const PAGE_SIZE = 20;
+
+export default function Community() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState('all');
+  const [search, setSearch] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/auth');
+  }, [user, authLoading, navigate]);
+
+  const fetchPosts = useCallback(async (reset = false) => {
+    if (!user) return;
+    setLoading(true);
+    const currentPage = reset ? 0 : page;
+    const from = currentPage * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    let query = (supabase as any)
+      .from('community_posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (category !== 'all') {
+      query = query.eq('category', category);
+    }
+    if (search.trim()) {
+      query = query.ilike('content', `%${search.trim()}%`);
+    }
+
+    const { data: postsData, error } = await query;
+    if (error) { console.error(error); setLoading(false); return; }
+
+    // Fetch profiles for posts
+    const userIds = [...new Set((postsData || []).map((p: any) => p.user_id))];
+    let profilesMap: Record<string, any> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await (supabase as any)
+        .from('public_profiles')
+        .select('*')
+        .in('user_id', userIds);
+      (profiles || []).forEach((p: any) => { profilesMap[p.user_id] = p; });
+    }
+
+    // Fetch user likes
+    const postIds = (postsData || []).map((p: any) => p.id);
+    let likedSet = new Set<string>();
+    if (postIds.length > 0) {
+      const { data: likes } = await (supabase as any)
+        .from('community_likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
+      (likes || []).forEach((l: any) => likedSet.add(l.post_id));
+    }
+
+    const enriched: PostData[] = (postsData || []).map((p: any) => ({
+      ...p,
+      profile: profilesMap[p.user_id] || null,
+      is_liked: likedSet.has(p.id),
+    }));
+
+    if (reset) {
+      setPosts(enriched);
+      setPage(0);
+    } else {
+      setPosts(prev => [...prev, ...enriched]);
+    }
+    setHasMore((postsData || []).length === PAGE_SIZE);
+    setLoading(false);
+  }, [user, category, search, page]);
+
+  useEffect(() => {
+    if (user) fetchPosts(true);
+  }, [user, category]);
+
+  const handleSearch = () => {
+    fetchPosts(true);
+  };
+
+  if (authLoading) return null;
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <AppSidebar />
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-3xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Users2 className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">Comunidade</h1>
+                  <p className="text-sm text-muted-foreground">Compartilhe e aprenda com profissionais de outras empresas</p>
+                </div>
+              </div>
+              <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Nova Publicação
+              </Button>
+            </div>
+
+            {/* Filters */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar publicações..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Posts Feed */}
+            <div className="space-y-4">
+              {posts.map(post => (
+                <PostCard key={post.id} post={post} onRefresh={() => fetchPosts(true)} />
+              ))}
+              {posts.length === 0 && !loading && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Users2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p>Nenhuma publicação ainda. Seja o primeiro!</p>
+                </div>
+              )}
+              {hasMore && posts.length > 0 && (
+                <div className="text-center">
+                  <Button variant="outline" onClick={() => { setPage(p => p + 1); fetchPosts(); }} disabled={loading}>
+                    {loading ? 'Carregando...' : 'Carregar mais'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <NewPostDialog open={dialogOpen} onOpenChange={setDialogOpen} onPostCreated={() => fetchPosts(true)} />
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}

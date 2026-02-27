@@ -19,6 +19,8 @@ import PDICreate from "./pages/PDICreate";
 import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
+import Community from "./pages/Community";
+import CommunityPost from "./pages/CommunityPost";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
@@ -47,6 +49,8 @@ const App = () => (
           <Route path="/pdi/:pdiId" element={<PDIDetail />} />
           <Route path="/job-construction" element={<JobConstruction />} />
           <Route path="/job-construction/result" element={<JobConstructionResult />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/:postId" element={<CommunityPost />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
           <Route path="/profile" element={<UserProfile />} />
