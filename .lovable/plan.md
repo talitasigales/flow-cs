@@ -1,62 +1,27 @@
+## Sugestões para tornar a rede social mais inovadora
 
+Baseado no que já existe (comunidade com posts, follows, mensagens, perfis com dados PDA/REPNA), aqui estão ideias organizadas por impacto:
 
-## Chat entre Usuários — Plano de Implementação
+### 1. Feed "Seguindo" + Algoritmo de relevância
 
-### Estrutura de Dados
+- Aba no feed para ver apenas posts de quem o usuário segue
+- Ordenação por relevância (likes + comentários recentes) além de cronológico
+- Posts "em alta" destacados no topo
 
-```text
-chat_conversations
-├── id (uuid, PK)
-├── created_at (timestamptz)
-├── updated_at (timestamptz)
-└── type (text) — "direct" (1:1) ou "group" (futuro)
+### 3. Perfil público enriquecido
 
-chat_participants
-├── id (uuid, PK)
-├── conversation_id (uuid, FK chat_conversations)
-├── user_id (uuid)
-├── joined_at (timestamptz)
-├── last_read_at (timestamptz) — controle de "não lidas"
-└── UNIQUE(conversation_id, user_id)
+- Página de perfil visível por outros membros com: bio, empresa, cargo, perfil PDA, posts publicados, número de seguidores/seguindo
+  &nbsp;
 
-chat_messages
-├── id (uuid, PK)
-├── conversation_id (uuid, FK chat_conversations)
-├── sender_id (uuid)
-├── content (text)
-├── created_at (timestamptz)
-└── edited_at (timestamptz, nullable)
-```
+### 4. Sistema de reações expandido
 
-### Segurança (RLS)
-- SELECT/INSERT em mensagens e participantes: apenas quem participa da conversa
-- Função `is_participant(conversation_id, user_id)` como security definer para evitar recursão
+- Além do like, adicionar reações como: 🔥 Inspirador, 💡 Útil, 👏 Parabéns (similar ao LinkedIn)
+- Mostra contagem por tipo de reação
 
-### Tempo Real
-- **Supabase Realtime** (canal por conversa) para receber mensagens instantaneamente sem polling
-- Subscribe em `chat_messages` filtrado por `conversation_id`
+### 5. Menções e notificações
 
-### Páginas e Componentes
+- Mencionar outros usuários com @nome nos posts e comentários
+- Centro de notificações: "Fulano começou a te seguir", "Seu post recebeu 5 likes", "Fulano mencionou você"
+- Badge de notificação no sidebar
 
-1. **`/messages`** — Lista de conversas com último trecho e contagem de não lidas
-2. **`/messages/:conversationId`** — Tela de chat com scroll de mensagens e input
-3. **Iniciar conversa** — Botão no perfil público ou nos posts da comunidade ("Enviar mensagem")
-4. Componentes: `ConversationList`, `ChatWindow`, `MessageBubble`, `NewConversationDialog`
-
-### Etapas de Implementação
-
-1. Criar migration com as 3 tabelas + RLS + função `is_participant`
-2. Habilitar Realtime na tabela `chat_messages`
-3. Criar página `/messages` com lista de conversas (join com `public_profiles` para nome/avatar)
-4. Criar página `/messages/:id` com chat em tempo real
-5. Adicionar botão "Enviar mensagem" nos posts/perfis da comunidade
-6. Adicionar item "Mensagens" no sidebar com badge de não lidas
-7. Adicionar rotas no `App.tsx`
-
-### Considerações Técnicas
-
-- **Realtime do Supabase** é o componente-chave — sem ele, seria necessário polling, o que degrada a experiência
-- O plano atual do Supabase conectado ao projeto precisa ter Realtime habilitado (está disponível em todos os planos)
-- Para notificações de novas mensagens fora da tela de chat, um listener global no `AuthProvider` pode atualizar um contador
-- Não é necessária nenhuma edge function nova — tudo funciona via client SDK + RLS + Realtime
-
+---
