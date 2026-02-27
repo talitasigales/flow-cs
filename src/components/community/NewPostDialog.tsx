@@ -4,13 +4,14 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { MentionTextarea } from './MentionTextarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { notifyMentions } from '@/utils/mentionUtils';
 
 const CATEGORIES = [
   { value: 'dica', label: '💡 Dica' },
@@ -92,14 +93,18 @@ export function NewPostDialog({ open, onOpenChange, onPostCreated }: NewPostDial
       if (imageFile) {
         imageUrl = await uploadImage();
       }
-      const { error } = await (supabase as any).from('community_posts').insert({
+      const { data: postData, error } = await (supabase as any).from('community_posts').insert({
         user_id: user.id,
         content: content.trim(),
         category,
         is_anonymous: isAnonymous,
         image_url: imageUrl,
-      });
+      }).select('id').single();
       if (error) throw error;
+      // Notify mentioned users
+      if (postData?.id && !isAnonymous) {
+        await notifyMentions(content, user.id, postData.id);
+      }
       toast.success('Publicação criada!');
       setContent('');
       setCategory('reflexao');
@@ -144,10 +149,10 @@ export function NewPostDialog({ open, onOpenChange, onPostCreated }: NewPostDial
             onDragOver={e => e.preventDefault()}
           >
             <Label>Conteúdo</Label>
-            <Textarea
-              placeholder="Compartilhe sua experiência... (cole imagens com Ctrl+V)"
+            <MentionTextarea
+              placeholder="Compartilhe sua experiência... Use @nome para mencionar alguém"
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={setContent}
               onPaste={handlePaste}
               rows={5}
             />

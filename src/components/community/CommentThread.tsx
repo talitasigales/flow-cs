@@ -5,10 +5,12 @@ import { Reply, Trash2, ImagePlus, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { MentionTextarea } from './MentionTextarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { toast } from 'sonner';
+import { notifyMentions, renderMentionText } from '@/utils/mentionUtils';
 
 export interface CommentData {
   id: string;
@@ -122,13 +124,17 @@ export function CommentThread({ comments, postId, onRefresh }: CommentThreadProp
       let imageUrl: string | null = null;
       if (img.imageFile) imageUrl = await img.uploadImage(user.id);
 
-      await (supabase as any).from('community_comments').insert({
+      const { data: commentData } = await (supabase as any).from('community_comments').insert({
         post_id: postId,
         user_id: user.id,
         content: content.trim(),
         parent_comment_id: parentId,
         image_url: imageUrl,
-      });
+      }).select('id').single();
+      // Notify mentioned users
+      if (commentData?.id) {
+        await notifyMentions(content, user.id, postId, commentData.id);
+      }
       if (parentId) {
         setReplyContent('');
         setReplyTo(null);
@@ -156,10 +162,10 @@ export function CommentThread({ comments, postId, onRefresh }: CommentThreadProp
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Textarea
-          placeholder="Escreva um comentário... (cole imagens com Ctrl+V)"
+        <MentionTextarea
+          placeholder="Escreva um comentário... Use @nome para mencionar alguém"
           value={newComment}
-          onChange={e => setNewComment(e.target.value)}
+          onChange={setNewComment}
           onPaste={mainImage.handlePaste}
           rows={3}
         />
@@ -235,7 +241,7 @@ function CommentItem({
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ptBR })}
             </span>
           </div>
-          {comment.content && <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>}
+          {comment.content && <p className="text-sm mt-1 whitespace-pre-wrap">{renderMentionText(comment.content)}</p>}
           {comment.image_url && (
             <img src={comment.image_url} alt="Imagem" className="mt-2 rounded-lg max-h-48 object-cover" />
           )}
@@ -254,8 +260,13 @@ function CommentItem({
 
       {replyTo === comment.id && (
         <div className="ml-8 space-y-2">
-          <Textarea placeholder="Sua resposta... (cole imagens com Ctrl+V)" value={replyContent}
-            onChange={e => setReplyContent(e.target.value)} onPaste={replyImage.handlePaste} rows={2} />
+          <MentionTextarea
+            placeholder="Sua resposta... Use @nome para mencionar"
+            value={replyContent}
+            onChange={setReplyContent}
+            onPaste={replyImage.handlePaste}
+            rows={2}
+          />
           <div className="flex items-center gap-2">
             <ImageInput {...replyImage} />
             <Button size="sm" onClick={onSubmitReply} disabled={loading || (!replyContent.trim() && !replyImage.imageFile)}>Responder</Button>
@@ -279,7 +290,7 @@ function CommentItem({
                     {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true, locale: ptBR })}
                   </span>
                 </div>
-                {reply.content && <p className="text-sm mt-1 whitespace-pre-wrap">{reply.content}</p>}
+                {reply.content && <p className="text-sm mt-1 whitespace-pre-wrap">{renderMentionText(reply.content)}</p>}
                 {reply.image_url && (
                   <img src={reply.image_url} alt="Imagem" className="mt-2 rounded-lg max-h-48 object-cover" />
                 )}

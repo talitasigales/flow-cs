@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MessageCircle, Trash2, UserCircle, Mail } from 'lucide-react';
+import { renderMentionText } from '@/utils/mentionUtils';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -142,7 +143,7 @@ export function PostCard({ post, onRefresh, isFollowing, onToggleFollow }: PostC
         </div>
       </CardHeader>
       <CardContent className="pb-2">
-        <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+        <p className="text-sm whitespace-pre-wrap">{renderMentionText(post.content)}</p>
         {post.image_url && (
           <img src={post.image_url} alt="Imagem do post" className="mt-3 rounded-lg max-h-80 object-cover w-full" />
         )}
