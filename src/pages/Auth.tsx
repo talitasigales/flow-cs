@@ -11,14 +11,11 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
 import grouLogo from '@/assets/grou-logo-laranja.png';
 
-type AuthMode = 'login' | 'signup' | 'forgot-password';
+type AuthMode = 'login' | 'forgot-password';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [company, setCompany] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -39,7 +36,6 @@ export default function Auth() {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % features.length);
     }, 3000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -76,52 +72,23 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === 'login') {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (error) throw error;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) throw error;
 
-        if (data.user) {
-          const { data: profile } = await (supabase as any).from('profiles').select('password_changed').eq('id', data.user.id).single();
-          if (profile && profile.password_changed === false) {
-            toast.info('Por segurança, você precisará trocar sua senha provisória.');
-          }
+      if (data.user) {
+        const { data: profile } = await (supabase as any).from('profiles').select('password_changed').eq('id', data.user.id).single();
+        if (profile && profile.password_changed === false) {
+          toast.info('Por segurança, você precisará trocar sua senha provisória.');
         }
-        toast.success('Login realizado com sucesso!');
-        navigate('/dashboard');
-      } else if (mode === 'signup') {
-        const provisionalPassword = email.split('@')[0];
-        const { data: signUpData, error } = await supabase.auth.signUp({
-          email,
-          password: provisionalPassword,
-          options: {
-            data: {
-              full_name: fullName
-            },
-            emailRedirectTo: `${window.location.origin}/dashboard`
-          }
-        });
-        if (error) throw error;
-
-        // Update profile with company and job_title
-        if (signUpData.user) {
-          await (supabase as any).from('profiles').update({
-            company,
-            job_title: jobTitle,
-            full_name: fullName,
-          }).eq('user_id', signUpData.user.id);
-        }
-
-        toast.success('Cadastro realizado! Verifique seu email.');
-        toast.info(`Sua senha provisória é: ${provisionalPassword}`);
       }
+      toast.success('Login realizado com sucesso!');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Auth error:', error);
-      if (error.message?.includes('already registered')) {
-        toast.error('Este email já está cadastrado. Faça login.');
-      } else if (error.message?.includes('Invalid login credentials')) {
+      if (error.message?.includes('Invalid login credentials')) {
         toast.error('Email ou senha incorretos.');
       } else if (error.message?.includes('rate limit') || error.status === 429) {
         toast.error('Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.', { duration: 6000 });
@@ -146,13 +113,11 @@ export default function Auth() {
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">
                 {mode === 'login' && 'Bem-vindo de volta'}
-                {mode === 'signup' && 'Criar conta'}
                 {mode === 'forgot-password' && 'Redefinir senha'}
               </CardTitle>
               <CardDescription>
                 {mode === 'login' && 'Entre com seu email e senha'}
-                {mode === 'signup' && 'Cadastre-se para começar sua jornada'}
-                {mode === 'forgot-password' && 'Entre em contato com o administrador'}
+                {mode === 'forgot-password' && 'Digite seu email para receber o link de redefinição'}
               </CardDescription>
             </CardHeader>
           <CardContent>
@@ -186,47 +151,6 @@ export default function Auth() {
                 </form>
             ) : (
               <form onSubmit={handleAuth} className="space-y-4">
-                {mode === 'signup' && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">Nome completo</Label>
-                      <Input 
-                        id="fullName" 
-                        type="text" 
-                        placeholder="Seu nome" 
-                        value={fullName} 
-                        onChange={e => setFullName(e.target.value)} 
-                        required 
-                        disabled={loading} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="jobTitle">Cargo</Label>
-                      <Input 
-                        id="jobTitle" 
-                        type="text" 
-                        placeholder="Ex: Analista de RH" 
-                        value={jobTitle} 
-                        onChange={e => setJobTitle(e.target.value)} 
-                        required 
-                        disabled={loading} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="company">Empresa</Label>
-                      <Input 
-                        id="company" 
-                        type="text" 
-                        placeholder="Nome da empresa" 
-                        value={company} 
-                        onChange={e => setCompany(e.target.value)} 
-                        required 
-                        disabled={loading} 
-                      />
-                    </div>
-                  </>
-                )}
-                
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
@@ -240,46 +164,37 @@ export default function Auth() {
                   />
                 </div>
 
-                {mode === 'login' && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Senha</Label>
-                      <button 
-                        type="button" 
-                        onClick={() => setMode('forgot-password')} 
-                        className="text-xs text-primary hover:underline"
-                        disabled={loading}
-                      >
-                        Esqueceu a senha?
-                      </button>
-                    </div>
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      placeholder="••••••••" 
-                      value={password} 
-                      onChange={e => setPassword(e.target.value)} 
-                      required 
-                      disabled={loading} 
-                    />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Senha</Label>
+                    <button 
+                      type="button" 
+                      onClick={() => setMode('forgot-password')} 
+                      className="text-xs text-primary hover:underline"
+                      disabled={loading}
+                    >
+                      Esqueceu a senha?
+                    </button>
                   </div>
-                )}
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    required 
+                    disabled={loading} 
+                  />
+                </div>
 
                 <Button type="submit" className="w-full gradient-primary" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {mode === 'login' ? 'Entrar' : 'Cadastrar'}
+                  Entrar
                 </Button>
 
-                <div className="text-center text-sm">
-                  <button 
-                    type="button" 
-                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} 
-                    className="text-primary hover:underline" 
-                    disabled={loading}
-                  >
-                    {mode === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
-                  </button>
-                </div>
+                <p className="text-center text-xs text-muted-foreground">
+                  Não tem conta? Solicite acesso ao administrador da plataforma.
+                </p>
               </form>
             )}
           </CardContent>
