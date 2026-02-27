@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Briefcase,
   User,
+  Users2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -69,6 +70,12 @@ export function AppSidebar() {
       title: 'Construção de Cargos',
       icon: Briefcase,
       path: '/job-construction',
+      badge: null,
+    },
+    {
+      title: 'Comunidade',
+      icon: Users2,
+      path: '/community',
       badge: null,
     },
     {
