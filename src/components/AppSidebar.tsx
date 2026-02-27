@@ -15,6 +15,7 @@ import {
   User,
   Users2,
   ChevronDown,
+  Wrench,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -33,89 +34,130 @@ import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import groLogo from '@/assets/grou-logo-laranja.png';
 
+const toolsSubItems = [
+  { title: 'Fale com a Nanda', icon: MessageSquare, path: '/chat-nanda' },
+  { title: 'Matriz 9Box', icon: Grid3x3, path: '/matriz-9box' },
+  { title: 'Evolução de Perfil PDA', icon: TrendingUp, path: '/profile-evolution' },
+  { title: 'PDI', icon: ClipboardList, path: '/pdi' },
+  { title: 'Construção de Cargos', icon: Briefcase, path: '/job-construction' },
+];
+
+const communitySubItems = [
+  { title: 'Feed', icon: Users2, path: '/community' },
+  { title: 'Mensagens', icon: Mail, path: '/messages' },
+];
+
+const toolsPaths = toolsSubItems.map(i => i.path);
+const communityPaths = ['/community', '/messages'];
+
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useIsAdmin();
   const { unreadCount } = useUnreadMessages();
+
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
+  const isInTools = toolsPaths.some(p => isActive(p));
+  const isInCommunity = communityPaths.some(p => isActive(p));
 
-  const communityOpen = location.pathname.startsWith('/community') || location.pathname.startsWith('/messages');
-  const [openCommunity, setOpenCommunity] = useState(communityOpen);
-
-  const mainMenuItems = [
-    { title: 'Trilhas de Sucesso', icon: GraduationCap, path: '/dashboard', badge: null },
-    { title: 'Fale com a Nanda', icon: MessageSquare, path: '/chat-nanda', badge: null },
-    { title: 'Matriz 9Box', icon: Grid3x3, path: '/matriz-9box', badge: null },
-    { title: 'Evolução de Perfil PDA', icon: TrendingUp, path: '/profile-evolution', badge: null },
-    { title: 'PDI', icon: ClipboardList, path: '/pdi', badge: null },
-    { title: 'Construção de Cargos', icon: Briefcase, path: '/job-construction', badge: null },
-    { title: 'Meu Perfil', icon: User, path: '/profile', badge: null },
-  ];
+  const [openTools, setOpenTools] = useState(isInTools);
+  const [openCommunity, setOpenCommunity] = useState(isInCommunity);
 
   const adminMenuItems = [
     { title: 'Gerenciar Usuários', icon: Users, path: '/admin/users' },
     { title: 'Logs', icon: FileText, path: '/admin/logs' },
   ];
 
-  const renderMenuItem = (item: { title: string; icon: any; path: string; badge?: string | null }, index: number, delayOffset = 0) => {
-    const active = isActive(item.path);
+  const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {
+    const active = isActive(path);
+    const Icon = icon;
     return (
       <SidebarMenuItem
-        key={item.path}
+        key={path}
         className="animate-fade-in-up"
-        style={{ animationDelay: `${(delayOffset + index) * 50}ms`, animationFillMode: 'both' }}
+        style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
       >
         <SidebarMenuButton
-          onClick={() => navigate(item.path)}
+          onClick={() => navigate(path)}
           isActive={active}
-          className={`
-            group/item relative overflow-hidden transition-all duration-300
-            ${active
-              ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm glow-effect'
-              : 'hover:bg-sidebar-accent/50'
-            }
-          `}
+          className={`group/item relative overflow-hidden transition-all duration-300 ${active ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm glow-effect' : 'hover:bg-sidebar-accent/50'}`}
         >
-          <div className={`
-            flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300
-            ${active
-              ? 'bg-gradient-primary text-primary-foreground shadow-md'
-              : 'bg-muted/50 text-muted-foreground group-hover/item:bg-primary/10 group-hover/item:text-primary'
-            }
-          `}>
-            <item.icon className="w-4 h-4" />
+          <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300 ${active ? 'bg-gradient-primary text-primary-foreground shadow-md' : 'bg-muted/50 text-muted-foreground group-hover/item:bg-primary/10 group-hover/item:text-primary'}`}>
+            <Icon className="w-4 h-4" />
           </div>
-          <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>
-            {item.title}
-          </span>
-          {item.badge && (
-            <span className="ml-auto bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
-              {item.badge}
-            </span>
-          )}
+          <span className={`font-medium transition-colors ${active ? 'text-primary' : ''}`}>{title}</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
   };
 
-  const communityActive = location.pathname.startsWith('/community') || location.pathname.startsWith('/messages');
+  const renderCollapsible = (
+    title: string,
+    Icon: any,
+    isOpen: boolean,
+    setOpen: (v: boolean) => void,
+    isGroupActive: boolean,
+    subItems: { title: string; icon: any; path: string }[],
+    index: number,
+    badgeCount?: number,
+  ) => (
+    <SidebarMenuItem
+      className="animate-fade-in-up"
+      style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
+    >
+      <Collapsible open={isOpen} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            isActive={isGroupActive}
+            className={`group/item relative overflow-hidden transition-all duration-300 w-full ${isGroupActive ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm glow-effect' : 'hover:bg-sidebar-accent/50'}`}
+          >
+            <div className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300 ${isGroupActive ? 'bg-gradient-primary text-primary-foreground shadow-md' : 'bg-muted/50 text-muted-foreground group-hover/item:bg-primary/10 group-hover/item:text-primary'}`}>
+              <Icon className="w-4 h-4" />
+            </div>
+            <span className={`font-medium transition-colors flex-1 ${isGroupActive ? 'text-primary' : ''}`}>{title}</span>
+            {badgeCount != null && badgeCount > 0 && (
+              <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">{badgeCount}</span>
+            )}
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenu className="ml-6 mt-1 space-y-0.5 border-l border-border/50 pl-3">
+            {subItems.map(sub => {
+              const SubIcon = sub.icon;
+              const subActive = isActive(sub.path);
+              const isMessages = sub.path === '/messages';
+              return (
+                <SidebarMenuItem key={sub.path}>
+                  <SidebarMenuButton
+                    onClick={() => navigate(sub.path)}
+                    isActive={subActive}
+                    className={`text-sm h-8 transition-colors ${subActive ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <SubIcon className="w-3.5 h-3.5" />
+                    <span>{sub.title}</span>
+                    {isMessages && unreadCount > 0 && (
+                      <span className="ml-auto bg-primary text-primary-foreground text-[10px] px-1.5 py-0 rounded-full min-w-[18px] text-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarMenuItem>
+  );
 
   return (
-    <Sidebar
-      collapsible="none"
-      className="border-r border-sidebar-border"
-      variant="floating"
-    >
+    <Sidebar collapsible="none" className="border-r border-sidebar-border" variant="floating">
       <SidebarHeader className="border-b border-sidebar-border/50 pb-4">
         <div className="flex items-center gap-3 px-2">
           <div className="relative group/logo">
             <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover/logo:bg-primary/30 transition-colors" />
-            <img
-              src={groLogo}
-              alt="Grou Logo"
-              className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300"
-            />
+            <img src={groLogo} alt="Grou Logo" className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300" />
           </div>
           <div className="flex-1 overflow-hidden">
             <h2 className="text-lg font-bold gradient-text whitespace-nowrap">CS da Grou</h2>
@@ -131,76 +173,10 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainMenuItems.map((item, index) => renderMenuItem(item, index))}
-
-              {/* Comunidade com sub-item Mensagens */}
-              <SidebarMenuItem
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${mainMenuItems.length * 50}ms`, animationFillMode: 'both' }}
-              >
-                <Collapsible open={openCommunity} onOpenChange={setOpenCommunity}>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      isActive={communityActive}
-                      className={`
-                        group/item relative overflow-hidden transition-all duration-300 w-full
-                        ${communityActive
-                          ? 'bg-gradient-to-r from-primary/20 to-accent/20 text-primary shadow-sm glow-effect'
-                          : 'hover:bg-sidebar-accent/50'
-                        }
-                      `}
-                    >
-                      <div className={`
-                        flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300
-                        ${communityActive
-                          ? 'bg-gradient-primary text-primary-foreground shadow-md'
-                          : 'bg-muted/50 text-muted-foreground group-hover/item:bg-primary/10 group-hover/item:text-primary'
-                        }
-                      `}>
-                        <Users2 className="w-4 h-4" />
-                      </div>
-                      <span className={`font-medium transition-colors flex-1 ${communityActive ? 'text-primary' : ''}`}>
-                        Comunidade
-                      </span>
-                      {unreadCount > 0 && (
-                        <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
-                          {unreadCount}
-                        </span>
-                      )}
-                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${openCommunity ? 'rotate-180' : ''}`} />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenu className="ml-6 mt-1 space-y-0.5 border-l border-border/50 pl-3">
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => navigate('/community')}
-                          isActive={isActive('/community')}
-                          className={`text-sm h-8 transition-colors ${isActive('/community') ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
-                        >
-                          <Users2 className="w-3.5 h-3.5" />
-                          <span>Feed</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          onClick={() => navigate('/messages')}
-                          isActive={location.pathname.startsWith('/messages')}
-                          className={`text-sm h-8 transition-colors ${location.pathname.startsWith('/messages') ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
-                        >
-                          <Mail className="w-3.5 h-3.5" />
-                          <span>Mensagens</span>
-                          {unreadCount > 0 && (
-                            <span className="ml-auto bg-primary text-primary-foreground text-[10px] px-1.5 py-0 rounded-full min-w-[18px] text-center">
-                              {unreadCount}
-                            </span>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </SidebarMenu>
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarMenuItem>
+              {renderTopLevelItem('Trilhas de Sucesso', GraduationCap, '/dashboard', 0)}
+              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
+              {renderCollapsible('Comunidade', Users2, openCommunity, setOpenCommunity, isInCommunity, communitySubItems, 2, unreadCount)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 3)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -214,7 +190,7 @@ export function AppSidebar() {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {adminMenuItems.map((item, index) => renderMenuItem(item, index, mainMenuItems.length + 1))}
+                  {adminMenuItems.map((item, index) => renderTopLevelItem(item.title, item.icon, item.path, index))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
