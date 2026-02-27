@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Users2, Flame } from 'lucide-react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -141,11 +140,9 @@ export default function Community() {
   if (authLoading) return null;
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-          <div className="max-w-3xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-3xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -228,8 +225,7 @@ export default function Community() {
           </div>
 
           <NewPostDialog open={dialogOpen} onOpenChange={setDialogOpen} onPostCreated={() => fetchPosts(true)} />
-        </main>
-      </div>
-    </SidebarProvider>
+        </div>
+    </AppLayout>
   );
 }

@@ -3,8 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, UserCircle, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -81,24 +80,19 @@ export default function CommunityPost() {
   }, [user, postId]);
 
   if (authLoading || loading || !post) return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 p-8 flex items-center justify-center">
-          <p className="text-muted-foreground">Carregando...</p>
-        </main>
+    <AppLayout>
+      <div className="p-8 flex items-center justify-center">
+        <p className="text-muted-foreground">Carregando...</p>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 
   const authorName = post.is_anonymous ? 'Anônimo' : (post.profile?.full_name || 'Usuário');
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-          <div className="max-w-3xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-3xl mx-auto space-y-6">
             <Button variant="ghost" onClick={() => navigate('/community')} className="gap-2">
               <ArrowLeft className="h-4 w-4" /> Voltar
             </Button>
@@ -156,10 +150,9 @@ export default function CommunityPost() {
             <div>
               <h2 className="text-lg font-semibold mb-4">Comentários ({comments.length})</h2>
               <CommentThread comments={comments} postId={post.id} onRefresh={fetchData} />
-            </div>
           </div>
-        </main>
+        </div>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 }
