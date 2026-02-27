@@ -33,6 +33,8 @@ const AdminUsers = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'admin' | 'user'>('user');
   const [inviting, setInviting] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{ tempPassword?: string; message?: string } | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
   
   // Reset password states
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -98,22 +100,36 @@ const AdminUsers = () => {
 
     setInviting(true);
     try {
-      const { error } = await supabase.functions.invoke('invite-user', {
+      const { data, error } = await supabase.functions.invoke('invite-user', {
         body: { email: inviteEmail, role: inviteRole }
       });
 
       if (error) throw error;
 
-      toast.success('Convite enviado com sucesso!');
-      setInviteDialogOpen(false);
-      setInviteEmail('');
-      setInviteRole('user');
+      if (data?.tempPassword) {
+        setInviteResult({ tempPassword: data.tempPassword, message: `Usuário ${inviteEmail} criado com sucesso!` });
+      } else {
+        toast.success(data?.message || 'Convite processado com sucesso!');
+        setInviteDialogOpen(false);
+        setInviteEmail('');
+        setInviteRole('user');
+        setInviteResult(null);
+      }
       fetchUsers();
     } catch (error: any) {
       console.error('Error inviting user:', error);
       toast.error(error.message || 'Erro ao convidar usuário');
     } finally {
       setInviting(false);
+    }
+  };
+
+  const copyInvitePassword = () => {
+    if (inviteResult?.tempPassword) {
+      navigator.clipboard.writeText(inviteResult.tempPassword);
+      setInviteCopied(true);
+      toast.success('Senha copiada!');
+      setTimeout(() => setInviteCopied(false), 2000);
     }
   };
 
@@ -212,7 +228,15 @@ const AdminUsers = () => {
             </div>
           </div>
 
-          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <Dialog open={inviteDialogOpen} onOpenChange={(open) => {
+            if (!open) {
+              setInviteDialogOpen(false);
+              setInviteEmail('');
+              setInviteRole('user');
+              setInviteResult(null);
+              setInviteCopied(false);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="h-4 w-4 mr-2" />
@@ -223,41 +247,68 @@ const AdminUsers = () => {
               <DialogHeader>
                 <DialogTitle>Convidar Novo Usuário</DialogTitle>
                 <DialogDescription>
-                  Envie um convite por email para um novo usuário acessar a plataforma
+                  {inviteResult ? inviteResult.message : 'Envie um convite por email para um novo usuário acessar a plataforma'}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="usuario@exemplo.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
+
+              {inviteResult?.tempPassword ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <Label className="text-sm text-muted-foreground">Senha provisória:</Label>
+                    <div className="flex items-center gap-2 mt-2">
+                      <code className="flex-1 p-3 bg-background rounded border text-lg font-mono">
+                        {inviteResult.tempPassword}
+                      </code>
+                      <Button size="icon" variant="outline" onClick={copyInvitePassword}>
+                        {inviteCopied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Envie esta senha ao usuário de forma segura. Ele será obrigado a trocá-la no primeiro login.
+                  </p>
+                  <DialogFooter>
+                    <Button onClick={() => { setInviteDialogOpen(false); setInviteResult(null); setInviteEmail(''); setInviteRole('user'); }}>
+                      Fechar
+                    </Button>
+                  </DialogFooter>
                 </div>
-                <div>
-                  <Label htmlFor="role">Permissão</Label>
-                  <Select value={inviteRole} onValueChange={(value: 'admin' | 'user') => setInviteRole(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">Usuário</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleInviteUser} disabled={inviting}>
-                  {inviting ? 'Enviando...' : 'Enviar Convite'}
-                </Button>
-              </DialogFooter>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="usuario@exemplo.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="role">Permissão</Label>
+                      <Select value={inviteRole} onValueChange={(value: 'admin' | 'user') => setInviteRole(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Usuário</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleInviteUser} disabled={inviting}>
+                      {inviting ? 'Enviando...' : 'Enviar Convite'}
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         </div>
