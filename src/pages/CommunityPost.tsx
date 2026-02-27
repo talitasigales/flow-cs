@@ -126,6 +126,9 @@ export default function CommunityPost() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="whitespace-pre-wrap">{post.content}</p>
+                {post.image_url && (
+                  <img src={post.image_url} alt="Imagem do post" className="rounded-lg max-h-96 object-cover w-full" />
+                )}
                 <div className="flex items-center gap-2">
                   <LikeButton postId={post.id} likesCount={post.likes_count} isLiked={isLiked} onToggle={fetchData} />
                 </div>
