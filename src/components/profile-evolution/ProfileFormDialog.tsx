@@ -99,95 +99,104 @@ export function ProfileFormDialog({
           Adicionar novo relatório PDA
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Adicionar Perfil Anual</DialogTitle>
+          <DialogTitle>Editar Valores REPNA e Indicadores</DialogTitle>
           <DialogDescription>
-            Registre os scores do seu perfil PDA para comparação ao longo dos anos
+            Ajuste os valores entre 0 e 100 para cada dimensão do perfil
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="employee_name">Nome do Colaborador</Label>
-            <Input
-              id="employee_name"
-              type="text"
-              value={formData.employee_name}
-              onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
-              placeholder="Ex: João Silva"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="year">Ano</Label>
-            <Input
-              id="year"
-              type="number"
-              value={formData.year}
-              onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-              min="2000"
-              max="2100"
-            />
-          </div>
-
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-            {/* REPNA Values */}
-            {(['r', 'e', 'p', 'n', 'a'] as const).map((key) => {
-              const labels: Record<string, string> = {
-                r: 'R (Risco)',
-                e: 'E (Extroversão)',
-                p: 'P (Paciência)',
-                n: 'N (Normas)',
-                a: 'A (Autocontrole)',
-              };
-              return (
-                <div key={key} className="space-y-2">
-                  <Label htmlFor={key}>{labels[key]} (0-100)</Label>
-                  <Input
-                    id={key}
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData[key]}
-                    onChange={(e) => setFormData({ ...formData, [key]: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-              );
-            })}
-
-            {/* Complementary Analysis */}
-            <div className="border-t border-border pt-4 mt-4">
-              <h4 className="font-semibold mb-3 text-sm">Análise Complementar</h4>
-
-              <div className="space-y-6">
-                {[
-                  { key: 'tomada_decisoes' as const, label: 'Tomada de Decisões' },
-                  { key: 'intensidade_perfil' as const, label: 'Intensidade do Perfil' },
-                  { key: 'energia' as const, label: 'Energia' },
-                  { key: 'equilibrio_energia' as const, label: 'Equilíbrio de Energia' },
-                  { key: 'modificacao_perfil' as const, label: 'Modificação do Perfil' },
-                ].map(({ key, label }) => (
-                  <div key={key} className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={key}>{label}</Label>
-                      <span className="text-sm font-medium">{formData[key]}%</span>
-                    </div>
-                    <Slider
-                      id={key}
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={[formData[key]]}
-                      onValueChange={(value) => setFormData({ ...formData, [key]: value[0] })}
-                      className="w-full"
-                    />
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-4 py-4 overflow-y-auto pr-2 flex-1">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="employee_name">Nome do Colaborador</Label>
+              <Input
+                id="employee_name"
+                type="text"
+                value={formData.employee_name}
+                onChange={(e) => setFormData({ ...formData, employee_name: e.target.value })}
+                placeholder="Ex: João Silva"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="year">Ano</Label>
+              <Input
+                id="year"
+                type="number"
+                value={formData.year}
+                onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
+                min="2000"
+                max="2100"
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1 pt-2">
+            <h4 className="font-semibold text-sm">Valores REPNA</h4>
+          </div>
+
+          {(['r', 'e', 'p', 'n', 'a'] as const).map((key) => {
+            const labels: Record<string, string> = {
+              r: 'R', e: 'E', p: 'P', n: 'N', a: 'A',
+            };
+            return (
+              <div key={key} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>{labels[key]}</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={formData[key]}
+                    onChange={(e) => setFormData({ ...formData, [key]: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) })}
+                    className="w-20 h-8 text-center"
+                  />
+                </div>
+                <Slider
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={[formData[key]]}
+                  onValueChange={(value) => setFormData({ ...formData, [key]: value[0] })}
+                />
+              </div>
+            );
+          })}
+
+          <div className="border-t border-border pt-4 mt-4 space-y-1">
+            <h4 className="font-semibold text-sm">Indicadores Complementares</h4>
+          </div>
+
+          {[
+            { key: 'tomada_decisoes' as const, label: 'Tomada de Decisões' },
+            { key: 'intensidade_perfil' as const, label: 'Intensidade do Perfil' },
+            { key: 'energia' as const, label: 'Energia (NE)' },
+            { key: 'equilibrio_energia' as const, label: 'Equilíbrio de Energia' },
+            { key: 'modificacao_perfil' as const, label: 'Modificação do Perfil' },
+          ].map(({ key, label }) => (
+            <div key={key} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>{label}</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={formData[key]}
+                  onChange={(e) => setFormData({ ...formData, [key]: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) })}
+                  className="w-20 h-8 text-center"
+                />
+              </div>
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={[formData[key]]}
+                onValueChange={(value) => setFormData({ ...formData, [key]: value[0] })}
+              />
+            </div>
+          ))}
+
+          <div className="space-y-2 pt-2">
             <Label htmlFor="notes">Observações</Label>
             <Textarea
               id="notes"
