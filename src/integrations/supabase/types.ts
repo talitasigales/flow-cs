@@ -528,6 +528,8 @@ export type Database = {
           full_name: string | null
           id: string
           last_password_change: string | null
+          lgpd_accepted: boolean | null
+          lgpd_accepted_at: string | null
           password_changed: boolean | null
           updated_at: string
           user_id: string
@@ -540,6 +542,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_password_change?: string | null
+          lgpd_accepted?: boolean | null
+          lgpd_accepted_at?: string | null
           password_changed?: boolean | null
           updated_at?: string
           user_id: string
@@ -552,6 +556,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_password_change?: string | null
+          lgpd_accepted?: boolean | null
+          lgpd_accepted_at?: string | null
           password_changed?: boolean | null
           updated_at?: string
           user_id?: string
