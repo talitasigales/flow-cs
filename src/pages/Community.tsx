@@ -10,6 +10,7 @@ import { PostCard, PostData } from '@/components/community/PostCard';
 import { NewPostDialog } from '@/components/community/NewPostDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFollows } from '@/hooks/useFollows';
 
 const CATEGORIES = [
   { value: 'all', label: 'Todas' },
@@ -31,6 +32,7 @@ export default function Community() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const { isFollowing, toggleFollow } = useFollows();
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -157,7 +159,13 @@ export default function Community() {
             {/* Posts Feed */}
             <div className="space-y-4">
               {posts.map(post => (
-                <PostCard key={post.id} post={post} onRefresh={() => fetchPosts(true)} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onRefresh={() => fetchPosts(true)}
+                  isFollowing={isFollowing(post.user_id)}
+                  onToggleFollow={() => toggleFollow(post.user_id)}
+                />
               ))}
               {posts.length === 0 && !loading && (
                 <div className="text-center py-12 text-muted-foreground">

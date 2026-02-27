@@ -44,11 +44,12 @@ const toolsSubItems = [
 
 const communitySubItems = [
   { title: 'Feed', icon: Users2, path: '/community' },
+  { title: 'Membros', icon: Users, path: '/members' },
   { title: 'Mensagens', icon: Mail, path: '/messages' },
 ];
 
 const toolsPaths = toolsSubItems.map(i => i.path);
-const communityPaths = ['/community', '/messages'];
+const communityPaths = ['/community', '/members', '/messages'];
 
 export function AppSidebar() {
   const navigate = useNavigate();
