@@ -28,6 +28,7 @@ export interface PostData {
   comments_count: number;
   is_anonymous: boolean;
   created_at: string;
+  image_url?: string | null;
   profile?: {
     full_name: string | null;
     company: string | null;
@@ -101,6 +102,9 @@ export function PostCard({ post, onRefresh }: PostCardProps) {
       </CardHeader>
       <CardContent className="pb-2">
         <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+        {post.image_url && (
+          <img src={post.image_url} alt="Imagem do post" className="mt-3 rounded-lg max-h-80 object-cover w-full" />
+        )}
       </CardContent>
       <CardFooter className="pt-0 flex items-center justify-between">
         <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
