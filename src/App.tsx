@@ -23,6 +23,7 @@ import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
 import Messages from "./pages/Messages";
 import ChatConversation from "./pages/ChatConversation";
+import Members from "./pages/Members";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/community" element={<Community />} />
           <Route path="/community/:postId" element={<CommunityPost />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/members" element={<Members />} />
           <Route path="/messages/:conversationId" element={<ChatConversation />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           

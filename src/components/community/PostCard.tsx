@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { LikeButton } from './LikeButton';
+import { FollowButton } from './FollowButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,9 +50,11 @@ export interface PostData {
 interface PostCardProps {
   post: PostData;
   onRefresh: () => void;
+  isFollowing?: boolean;
+  onToggleFollow?: () => void;
 }
 
-export function PostCard({ post, onRefresh }: PostCardProps) {
+export function PostCard({ post, onRefresh, isFollowing, onToggleFollow }: PostCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isAdmin } = useIsAdmin();
@@ -102,6 +105,15 @@ export function PostCard({ post, onRefresh }: PostCardProps) {
                 <p className="text-xs text-muted-foreground">
                   {[authorJob, authorCompany].filter(Boolean).join(' · ')}
                 </p>
+              )}
+              {!post.is_anonymous && user && user.id !== post.user_id && onToggleFollow && (
+                <div className="mt-1">
+                  <FollowButton
+                    isFollowing={isFollowing || false}
+                    onToggle={onToggleFollow}
+                    size="sm"
+                  />
+                </div>
               )}
             </div>
           </div>
