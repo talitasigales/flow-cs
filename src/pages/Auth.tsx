@@ -7,27 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Copy, Check } from 'lucide-react';
+import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
 import grouLogo from '@/assets/grou-logo-laranja.png';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
-
-const CopyButton = ({ text }: { text: string }) => {
-  const [copied, setCopied] = useState(false);
-  
-  const copy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  
-  return (
-    <Button size="icon" variant="outline" onClick={copy} type="button">
-      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-    </Button>
-  );
-};
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -36,7 +20,7 @@ export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [generatedPassword, setGeneratedPassword] = useState('');
+  
   const navigate = useNavigate();
   const { user } = useAuth();
   
@@ -63,38 +47,7 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error('Por favor, insira seu email.');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: { email }
-      });
-      
-      if (error) throw error;
-      if (data.error) {
-        if (data.error === 'Usuário não encontrado') {
-          toast.error('Email não encontrado. Verifique se digitou corretamente.');
-        } else {
-          throw new Error(data.error);
-        }
-        return;
-      }
-      
-      setGeneratedPassword(data.provisionalPassword);
-      toast.success('Nova senha gerada com sucesso!');
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      toast.error(error.message || 'Erro ao gerar nova senha.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Forgot password no longer resets - just shows instructions
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,71 +117,32 @@ export default function Auth() {
               <CardDescription>
                 {mode === 'login' && 'Entre com seu email e senha'}
                 {mode === 'signup' && 'Cadastre-se para começar sua jornada'}
-                {mode === 'forgot-password' && !generatedPassword && 'Insira seu email para gerar uma nova senha'}
-                {mode === 'forgot-password' && generatedPassword && 'Sua nova senha foi gerada com sucesso'}
+                {mode === 'forgot-password' && 'Entre em contato com o administrador'}
               </CardDescription>
             </CardHeader>
           <CardContent>
             {mode === 'forgot-password' ? (
-              generatedPassword ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <Label className="text-sm text-muted-foreground">Sua nova senha provisória:</Label>
-                    <div className="flex items-center gap-2 mt-2">
-                      <code className="flex-1 p-3 bg-background rounded border text-lg font-mono text-center">
-                        {generatedPassword}
-                      </code>
-                      <CopyButton text={generatedPassword} />
+                  <div className="p-4 bg-muted rounded-lg flex items-start gap-3">
+                    <ShieldAlert className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div className="space-y-2">
+                      <p className="text-sm text-foreground font-medium">
+                        Por segurança, a redefinição de senha é feita apenas pelo administrador da plataforma.
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Entre em contato com o administrador da sua empresa para solicitar uma nova senha provisória.
+                      </p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    ⚠️ Anote esta senha! Você precisará trocá-la no próximo login.
-                  </p>
                   <Button 
                     type="button" 
                     className="w-full gradient-primary" 
-                    onClick={() => {
-                      setMode('login');
-                      setGeneratedPassword('');
-                      setPassword('');
-                    }}
+                    onClick={() => setMode('login')}
                   >
-                    Ir para o Login
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Voltar ao Login
                   </Button>
                 </div>
-              ) : (
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="seu@email.com" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)} 
-                      required 
-                      disabled={loading} 
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full gradient-primary" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Gerar Nova Senha
-                  </Button>
-
-                  <div className="text-center text-sm">
-                    <button 
-                      type="button" 
-                      onClick={() => setMode('login')} 
-                      className="text-primary hover:underline inline-flex items-center gap-1" 
-                      disabled={loading}
-                    >
-                      <ArrowLeft className="h-3 w-3" />
-                      Voltar ao login
-                    </button>
-                  </div>
-                </form>
-              )
             ) : (
               <form onSubmit={handleAuth} className="space-y-4">
                 {mode === 'signup' && (
