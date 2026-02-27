@@ -9,6 +9,8 @@ import {
   ClipboardList,
   GraduationCap,
   Briefcase,
+  User,
+  History,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -68,6 +70,18 @@ export function AppSidebar() {
       title: 'Construção de Cargos',
       icon: Briefcase,
       path: '/job-construction',
+      badge: null,
+    },
+    {
+      title: 'Meu Perfil',
+      icon: User,
+      path: '/profile',
+      badge: null,
+    },
+    {
+      title: 'Histórico',
+      icon: History,
+      path: '/activity-history',
       badge: null,
     },
   ];
