@@ -1,15 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
+
+// Simple notification sound using Web Audio API
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch {
+    // Silently fail if audio not available
+  }
+}
 
 export function useUnreadMessages() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const location = useLocation();
+  const locationRef = useRef(location.pathname);
+
+  useEffect(() => {
+    locationRef.current = location.pathname;
+  }, [location.pathname]);
 
   const fetchUnread = async () => {
     if (!user) { setUnreadCount(0); return; }
 
-    // Get all participations with last_read_at
     const { data: participations } = await (supabase as any)
       .from('chat_participants')
       .select('conversation_id, last_read_at')
@@ -35,16 +61,20 @@ export function useUnreadMessages() {
     if (!user) return;
     fetchUnread();
 
-    // Listen globally for new messages
     const channel = supabase
       .channel('global-unread')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages' },
         (payload: any) => {
-          // If the message is not from me, bump count
           if (payload.new?.sender_id !== user.id) {
             setUnreadCount(prev => prev + 1);
+            // Play sound if not currently viewing that conversation
+            const currentPath = locationRef.current;
+            const convId = payload.new?.conversation_id;
+            if (!currentPath.startsWith(`/messages/${convId}`)) {
+              playNotificationSound();
+            }
           }
         }
       )
