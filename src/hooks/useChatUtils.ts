@@ -33,22 +33,23 @@ export async function findOrCreateConversation(currentUserId: string, otherUserI
     }
   }
 
-  // Create new conversation
-  const { data: newConv, error: convError } = await (supabase as any)
+  // Create new conversation with client-generated ID
+  const convId = crypto.randomUUID();
+  const { error: convError } = await (supabase as any)
     .from('chat_conversations')
-    .insert({ type: 'direct' })
-    .select('id')
-    .single();
+    .insert({ id: convId, type: 'direct' });
 
-  if (convError || !newConv) return null;
+  if (convError) return null;
 
   // Add both participants
-  await (supabase as any)
+  const { error: partError } = await (supabase as any)
     .from('chat_participants')
     .insert([
-      { conversation_id: newConv.id, user_id: currentUserId },
-      { conversation_id: newConv.id, user_id: otherUserId },
+      { conversation_id: convId, user_id: currentUserId },
+      { conversation_id: convId, user_id: otherUserId },
     ]);
 
-  return newConv.id;
+  if (partError) return null;
+
+  return convId;
 }
