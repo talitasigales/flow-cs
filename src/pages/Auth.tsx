@@ -17,6 +17,8 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [company, setCompany] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -91,7 +93,7 @@ export default function Auth() {
         navigate('/dashboard');
       } else if (mode === 'signup') {
         const provisionalPassword = email.split('@')[0];
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email,
           password: provisionalPassword,
           options: {
@@ -102,6 +104,16 @@ export default function Auth() {
           }
         });
         if (error) throw error;
+
+        // Update profile with company and job_title
+        if (signUpData.user) {
+          await (supabase as any).from('profiles').update({
+            company,
+            job_title: jobTitle,
+            full_name: fullName,
+          }).eq('user_id', signUpData.user.id);
+        }
+
         toast.success('Cadastro realizado! Verifique seu email.');
         toast.info(`Sua senha provisória é: ${provisionalPassword}`);
       }
@@ -173,18 +185,44 @@ export default function Auth() {
             ) : (
               <form onSubmit={handleAuth} className="space-y-4">
                 {mode === 'signup' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Nome completo</Label>
-                    <Input 
-                      id="fullName" 
-                      type="text" 
-                      placeholder="Seu nome" 
-                      value={fullName} 
-                      onChange={e => setFullName(e.target.value)} 
-                      required 
-                      disabled={loading} 
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Nome completo</Label>
+                      <Input 
+                        id="fullName" 
+                        type="text" 
+                        placeholder="Seu nome" 
+                        value={fullName} 
+                        onChange={e => setFullName(e.target.value)} 
+                        required 
+                        disabled={loading} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="jobTitle">Cargo</Label>
+                      <Input 
+                        id="jobTitle" 
+                        type="text" 
+                        placeholder="Ex: Analista de RH" 
+                        value={jobTitle} 
+                        onChange={e => setJobTitle(e.target.value)} 
+                        required 
+                        disabled={loading} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="company">Empresa</Label>
+                      <Input 
+                        id="company" 
+                        type="text" 
+                        placeholder="Nome da empresa" 
+                        value={company} 
+                        onChange={e => setCompany(e.target.value)} 
+                        required 
+                        disabled={loading} 
+                      />
+                    </div>
+                  </>
                 )}
                 
                 <div className="space-y-2">
