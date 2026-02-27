@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, Copy, Check } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
-import grouLogo from '@/assets/grou-logo-verde.webp';
+import grouLogo from '@/assets/grou-logo-laranja.png';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 

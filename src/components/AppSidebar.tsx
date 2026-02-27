@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/sidebar';
 import { UserAvatarMenu } from './UserAvatarMenu';
 import { Separator } from '@/components/ui/separator';
-import groLogo from '@/assets/grou-logo-verde.webp';
+import groLogo from '@/assets/grou-logo-laranja.png';
 
 export function AppSidebar() {
   const navigate = useNavigate();
