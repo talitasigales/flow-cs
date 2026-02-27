@@ -795,6 +795,7 @@ export type Database = {
           pda_n_value: number | null
           pda_p_value: number | null
           pda_profile_name: string | null
+          pda_public: boolean
           pda_r_value: number | null
           phone: string | null
           updated_at: string
@@ -820,6 +821,7 @@ export type Database = {
           pda_n_value?: number | null
           pda_p_value?: number | null
           pda_profile_name?: string | null
+          pda_public?: boolean
           pda_r_value?: number | null
           phone?: string | null
           updated_at?: string
@@ -845,6 +847,7 @@ export type Database = {
           pda_n_value?: number | null
           pda_p_value?: number | null
           pda_profile_name?: string | null
+          pda_public?: boolean
           pda_r_value?: number | null
           phone?: string | null
           updated_at?: string
@@ -988,13 +991,13 @@ export type Database = {
           full_name?: string | null
           job_title?: string | null
           linkedin_url?: string | null
-          pda_a_value?: number | null
-          pda_dominant_axis?: string | null
-          pda_e_value?: number | null
-          pda_n_value?: number | null
-          pda_p_value?: number | null
-          pda_profile_name?: string | null
-          pda_r_value?: number | null
+          pda_a_value?: never
+          pda_dominant_axis?: never
+          pda_e_value?: never
+          pda_n_value?: never
+          pda_p_value?: never
+          pda_profile_name?: never
+          pda_r_value?: never
           user_id?: string | null
         }
         Update: {
@@ -1004,13 +1007,13 @@ export type Database = {
           full_name?: string | null
           job_title?: string | null
           linkedin_url?: string | null
-          pda_a_value?: number | null
-          pda_dominant_axis?: string | null
-          pda_e_value?: number | null
-          pda_n_value?: number | null
-          pda_p_value?: number | null
-          pda_profile_name?: string | null
-          pda_r_value?: number | null
+          pda_a_value?: never
+          pda_dominant_axis?: never
+          pda_e_value?: never
+          pda_n_value?: never
+          pda_p_value?: never
+          pda_profile_name?: never
+          pda_r_value?: never
           user_id?: string | null
         }
         Relationships: []

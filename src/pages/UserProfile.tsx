@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp, History, RefreshCw, Camera, Linkedin, Phone } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,6 +40,7 @@ interface ProfileData {
   lgpd_accepted_at: string | null;
   last_password_change: string | null;
   password_changed: boolean | null;
+  pda_public: boolean;
 }
 
 interface Stats {
@@ -84,6 +86,7 @@ export default function UserProfile() {
   const [pdaN, setPdaN] = useState(0);
   const [pdaA, setPdaA] = useState(0);
   const [savingPda, setSavingPda] = useState(false);
+  const [pdaPublic, setPdaPublic] = useState(true);
 
   // Activity history state
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -109,7 +112,7 @@ export default function UserProfile() {
     try {
       const { data, error } = await (supabase as any)
         .from('profiles')
-        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, pda_profile_name, pda_dominant_axis, pda_r_value, pda_e_value, pda_p_value, pda_n_value, pda_a_value, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed')
+        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, pda_profile_name, pda_dominant_axis, pda_r_value, pda_e_value, pda_p_value, pda_n_value, pda_a_value, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed, pda_public')
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
@@ -128,6 +131,7 @@ export default function UserProfile() {
       setPdaP(data?.pda_p_value || 0);
       setPdaN(data?.pda_n_value || 0);
       setPdaA(data?.pda_a_value || 0);
+      setPdaPublic(data?.pda_public !== false);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -261,6 +265,7 @@ export default function UserProfile() {
           pda_p_value: pdaP,
           pda_n_value: pdaN,
           pda_a_value: pdaA,
+          pda_public: pdaPublic,
         })
         .eq('user_id', user!.id);
       if (error) throw error;
@@ -461,10 +466,29 @@ export default function UserProfile() {
                   {/* Perfil PDA Público */}
                   <Card className="border-border/50">
                     <CardHeader>
-                      <CardTitle>Meu Perfil PDA Público</CardTitle>
-                      <CardDescription>
-                        Essas informações ficam visíveis para outros usuários na comunidade, gerando conexão por similaridade de perfil
-                      </CardDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>Meu Perfil PDA Público</CardTitle>
+                          <CardDescription>
+                            Essas informações ficam visíveis para outros usuários na comunidade
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                          <Label htmlFor="pda-public-toggle" className="text-sm text-muted-foreground cursor-pointer">
+                            {pdaPublic ? 'Visível' : 'Oculto'}
+                          </Label>
+                          <Switch
+                            id="pda-public-toggle"
+                            checked={pdaPublic}
+                            onCheckedChange={setPdaPublic}
+                          />
+                        </div>
+                      </div>
+                      {!pdaPublic && (
+                        <p className="text-xs text-amber-600 bg-amber-500/10 rounded-md px-3 py-2 mt-2">
+                          Seu perfil REPNA está oculto. Outros membros não verão seus valores na comunidade, posts ou página de membros.
+                        </p>
+                      )}
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-3">
