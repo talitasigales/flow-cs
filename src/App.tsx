@@ -21,6 +21,8 @@ import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
 import Community from "./pages/Community";
 import CommunityPost from "./pages/CommunityPost";
+import Messages from "./pages/Messages";
+import ChatConversation from "./pages/ChatConversation";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
@@ -51,6 +53,8 @@ const App = () => (
           <Route path="/job-construction/result" element={<JobConstructionResult />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/:postId" element={<CommunityPost />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/messages/:conversationId" element={<ChatConversation />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
           <Route path="/profile" element={<UserProfile />} />
