@@ -229,8 +229,8 @@ const AdminUsers = () => {
           </div>
 
           <Dialog open={inviteDialogOpen} onOpenChange={(open) => {
+            setInviteDialogOpen(open);
             if (!open) {
-              setInviteDialogOpen(false);
               setInviteEmail('');
               setInviteRole('user');
               setInviteResult(null);
