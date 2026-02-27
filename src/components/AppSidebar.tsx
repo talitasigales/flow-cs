@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   MessageSquare,
   Mail,
@@ -56,6 +57,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { isAdmin } = useIsAdmin();
   const { unreadCount } = useUnreadMessages();
+  const { unreadCount: notifCount } = useNotifications();
+  const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   const isInTools = toolsPaths.some(p => isActive(p));
@@ -176,7 +179,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {renderTopLevelItem('Trilhas de Sucesso', GraduationCap, '/dashboard', 0)}
               {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
-              {renderCollapsible('Comunidade', Users2, openCommunity, setOpenCommunity, isInCommunity, communitySubItems, 2, unreadCount)}
+              {renderCollapsible('Comunidade', Users2, openCommunity, setOpenCommunity, isInCommunity, communitySubItems, 2, totalCommunityBadge)}
               {renderTopLevelItem('Meu Perfil', User, '/profile', 3)}
             </SidebarMenu>
           </SidebarGroupContent>
