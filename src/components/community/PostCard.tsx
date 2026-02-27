@@ -36,6 +36,11 @@ export interface PostData {
     avatar_url: string | null;
     pda_profile_name?: string | null;
     pda_dominant_axis?: string | null;
+    pda_r_value?: number | null;
+    pda_e_value?: number | null;
+    pda_p_value?: number | null;
+    pda_n_value?: number | null;
+    pda_a_value?: number | null;
   };
   is_liked?: boolean;
 }
@@ -86,9 +91,9 @@ export function PostCard({ post, onRefresh }: PostCardProps) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-sm">{authorName}</p>
-                {!post.is_anonymous && post.profile?.pda_dominant_axis && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
-                    {post.profile.pda_dominant_axis}
+                {!post.is_anonymous && post.profile?.pda_r_value != null && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 font-mono">
+                    R:{post.profile.pda_r_value} E:{post.profile.pda_e_value} P:{post.profile.pda_p_value} N:{post.profile.pda_n_value} A:{post.profile.pda_a_value}
                   </Badge>
                 )}
               </div>
