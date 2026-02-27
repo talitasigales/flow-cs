@@ -647,6 +647,13 @@ export type Database = {
           lgpd_accepted_at: string | null
           linkedin_url: string | null
           password_changed: boolean | null
+          pda_a_value: number | null
+          pda_dominant_axis: string | null
+          pda_e_value: number | null
+          pda_n_value: number | null
+          pda_p_value: number | null
+          pda_profile_name: string | null
+          pda_r_value: number | null
           phone: string | null
           updated_at: string
           user_id: string
@@ -665,6 +672,13 @@ export type Database = {
           lgpd_accepted_at?: string | null
           linkedin_url?: string | null
           password_changed?: boolean | null
+          pda_a_value?: number | null
+          pda_dominant_axis?: string | null
+          pda_e_value?: number | null
+          pda_n_value?: number | null
+          pda_p_value?: number | null
+          pda_profile_name?: string | null
+          pda_r_value?: number | null
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -683,6 +697,13 @@ export type Database = {
           lgpd_accepted_at?: string | null
           linkedin_url?: string | null
           password_changed?: boolean | null
+          pda_a_value?: number | null
+          pda_dominant_axis?: string | null
+          pda_e_value?: number | null
+          pda_n_value?: number | null
+          pda_p_value?: number | null
+          pda_profile_name?: string | null
+          pda_r_value?: number | null
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -788,6 +809,13 @@ export type Database = {
           full_name: string | null
           job_title: string | null
           linkedin_url: string | null
+          pda_a_value: number | null
+          pda_dominant_axis: string | null
+          pda_e_value: number | null
+          pda_n_value: number | null
+          pda_p_value: number | null
+          pda_profile_name: string | null
+          pda_r_value: number | null
           user_id: string | null
         }
         Insert: {
@@ -797,6 +825,13 @@ export type Database = {
           full_name?: string | null
           job_title?: string | null
           linkedin_url?: string | null
+          pda_a_value?: number | null
+          pda_dominant_axis?: string | null
+          pda_e_value?: number | null
+          pda_n_value?: number | null
+          pda_p_value?: number | null
+          pda_profile_name?: string | null
+          pda_r_value?: number | null
           user_id?: string | null
         }
         Update: {
@@ -806,6 +841,13 @@ export type Database = {
           full_name?: string | null
           job_title?: string | null
           linkedin_url?: string | null
+          pda_a_value?: number | null
+          pda_dominant_axis?: string | null
+          pda_e_value?: number | null
+          pda_n_value?: number | null
+          pda_p_value?: number | null
+          pda_profile_name?: string | null
+          pda_r_value?: number | null
           user_id?: string | null
         }
         Relationships: []
