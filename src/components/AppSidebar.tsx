@@ -156,7 +156,7 @@ export function AppSidebar() {
   );
 
   return (
-    <Sidebar collapsible="none" className="border-r border-sidebar-border" variant="floating">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border" variant="floating">
       <SidebarHeader className="border-b border-sidebar-border/50 pb-4">
         <div className="flex items-center gap-3 px-2">
           <div className="relative group/logo">

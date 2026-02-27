@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users2, Search, Briefcase, Building2, Linkedin, Mail } from 'lucide-react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -112,11 +111,9 @@ export default function Members() {
   if (authLoading) return null;
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-          <div className="max-w-4xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">
@@ -250,9 +247,8 @@ export default function Members() {
                 })}
               </div>
             )}
-          </div>
-        </main>
+        </div>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 }

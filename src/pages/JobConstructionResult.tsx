@@ -1,7 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, ArrowLeft, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -38,11 +37,9 @@ export default function JobConstructionResult() {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-background to-muted/20">
-        <AppSidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          <div className="max-w-3xl mx-auto space-y-6">
+    <AppLayout className="bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-3xl mx-auto space-y-6">
             {/* Back Button */}
             <Button
               variant="ghost"
@@ -80,8 +77,7 @@ export default function JobConstructionResult() {
               </Button>
             </div>
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+        </div>
+    </AppLayout>
   );
 }

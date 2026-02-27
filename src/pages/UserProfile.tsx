@@ -14,8 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp, History, RefreshCw, Camera, Linkedin, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoluntaryChangePasswordDialog } from '@/components/VoluntaryChangePasswordDialog';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { ActivityTimeline } from '@/components/activity/ActivityTimeline';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -317,11 +316,8 @@ export default function UserProfile() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          <div className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
+    <AppLayout>
+      <div className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
             <div className="container mx-auto px-6 py-4">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" onClick={() => navigate('/dashboard')}>
@@ -731,8 +727,6 @@ export default function UserProfile() {
               </TabsContent>
             </Tabs>
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 }

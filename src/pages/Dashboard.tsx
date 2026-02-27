@@ -9,8 +9,7 @@ import { usePasswordCheck } from '@/hooks/usePasswordCheck';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { ModuleHero } from '@/components/ModuleHero';
 import { ModuleCarousel } from '@/components/ModuleCarousel';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 
 interface Module {
   id: string;
@@ -145,12 +144,8 @@ export default function Dashboard() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto px-6 py-8 space-y-8">
+    <AppLayout>
+      <div className="container mx-auto px-4 md:px-6 py-6 md:py-8 space-y-8">
             {/* Overall Progress - Modern Tech Design */}
             <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 via-card/60 to-primary/5 backdrop-blur-xl">
               {/* Animated background effect */}
@@ -257,9 +252,7 @@ export default function Dashboard() {
                 progressData={progress}
               />
             )}
-          </div>
-        </main>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 }

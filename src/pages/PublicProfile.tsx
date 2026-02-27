@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Linkedin, MapPin, Briefcase, Users } from 'lucide-react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -111,23 +110,17 @@ export default function PublicProfile() {
 
   if (!profile) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <main className="flex-1 p-8">
-            <p className="text-center text-muted-foreground">Perfil não encontrado.</p>
-          </main>
+      <AppLayout>
+        <div className="p-8">
+          <p className="text-center text-muted-foreground">Perfil não encontrado.</p>
         </div>
-      </SidebarProvider>
+      </AppLayout>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-3xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+    <AppLayout>
+      <div className="max-w-3xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
             {/* Back button */}
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
@@ -237,9 +230,7 @@ export default function PublicProfile() {
                 </div>
               )}
             </div>
-          </div>
-        </main>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 }

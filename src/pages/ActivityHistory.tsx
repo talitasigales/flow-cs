@@ -5,8 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, History, RefreshCw } from 'lucide-react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { AppLayout } from '@/components/AppLayout';
 import { ActivityTimeline } from '@/components/activity/ActivityTimeline';
 
 interface AuditLog {
@@ -68,11 +67,8 @@ export default function ActivityHistory() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          <div className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
+    <AppLayout>
+      <div className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
             <div className="container mx-auto px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -137,9 +133,7 @@ export default function ActivityHistory() {
                 </Button>
               </div>
             )}
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
+        </div>
+    </AppLayout>
   );
 }
