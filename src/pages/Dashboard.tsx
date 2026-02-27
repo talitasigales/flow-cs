@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
+import { LGPDConsentDialog } from '@/components/LGPDConsentDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { ModuleHero } from '@/components/ModuleHero';
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const [modules, setModules] = useState<Module[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lgpdAccepted, setLgpdAccepted] = useState<boolean | null>(null);
+  const [lgpdLoading, setLgpdLoading] = useState(true);
   const { isAdmin } = useIsAdmin();
   const {
     needsPasswordChange,
@@ -50,8 +53,27 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       fetchModulesAndProgress();
+      checkLgpdConsent();
     }
   }, [user]);
+
+  const checkLgpdConsent = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('lgpd_accepted')
+        .eq('user_id', user.id)
+        .single();
+      if (error) throw error;
+      setLgpdAccepted(data?.lgpd_accepted ?? false);
+    } catch (error) {
+      console.error('Error checking LGPD consent:', error);
+      setLgpdAccepted(false);
+    } finally {
+      setLgpdLoading(false);
+    }
+  };
 
   const fetchModulesAndProgress = async () => {
     try {
@@ -102,7 +124,7 @@ export default function Dashboard() {
   // Get module for hero section (first incomplete or first module)
   const heroModule = notStartedModules[0] || modules[0];
 
-  if (authLoading || loading || passwordCheckLoading) {
+  if (authLoading || loading || passwordCheckLoading || lgpdLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -116,6 +138,10 @@ export default function Dashboard() {
         <ChangePasswordDialog onPasswordChanged={markPasswordChanged} />
       </div>
     );
+  }
+
+  if (!lgpdAccepted && user) {
+    return <LGPDConsentDialog userId={user.id} onAccepted={() => setLgpdAccepted(true)} />;
   }
 
   return (
