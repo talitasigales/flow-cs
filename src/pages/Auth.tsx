@@ -123,6 +123,8 @@ export default function Auth() {
         toast.error('Este email já está cadastrado. Faça login.');
       } else if (error.message?.includes('Invalid login credentials')) {
         toast.error('Email ou senha incorretos.');
+      } else if (error.message?.includes('rate limit') || error.status === 429) {
+        toast.error('Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.', { duration: 6000 });
       } else {
         toast.error(error.message || 'Erro ao autenticar');
       }
