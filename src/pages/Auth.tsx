@@ -150,7 +150,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-6">
           {/* Logo and Title above the card */}
           <div className="flex flex-col items-center gap-4">
-            <img src={grouLogo} alt="Grou Logo" className="h-30 w-auto" />
+            <img src={grouLogo} alt="Grou Logo" className="h-[6.25rem] w-auto" />
             <h2 className="text-3xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
           </div>
           
