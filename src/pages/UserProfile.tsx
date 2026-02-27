@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp, History, RefreshCw } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp, History, RefreshCw, Camera, Linkedin, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoluntaryChangePasswordDialog } from '@/components/VoluntaryChangePasswordDialog';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -21,6 +23,11 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 interface ProfileData {
   full_name: string | null;
   company: string | null;
+  job_title: string | null;
+  avatar_url: string | null;
+  linkedin_url: string | null;
+  bio: string | null;
+  phone: string | null;
   lgpd_accepted: boolean | null;
   lgpd_accepted_at: string | null;
   last_password_change: string | null;
@@ -51,6 +58,13 @@ export default function UserProfile() {
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
   const [company, setCompany] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [bio, setBio] = useState('');
+  const [phone, setPhone] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [stats, setStats] = useState<Stats>({ activePDIs: 0, pdaProfiles: 0, ninebox: 0, completedModules: 0 });
   const [latestPDA, setLatestPDA] = useState<any>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -79,13 +93,18 @@ export default function UserProfile() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, company, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed')
+        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed')
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
       setProfile(data);
       setFullName(data?.full_name || '');
       setCompany(data?.company || '');
+      setJobTitle(data?.job_title || '');
+      setLinkedinUrl(data?.linkedin_url || '');
+      setBio(data?.bio || '');
+      setPhone(data?.phone || '');
+      setAvatarUrl(data?.avatar_url || null);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -151,16 +170,45 @@ export default function UserProfile() {
     }
   };
 
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    if (!file.type.startsWith('image/')) { toast.error('Apenas imagens são permitidas'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem deve ter no máximo 5MB'); return; }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${user.id}/avatar.${ext}`;
+      await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+      await (supabase as any).from('profiles').update({ avatar_url: publicUrl }).eq('user_id', user.id);
+      setAvatarUrl(publicUrl);
+      toast.success('Foto atualizada!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao enviar foto');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
-        .update({ full_name: fullName, company })
+        .update({
+          full_name: fullName,
+          company,
+          job_title: jobTitle,
+          linkedin_url: linkedinUrl || null,
+          bio: bio || null,
+          phone: phone || null,
+        })
         .eq('user_id', user!.id);
       if (error) throw error;
       toast.success('Perfil atualizado com sucesso!');
-      setProfile(prev => prev ? { ...prev, full_name: fullName, company } : prev);
+      setProfile(prev => prev ? { ...prev, full_name: fullName, company, job_title: jobTitle, linkedin_url: linkedinUrl, bio, phone } : prev);
     } catch (error) {
       toast.error('Erro ao salvar perfil');
     } finally {
@@ -280,19 +328,68 @@ export default function UserProfile() {
                     <CardTitle>Dados Pessoais</CardTitle>
                     <CardDescription>Gerencie suas informações de perfil</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input value={user?.email || ''} disabled />
+                  <CardContent className="space-y-6">
+                    {/* Avatar */}
+                    <div className="flex items-center gap-6">
+                      <div className="relative group">
+                        <Avatar className="h-24 w-24 border-2 border-border">
+                          {avatarUrl && <AvatarImage src={avatarUrl} />}
+                          <AvatarFallback className="text-2xl">{fullName?.charAt(0) || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <button
+                          onClick={() => avatarInputRef.current?.click()}
+                          disabled={uploadingAvatar}
+                          className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        >
+                          <Camera className="h-6 w-6 text-white" />
+                        </button>
+                        <input
+                          ref={avatarInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ''; }}
+                        />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg">{fullName || 'Seu nome'}</p>
+                        <p className="text-sm text-muted-foreground">{jobTitle ? `${jobTitle} · ` : ''}{company || ''}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Clique na foto para alterar</p>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Nome Completo</Label>
-                      <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input value={user?.email || ''} disabled />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Nome Completo</Label>
+                        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cargo</Label>
+                        <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Ex: Analista de RH" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Empresa</Label>
+                        <Input value={company} onChange={(e) => setCompany(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Telefone</Label>
+                        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-1.5"><Linkedin className="h-3.5 w-3.5" /> LinkedIn</Label>
+                        <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/seu-perfil" />
+                      </div>
                     </div>
+
                     <div className="space-y-2">
-                      <Label>Empresa</Label>
-                      <Input value={company} onChange={(e) => setCompany(e.target.value)} />
+                      <Label>Bio</Label>
+                      <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Conte um pouco sobre você, sua experiência e interesses profissionais..." rows={3} />
                     </div>
+
                     <Button onClick={handleSave} disabled={saving} className="gap-2">
                       <Save className="h-4 w-4" />
                       {saving ? 'Salvando...' : 'Salvar Alterações'}

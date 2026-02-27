@@ -636,6 +636,7 @@ export type Database = {
         Row: {
           analysis_result: Json | null
           avatar_url: string | null
+          bio: string | null
           company: string | null
           created_at: string
           full_name: string | null
@@ -644,13 +645,16 @@ export type Database = {
           last_password_change: string | null
           lgpd_accepted: boolean | null
           lgpd_accepted_at: string | null
+          linkedin_url: string | null
           password_changed: boolean | null
+          phone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           analysis_result?: Json | null
           avatar_url?: string | null
+          bio?: string | null
           company?: string | null
           created_at?: string
           full_name?: string | null
@@ -659,13 +663,16 @@ export type Database = {
           last_password_change?: string | null
           lgpd_accepted?: boolean | null
           lgpd_accepted_at?: string | null
+          linkedin_url?: string | null
           password_changed?: boolean | null
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           analysis_result?: Json | null
           avatar_url?: string | null
+          bio?: string | null
           company?: string | null
           created_at?: string
           full_name?: string | null
@@ -674,7 +681,9 @@ export type Database = {
           last_password_change?: string | null
           lgpd_accepted?: boolean | null
           lgpd_accepted_at?: string | null
+          linkedin_url?: string | null
           password_changed?: boolean | null
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -774,23 +783,29 @@ export type Database = {
       public_profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           company: string | null
           full_name: string | null
           job_title: string | null
+          linkedin_url: string | null
           user_id: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           company?: string | null
           full_name?: string | null
           job_title?: string | null
+          linkedin_url?: string | null
           user_id?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           company?: string | null
           full_name?: string | null
           job_title?: string | null
+          linkedin_url?: string | null
           user_id?: string | null
         }
         Relationships: []
