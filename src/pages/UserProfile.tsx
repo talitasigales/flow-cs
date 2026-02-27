@@ -242,11 +242,20 @@ export default function UserProfile() {
   const handleSavePda = async () => {
     setSavingPda(true);
     try {
+      // Auto-calculate dominant axis
+      const axes = [
+        { label: 'R', value: pdaR },
+        { label: 'E', value: pdaE },
+        { label: 'P', value: pdaP },
+        { label: 'N', value: pdaN },
+        { label: 'A', value: pdaA },
+      ];
+      const dominant = axes.reduce((max, cur) => cur.value > max.value ? cur : max, axes[0]);
       const { error } = await (supabase as any)
         .from('profiles')
         .update({
-          pda_profile_name: pdaProfileName || null,
-          pda_dominant_axis: pdaDominantAxis || null,
+          pda_profile_name: null,
+          pda_dominant_axis: dominant.label,
           pda_r_value: pdaR,
           pda_e_value: pdaE,
           pda_p_value: pdaP,
@@ -255,8 +264,8 @@ export default function UserProfile() {
         })
         .eq('user_id', user!.id);
       if (error) throw error;
-      toast.success('Perfil PDA público atualizado!');
-      setProfile(prev => prev ? { ...prev, pda_profile_name: pdaProfileName, pda_dominant_axis: pdaDominantAxis, pda_r_value: pdaR, pda_e_value: pdaE, pda_p_value: pdaP, pda_n_value: pdaN, pda_a_value: pdaA } : prev);
+      toast.success('Perfil REPNA público atualizado!');
+      setProfile(prev => prev ? { ...prev, pda_dominant_axis: dominant.label, pda_r_value: pdaR, pda_e_value: pdaE, pda_p_value: pdaP, pda_n_value: pdaN, pda_a_value: pdaA } : prev);
     } catch {
       toast.error('Erro ao salvar perfil PDA');
     } finally {
@@ -458,28 +467,6 @@ export default function UserProfile() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Nome do Perfil</Label>
-                          <Input value={pdaProfileName} onChange={e => setPdaProfileName(e.target.value)} placeholder="Ex: Executor, Comunicador, Planejador..." />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Eixo Dominante</Label>
-                          <Select value={pdaDominantAxis} onValueChange={setPdaDominantAxis}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="R">R — Risco / Dominância</SelectItem>
-                              <SelectItem value="E">E — Extroversão</SelectItem>
-                              <SelectItem value="P">P — Paciência</SelectItem>
-                              <SelectItem value="N">N — Normas / Conformidade</SelectItem>
-                              <SelectItem value="A">A — Autocontrole</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
                       <div className="space-y-3">
                         <Label className="text-sm font-medium">Valores REPNA (0–100)</Label>
                         <div className="grid grid-cols-5 gap-3">
@@ -525,7 +512,7 @@ export default function UserProfile() {
                         </div>
                       )}
 
-                      {latestPDA && !pdaProfileName && (
+                      {latestPDA && pdaR === 0 && pdaE === 0 && pdaP === 0 && pdaN === 0 && pdaA === 0 && (
                         <Button variant="outline" size="sm" onClick={() => {
                           setPdaR(latestPDA.r_value || 0);
                           setPdaE(latestPDA.e_value || 0);
