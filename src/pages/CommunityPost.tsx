@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, UserCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -13,6 +13,8 @@ import { LikeButton } from '@/components/community/LikeButton';
 import { CommentThread, CommentData } from '@/components/community/CommentThread';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { findOrCreateConversation } from '@/hooks/useChatUtils';
+import { toast } from 'sonner';
 
 const CATEGORY_LABELS: Record<string, string> = {
   dica: '💡 Dica', duvida: '❓ Dúvida', case: '📋 Case', reflexao: '💭 Reflexão',
@@ -131,6 +133,21 @@ export default function CommunityPost() {
                 )}
                 <div className="flex items-center gap-2">
                   <LikeButton postId={post.id} likesCount={post.likes_count} isLiked={isLiked} onToggle={fetchData} />
+                  {!post.is_anonymous && user && user.id !== post.user_id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={async () => {
+                        const convId = await findOrCreateConversation(user.id, post.user_id);
+                        if (convId) navigate(`/messages/${convId}`);
+                        else toast.error('Erro ao iniciar conversa');
+                      }}
+                    >
+                      <Mail className="h-4 w-4" />
+                      Enviar mensagem
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   MessageSquare,
+  Mail,
   Grid3x3,
   TrendingUp,
   Users,
@@ -76,6 +77,12 @@ export function AppSidebar() {
       title: 'Comunidade',
       icon: Users2,
       path: '/community',
+      badge: null,
+    },
+    {
+      title: 'Mensagens',
+      icon: Mail,
+      path: '/messages',
       badge: null,
     },
     {

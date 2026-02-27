@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MessageCircle, Trash2, UserCircle } from 'lucide-react';
+import { MessageCircle, Trash2, UserCircle, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { findOrCreateConversation } from '@/hooks/useChatUtils';
 
 const CATEGORY_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
   dica: { label: '💡 Dica', variant: 'default' },
@@ -132,6 +133,21 @@ export function PostCard({ post, onRefresh }: PostCardProps) {
             <MessageCircle className="h-4 w-4" />
             <span>{post.comments_count}</span>
           </Button>
+          {!post.is_anonymous && user && user.id !== post.user_id && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const convId = await findOrCreateConversation(user.id, post.user_id);
+                if (convId) navigate(`/messages/${convId}`);
+                else toast.error('Erro ao iniciar conversa');
+              }}
+            >
+              <Mail className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         <span className="text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR })}
