@@ -19,7 +19,7 @@ import PDICreate from "./pages/PDICreate";
 import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
-import ActivityHistory from "./pages/ActivityHistory";
+
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
@@ -48,7 +48,7 @@ const App = () => (
           <Route path="/job-construction" element={<JobConstruction />} />
           <Route path="/job-construction/result" element={<JobConstructionResult />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/activity-history" element={<ActivityHistory />} />
+          
           <Route path="/profile" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
