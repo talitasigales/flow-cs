@@ -18,6 +18,7 @@ import PDIGuide from "./pages/PDIGuide";
 import PDICreate from "./pages/PDICreate";
 import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/pdi/:pdiId" element={<PDIDetail />} />
           <Route path="/job-construction" element={<JobConstruction />} />
           <Route path="/job-construction/result" element={<JobConstructionResult />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

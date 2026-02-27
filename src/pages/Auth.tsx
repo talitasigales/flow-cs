@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
 import grouLogo from '@/assets/grou-logo-laranja.png';
 
@@ -47,7 +47,28 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
-  // Forgot password no longer resets - just shows instructions
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error('Digite seu email');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
+      setMode('login');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao enviar email de redefinição');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,27 +143,33 @@ export default function Auth() {
             </CardHeader>
           <CardContent>
             {mode === 'forgot-password' ? (
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg flex items-start gap-3">
-                    <ShieldAlert className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                    <div className="space-y-2">
-                      <p className="text-sm text-foreground font-medium">
-                        Por segurança, a redefinição de senha é feita apenas pelo administrador da plataforma.
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Entre em contato com o administrador da sua empresa para solicitar uma nova senha provisória.
-                      </p>
-                    </div>
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={forgotLoading}
+                    />
                   </div>
-                  <Button 
-                    type="button" 
-                    className="w-full gradient-primary" 
+                  <Button type="submit" className="w-full gradient-primary" disabled={forgotLoading}>
+                    {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Enviar Link de Redefinição
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
                     onClick={() => setMode('login')}
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Voltar ao Login
                   </Button>
-                </div>
+                </form>
             ) : (
               <form onSubmit={handleAuth} className="space-y-4">
                 {mode === 'signup' && (
