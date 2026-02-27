@@ -11,13 +11,17 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import heroBackground from '@/assets/hero-background.jpg';
 import grouLogo from '@/assets/grou-logo-laranja.png';
 
-type AuthMode = 'login' | 'forgot-password';
+type AuthMode = 'login' | 'signup' | 'forgot-password';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [company, setCompany] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const navigate = useNavigate();
@@ -45,8 +49,6 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
-  const [forgotLoading, setForgotLoading] = useState(false);
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
@@ -62,9 +64,52 @@ export default function Auth() {
       toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
       setMode('login');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao enviar email de redefinição');
+      if (error.message?.includes('rate limit') || error.status === 429) {
+        toast.error('Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.', { duration: 6000 });
+      } else {
+        toast.error(error.message || 'Erro ao enviar email de redefinição');
+      }
     } finally {
       setForgotLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName || !company || !jobTitle) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await supabase.functions.invoke('register-user', {
+        body: { email, password, full_name: fullName, company, job_title: jobTitle },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao criar conta');
+      }
+
+      const data = response.data;
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('Conta criada com sucesso! Faça login.');
+      setMode('login');
+      setPassword('');
+      setFullName('');
+      setCompany('');
+      setJobTitle('');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast.error(error.message || 'Erro ao criar conta');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,10 +117,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
       if (data.user) {
@@ -99,11 +141,96 @@ export default function Auth() {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen flex">
-      {/* Left side - Form */}
+
+  const renderForm = () => {
+    if (mode === 'forgot-password') {
+      return (
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="reset-email">Email</Label>
+            <Input id="reset-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={forgotLoading} />
+          </div>
+          <Button type="submit" className="w-full gradient-primary" disabled={forgotLoading}>
+            {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Enviar Link de Redefinição
+          </Button>
+          <Button type="button" variant="ghost" className="w-full" onClick={() => setMode('login')}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Voltar ao Login
+          </Button>
+        </form>
+      );
+    }
+
+    if (mode === 'signup') {
+      return (
+        <form onSubmit={handleSignup} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Nome Completo *</Label>
+            <Input id="fullName" placeholder="Seu nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} required disabled={loading} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="signup-email">Email *</Label>
+            <Input id="signup-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="signup-password">Senha *</Label>
+            <Input id="signup-password" type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="company">Empresa *</Label>
+            <Input id="company" placeholder="Nome da empresa" value={company} onChange={(e) => setCompany(e.target.value)} required disabled={loading} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="jobTitle">Cargo *</Label>
+            <Input id="jobTitle" placeholder="Seu cargo" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} required disabled={loading} />
+          </div>
+          <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Criar Conta
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            Já tem conta?{' '}
+            <button type="button" onClick={() => setMode('login')} className="text-primary hover:underline">
+              Faça login
+            </button>
+          </p>
+        </form>
+      );
+    }
+
+    return (
+      <form onSubmit={handleAuth} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Senha</Label>
+            <button type="button" onClick={() => setMode('forgot-password')} className="text-xs text-primary hover:underline" disabled={loading}>
+              Esqueceu a senha?
+            </button>
+          </div>
+          <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} />
+        </div>
+        <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Entrar
+        </Button>
+        <p className="text-center text-sm text-muted-foreground">
+          Não tem conta?{' '}
+          <button type="button" onClick={() => setMode('signup')} className="text-primary hover:underline">
+            Cadastre-se
+          </button>
+        </p>
+      </form>
+    );
+  };
+
+  return (
+    <div className="min-h-screen flex">
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-6">
-          {/* Logo and Title above the card */}
           <div className="flex flex-col items-center gap-4">
             <img src={grouLogo} alt="Grou Logo" className="h-[6.25rem] w-auto" />
             <h2 className="text-3xl font-bold gradient-text">Plataforma de Sucesso do Cliente</h2>
@@ -113,106 +240,29 @@ export default function Auth() {
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">
                 {mode === 'login' && 'Bem-vindo de volta'}
+                {mode === 'signup' && 'Criar conta'}
                 {mode === 'forgot-password' && 'Redefinir senha'}
               </CardTitle>
               <CardDescription>
                 {mode === 'login' && 'Entre com seu email e senha'}
+                {mode === 'signup' && 'Preencha seus dados para criar sua conta'}
                 {mode === 'forgot-password' && 'Digite seu email para receber o link de redefinição'}
               </CardDescription>
             </CardHeader>
-          <CardContent>
-            {mode === 'forgot-password' ? (
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email</Label>
-                    <Input
-                      id="reset-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={forgotLoading}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full gradient-primary" disabled={forgotLoading}>
-                    {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Enviar Link de Redefinição
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => setMode('login')}
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Voltar ao Login
-                  </Button>
-                </form>
-            ) : (
-              <form onSubmit={handleAuth} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="seu@email.com" 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)} 
-                    required 
-                    disabled={loading} 
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Senha</Label>
-                    <button 
-                      type="button" 
-                      onClick={() => setMode('forgot-password')} 
-                      className="text-xs text-primary hover:underline"
-                      disabled={loading}
-                    >
-                      Esqueceu a senha?
-                    </button>
-                  </div>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required 
-                    disabled={loading} 
-                  />
-                </div>
-
-                <Button type="submit" className="w-full gradient-primary" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Entrar
-                </Button>
-
-                <p className="text-center text-xs text-muted-foreground">
-                  Não tem conta? Solicite acesso ao administrador da plataforma.
-                </p>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+            <CardContent>
+              {renderForm()}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Right side - Hero */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
         <img src={heroBackground} alt="Background" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-secondary/80" />
         <div className="relative z-10 flex flex-col items-center justify-center text-center p-12 text-white w-full">
-          <h1 className="text-5xl font-bold mb-6 text-center">
-            Evolua Continuamente
-          </h1>
+          <h1 className="text-5xl font-bold mb-6 text-center">Evolua Continuamente</h1>
           <p className="text-xl mb-8 max-w-md text-center">Impulsione sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>
           <div className="space-y-6 w-full max-w-2xl mx-auto">
-            {/* Feature Slider */}
             <div className="relative h-24 flex items-center justify-center">
               {features.map((feature, index) => (
                 <div
@@ -228,8 +278,6 @@ export default function Auth() {
                 </div>
               ))}
             </div>
-            
-            {/* Slider Indicators */}
             <div className="flex gap-2 justify-center">
               {features.map((_, index) => (
                 <button
@@ -247,5 +295,6 @@ export default function Auth() {
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
