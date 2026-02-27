@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'react-router-dom';
 
 // Simple notification sound using Web Audio API
 function playNotificationSound() {
@@ -26,12 +25,6 @@ function playNotificationSound() {
 export function useUnreadMessages() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const location = useLocation();
-  const locationRef = useRef(location.pathname);
-
-  useEffect(() => {
-    locationRef.current = location.pathname;
-  }, [location.pathname]);
 
   const fetchUnread = async () => {
     if (!user) { setUnreadCount(0); return; }
@@ -70,7 +63,7 @@ export function useUnreadMessages() {
           if (payload.new?.sender_id !== user.id) {
             setUnreadCount(prev => prev + 1);
             // Play sound if not currently viewing that conversation
-            const currentPath = locationRef.current;
+            const currentPath = window.location.pathname;
             const convId = payload.new?.conversation_id;
             if (!currentPath.startsWith(`/messages/${convId}`)) {
               playNotificationSound();
