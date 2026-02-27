@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -11,12 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, Key, UserCog } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { UserProfileDialog } from './UserProfileDialog';
 
 export function UserAvatarMenu() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   const getInitials = (email: string) => {
     return email.substring(0, 2).toUpperCase();
@@ -53,9 +50,9 @@ export function UserAvatarMenu() {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => navigate('/profile')}>
             <UserCog className="mr-2 h-4 w-4" />
-            Editar Perfil
+            Meu Perfil
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleChangePassword}>
             <Key className="mr-2 h-4 w-4" />
@@ -68,8 +65,6 @@ export function UserAvatarMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <UserProfileDialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen} />
     </>
   );
 }
