@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { VoluntaryChangePasswordDialog } from '@/components/VoluntaryChangePasswordDialog';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { format } from 'date-fns';
@@ -41,6 +42,7 @@ export default function UserProfile() {
   const [company, setCompany] = useState('');
   const [stats, setStats] = useState<Stats>({ activePDIs: 0, pdaProfiles: 0, ninebox: 0, completedModules: 0 });
   const [latestPDA, setLatestPDA] = useState<any>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -351,10 +353,11 @@ export default function UserProfile() {
                         {profile?.password_changed ? 'Sim' : 'Não — usando senha inicial'}
                       </p>
                     </div>
-                    <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                    <Button variant="outline" onClick={() => setChangePasswordOpen(true)}>
                       <Lock className="mr-2 h-4 w-4" />
                       Alterar Senha
                     </Button>
+                    <VoluntaryChangePasswordDialog open={changePasswordOpen} onOpenChange={(v) => { setChangePasswordOpen(v); if (!v) fetchProfile(); }} />
                   </CardContent>
                 </Card>
               </TabsContent>
