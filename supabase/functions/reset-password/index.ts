@@ -21,6 +21,15 @@ serve(async (req) => {
       );
     }
 
+    // Verify the caller is an authenticated admin
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Não autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -32,7 +41,39 @@ serve(async (req) => {
       }
     );
 
-    // Search for user by exact email match with pagination
+    // Validate the caller's token and check admin role
+    const callerClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getUser(token);
+    
+    if (claimsError || !claimsData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Token inválido' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if caller is admin
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', claimsData.user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: 'Apenas administradores podem resetar senhas' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Search for target user by email
     const normalizedEmail = email.trim().toLowerCase();
     let user = null;
     let page = 1;
@@ -63,8 +104,8 @@ serve(async (req) => {
       );
     }
 
-    // Generate provisional password if not provided (email prefix)
-    const provisionalPassword = newPassword || email.split('@')[0];
+    // Generate provisional password (random 8-char string)
+    const provisionalPassword = newPassword || generateSecurePassword();
 
     // Update password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -82,22 +123,14 @@ serve(async (req) => {
       .update({ password_changed: false })
       .eq('user_id', user.id);
 
-    console.log(`Password reset for user: ${user.email} (${user.id}), provisional: ${!newPassword}`);
-
-    // Return response with provisional password if it was auto-generated
-    if (!newPassword) {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'Senha resetada com sucesso',
-          provisionalPassword: provisionalPassword 
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log(`Password reset by admin ${claimsData.user.email} for user: ${user.email} (${user.id})`);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Senha resetada com sucesso' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Senha resetada com sucesso',
+        provisionalPassword: provisionalPassword 
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -110,3 +143,11 @@ serve(async (req) => {
     );
   }
 });
+
+function generateSecurePassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const length = 10;
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => chars[byte % chars.length]).join('');
+}
