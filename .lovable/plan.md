@@ -1,98 +1,62 @@
 
 
-## Plano: Comunidade / Rede Social entre Empresas
+## Chat entre Usuários — Plano de Implementação
 
-### Visão Geral
-Criar um espaço social onde usuários de diferentes empresas possam compartilhar experiências, dúvidas e aprendizados sobre desenvolvimento humano, PDA e liderança -- tudo dentro da plataforma Flow.
-
-### Estrutura de Dados (novas tabelas)
+### Estrutura de Dados
 
 ```text
-community_posts
+chat_conversations
 ├── id (uuid, PK)
-├── user_id (uuid, FK auth.users)
-├── content (text)
-├── category (text) — ex: "dica", "duvida", "case", "reflexao"
-├── likes_count (integer, default 0)
-├── comments_count (integer, default 0)
-├── created_at / updated_at
-└── is_anonymous (boolean, default false)
+├── created_at (timestamptz)
+├── updated_at (timestamptz)
+└── type (text) — "direct" (1:1) ou "group" (futuro)
 
-community_comments
+chat_participants
 ├── id (uuid, PK)
-├── post_id (uuid, FK community_posts)
-├── user_id (uuid, FK auth.users)
-├── content (text)
-├── created_at
-└── parent_comment_id (uuid, nullable — para respostas aninhadas)
+├── conversation_id (uuid, FK chat_conversations)
+├── user_id (uuid)
+├── joined_at (timestamptz)
+├── last_read_at (timestamptz) — controle de "não lidas"
+└── UNIQUE(conversation_id, user_id)
 
-community_likes
+chat_messages
 ├── id (uuid, PK)
-├── post_id (uuid, FK community_posts)
-├── user_id (uuid, FK auth.users)
-└── created_at
-└── UNIQUE(post_id, user_id)
+├── conversation_id (uuid, FK chat_conversations)
+├── sender_id (uuid)
+├── content (text)
+├── created_at (timestamptz)
+└── edited_at (timestamptz, nullable)
 ```
 
-### Políticas de Segurança (RLS)
-- **SELECT em posts e comentários**: todos os usuários autenticados podem ler (cross-company por design)
-- **INSERT**: somente usuários autenticados, com `user_id = auth.uid()`
-- **UPDATE/DELETE**: somente o autor (`user_id = auth.uid()`) ou admins
-- **Likes**: insert/delete próprios, select aberto para autenticados
+### Segurança (RLS)
+- SELECT/INSERT em mensagens e participantes: apenas quem participa da conversa
+- Função `is_participant(conversation_id, user_id)` como security definer para evitar recursão
+
+### Tempo Real
+- **Supabase Realtime** (canal por conversa) para receber mensagens instantaneamente sem polling
+- Subscribe em `chat_messages` filtrado por `conversation_id`
 
 ### Páginas e Componentes
 
-1. **`/community`** — Feed principal
-   - Lista de posts com filtro por categoria e busca por texto
-   - Botão "Nova Publicação" abre dialog de criação
-   - Cada post mostra: avatar, nome, empresa, cargo, data, conteúdo, contagem de likes/comentários
-   - Botões de curtir e comentar inline
-
-2. **`/community/:postId`** — Detalhe do post
-   - Post completo com thread de comentários
-   - Respostas aninhadas (1 nível)
-   - Campo para novo comentário
-
-3. **Componentes**:
-   - `CommunityFeed` — listagem com scroll infinito ou paginação
-   - `PostCard` — card individual do post
-   - `NewPostDialog` — formulário de criação (categoria + conteúdo)
-   - `CommentThread` — lista de comentários com campo de resposta
-   - `LikeButton` — toggle de curtida com contagem
-
-### Exibição de Perfil Cross-Company
-- O nome, cargo (`job_title`) e empresa (`company`) do autor são exibidos junto a cada post/comentário
-- Dados obtidos via join com a tabela `profiles` (as políticas de SELECT de profiles precisarão de uma nova policy para permitir leitura pública entre autenticados, apenas dos campos `full_name`, `company`, `job_title` e `avatar_url`)
-- Alternativa mais segura: criar uma **view** `public_profiles` com apenas esses 4 campos + `user_id`, com `security_invoker=on`
-
-### Navegação
-- Novo item "Comunidade" no `AppSidebar` com ícone `Users` ou `MessageCircle`
-- Novas rotas em `App.tsx`: `/community` e `/community/:postId`
-
-### Moderação (admin)
-- Admins podem excluir qualquer post ou comentário
-- Possível extensão futura: denúncias/flags
+1. **`/messages`** — Lista de conversas com último trecho e contagem de não lidas
+2. **`/messages/:conversationId`** — Tela de chat com scroll de mensagens e input
+3. **Iniciar conversa** — Botão no perfil público ou nos posts da comunidade ("Enviar mensagem")
+4. Componentes: `ConversationList`, `ChatWindow`, `MessageBubble`, `NewConversationDialog`
 
 ### Etapas de Implementação
 
-1. Criar migration com as 3 tabelas + RLS policies + view `public_profiles`
-2. Criar página `Community.tsx` com feed e dialog de novo post
-3. Criar página `CommunityPost.tsx` com detalhe e comentários
-4. Criar componentes: `PostCard`, `NewPostDialog`, `CommentThread`, `LikeButton`
-5. Adicionar rotas e item no sidebar
-6. Testar interação cross-company
+1. Criar migration com as 3 tabelas + RLS + função `is_participant`
+2. Habilitar Realtime na tabela `chat_messages`
+3. Criar página `/messages` com lista de conversas (join com `public_profiles` para nome/avatar)
+4. Criar página `/messages/:id` com chat em tempo real
+5. Adicionar botão "Enviar mensagem" nos posts/perfis da comunidade
+6. Adicionar item "Mensagens" no sidebar com badge de não lidas
+7. Adicionar rotas no `App.tsx`
 
-### Detalhes Técnicos
+### Considerações Técnicas
 
-- **View pública de perfis** para evitar expor dados sensíveis:
-```sql
-CREATE VIEW public.public_profiles
-WITH (security_invoker=on) AS
-  SELECT user_id, full_name, company, job_title, avatar_url
-  FROM public.profiles;
-```
-
-- **Contagem de likes** atualizada via trigger na tabela `community_likes` (incrementa/decrementa `likes_count` no post)
-- **Paginação** via `.range()` do Supabase com order by `created_at desc`
-- Possibilidade de **postagem anônima** (`is_anonymous = true`) onde nome/empresa não são exibidos
+- **Realtime do Supabase** é o componente-chave — sem ele, seria necessário polling, o que degrada a experiência
+- O plano atual do Supabase conectado ao projeto precisa ter Realtime habilitado (está disponível em todos os planos)
+- Para notificações de novas mensagens fora da tela de chat, um listener global no `AuthProvider` pode atualizar um contador
+- Não é necessária nenhuma edge function nova — tudo funciona via client SDK + RLS + Realtime
 
