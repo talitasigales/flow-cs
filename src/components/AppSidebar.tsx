@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import {
   MessageSquare,
   Mail,
@@ -33,7 +34,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useIsAdmin();
-
+  const { unreadCount } = useUnreadMessages();
   const isActive = (path: string) => location.pathname === path;
 
   const mainMenuItems = [
@@ -83,7 +84,7 @@ export function AppSidebar() {
       title: 'Mensagens',
       icon: Mail,
       path: '/messages',
-      badge: null,
+      badge: unreadCount > 0 ? String(unreadCount) : null,
     },
     {
       title: 'Meu Perfil',
