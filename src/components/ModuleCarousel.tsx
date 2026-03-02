@@ -90,7 +90,7 @@ export function ModuleCarousel({ title, modules, progressData }: ModuleCarouselP
                   {/* Card Content */}
                   <div className="p-4 space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold group-hover:text-primary transition-colors flex-1">
+                      <h3 className="text-sm font-semibold leading-tight group-hover:text-primary transition-colors flex-1 line-clamp-2">
                         {module.title}
                       </h3>
                       <Button
