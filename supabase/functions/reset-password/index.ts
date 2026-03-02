@@ -6,6 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = parts[1];
+    // Base64url decode
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    const decoded = atob(padded);
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,32 +44,48 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-
-    // Validate the caller's token using the Auth REST API directly
-    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: {
-        'Authorization': authHeader,
-        'apikey': serviceRoleKey,
-      },
-    });
-
-    if (!userResponse.ok) {
-      const errorBody = await userResponse.text();
-      console.error('Token validation failed:', errorBody);
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Decode the JWT to get the user ID (sub claim)
+    const claims = decodeJwtPayload(token);
+    if (!claims || !claims.sub || typeof claims.sub !== 'string') {
+      console.error('Failed to decode JWT or missing sub claim');
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const callerUser = await userResponse.json();
-    const callerUserId = callerUser.id;
+    // Check token expiration
+    if (claims.exp && typeof claims.exp === 'number') {
+      const now = Math.floor(Date.now() / 1000);
+      if (now > claims.exp) {
+        console.error('Token expired');
+        return new Response(
+          JSON.stringify({ error: 'Token expirado' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    const callerUserId = claims.sub;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+
+    // Verify the caller actually exists via admin API
+    const { data: callerData, error: callerError } = await supabaseAdmin.auth.admin.getUserById(callerUserId);
+    if (callerError || !callerData?.user) {
+      console.error('Caller user not found:', callerError);
+      return new Response(
+        JSON.stringify({ error: 'Usuário não encontrado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Check if caller is admin
     const { data: roleData } = await supabaseAdmin
