@@ -12,11 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const { email, newPassword } = await req.json();
+    const { userId, newPassword } = await req.json();
 
-    if (!email) {
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: 'Email é obrigatório' }),
+        JSON.stringify({ error: 'userId é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -69,42 +69,14 @@ serve(async (req) => {
       );
     }
 
-    // Find target user by email using admin API
-    const normalizedEmail = email.trim().toLowerCase();
-    console.log(`Looking for user with email: ${normalizedEmail}`);
-    
-    // Use listUsers to find the user - fetch all in one go
-    const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-
-    if (listError) {
-      console.error('Error listing users:', listError);
-      throw new Error(`Error listing users: ${listError.message}`);
-    }
-
-    const users = listData?.users || [];
-    console.log(`Found ${users.length} total users`);
-    
-    const targetUser = users.find(u => u.email?.toLowerCase() === normalizedEmail);
-
-    if (!targetUser) {
-      console.error(`User not found. Available emails: ${users.map(u => u.email).join(', ')}`);
-      return new Response(
-        JSON.stringify({ error: 'Usuário não encontrado' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`Found user: ${targetUser.id} (${targetUser.email})`);
-
     // Generate provisional password
     const provisionalPassword = newPassword || generateSecurePassword();
 
-    // Update password
+    console.log(`Resetting password for userId: ${userId}`);
+
+    // Update password directly by userId
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      targetUser.id,
+      userId,
       { password: provisionalPassword }
     );
 
@@ -117,9 +89,9 @@ serve(async (req) => {
     await supabaseAdmin
       .from('profiles')
       .update({ password_changed: false })
-      .eq('user_id', targetUser.id);
+      .eq('user_id', userId);
 
-    console.log(`Password reset by admin ${userData.user.email} for user: ${targetUser.email}`);
+    console.log(`Password reset by admin ${userData.user.email} for userId: ${userId}`);
 
     return new Response(
       JSON.stringify({ 

@@ -39,7 +39,7 @@ const AdminUsers = () => {
   
   // Reset password states
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [resetUserEmail, setResetUserEmail] = useState('');
+  const [resetUserId, setResetUserId] = useState('');
   const [resetUserName, setResetUserName] = useState('');
   const [resetting, setResetting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState('');
@@ -179,12 +179,12 @@ const AdminUsers = () => {
   };
 
   const handleResetPassword = async () => {
-    if (!resetUserEmail) return;
+    if (!resetUserId) return;
     
     setResetting(true);
     try {
       const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: { email: resetUserEmail }
+        body: { userId: resetUserId }
       });
 
       if (error) throw error;
@@ -201,9 +201,9 @@ const AdminUsers = () => {
     }
   };
 
-  const openResetDialog = (email: string, name: string | null) => {
-    setResetUserEmail(email);
-    setResetUserName(name || email);
+  const openResetDialog = (userId: string, name: string | null) => {
+    setResetUserId(userId);
+    setResetUserName(name || 'Usuário');
     setGeneratedPassword('');
     setCopied(false);
     setResetDialogOpen(true);
@@ -374,7 +374,7 @@ const AdminUsers = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openResetDialog(userData.full_name || '', userData.full_name)}
+                        onClick={() => openResetDialog(userData.user_id, userData.full_name)}
                       >
                         <KeyRound className="h-3 w-3 mr-1" />
                         Resetar Senha
