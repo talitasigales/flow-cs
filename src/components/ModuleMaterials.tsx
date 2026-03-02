@@ -9,17 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Link as LinkIcon, Upload, Trash2, Download, ExternalLink, Plus } from 'lucide-react';
+import { FileText, Link as LinkIcon, Trash2, Download, ExternalLink, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Material {
   id: string;
   title: string;
   description: string | null;
-  type: 'file' | 'link' | 'pdf';
-  url: string | null;
-  file_path: string | null;
-  file_size: number | null;
+  file_type: string | null;
+  file_url: string | null;
+  order_number: number | null;
   created_at: string;
 }
 
@@ -38,8 +37,8 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'link' as 'file' | 'link' | 'pdf',
-    url: '',
+    file_type: 'link' as 'file' | 'link' | 'pdf',
+    file_url: '',
     file: null as File | null
   });
 
@@ -49,7 +48,7 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
 
   const fetchMaterials = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('module_materials')
         .select('*')
         .eq('module_id', moduleId)
@@ -71,12 +70,12 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
       return;
     }
 
-    if (formData.type === 'link' && !formData.url.trim()) {
+    if (formData.file_type === 'link' && !formData.file_url.trim()) {
       toast.error('URL é obrigatória para links');
       return;
     }
 
-    if ((formData.type === 'file' || formData.type === 'pdf') && !formData.file) {
+    if ((formData.file_type === 'file' || formData.file_type === 'pdf') && !formData.file) {
       toast.error('Arquivo é obrigatório');
       return;
     }
@@ -84,12 +83,10 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
     setUploading(true);
 
     try {
-      let filePath = null;
-      let fileSize = null;
-      let url = formData.url;
+      let fileUrl = formData.file_url;
 
       // Upload file if type is file or pdf
-      if ((formData.type === 'file' || formData.type === 'pdf') && formData.file) {
+      if ((formData.file_type === 'file' || formData.file_type === 'pdf') && formData.file) {
         const fileExt = formData.file.name.split('.').pop();
         const fileName = `${moduleId}/${Date.now()}.${fileExt}`;
         
@@ -103,22 +100,17 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
           .from('module-materials')
           .getPublicUrl(fileName);
 
-        filePath = fileName;
-        fileSize = formData.file.size;
-        url = publicUrl;
+        fileUrl = publicUrl;
       }
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('module_materials')
         .insert({
           module_id: moduleId,
           title: formData.title,
           description: formData.description || null,
-          type: formData.type,
-          url: url,
-          file_path: filePath,
-          file_size: fileSize,
-          uploaded_by: user?.id
+          file_type: formData.file_type,
+          file_url: fileUrl || null,
         });
 
       if (error) throw error;
@@ -135,16 +127,9 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
     }
   };
 
-  const handleDelete = async (materialId: string, filePath: string | null) => {
+  const handleDelete = async (materialId: string) => {
     try {
-      // Delete file from storage if exists
-      if (filePath) {
-        await supabase.storage
-          .from('module-materials')
-          .remove([filePath]);
-      }
-
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('module_materials')
         .delete()
         .eq('id', materialId);
@@ -163,20 +148,14 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
     setFormData({
       title: '',
       description: '',
-      type: 'link',
-      url: '',
+      file_type: 'link',
+      file_url: '',
       file: null
     });
   };
 
-  const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return '';
-    const mb = bytes / (1024 * 1024);
-    return mb < 1 ? `${(bytes / 1024).toFixed(1)} KB` : `${mb.toFixed(1)} MB`;
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
+  const getIcon = (fileType: string | null) => {
+    switch (fileType) {
       case 'link':
         return <LinkIcon className="h-5 w-5" />;
       case 'pdf':
@@ -246,12 +225,12 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
                       rows={3}
                     />
                   </div>
-                  <div className="space-y-2">
+                   <div className="space-y-2">
                     <Label htmlFor="type">Tipo</Label>
                     <Select
-                      value={formData.type}
+                      value={formData.file_type}
                       onValueChange={(value: 'file' | 'link' | 'pdf') => 
-                        setFormData({ ...formData, type: value })
+                        setFormData({ ...formData, file_type: value })
                       }
                     >
                       <SelectTrigger id="type">
@@ -264,14 +243,14 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                  {formData.type === 'link' ? (
+                  {formData.file_type === 'link' ? (
                     <div className="space-y-2">
                       <Label htmlFor="url">URL</Label>
                       <Input
                         id="url"
                         type="url"
-                        value={formData.url}
-                        onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                        value={formData.file_url}
+                        onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
                         placeholder="https://..."
                       />
                     </div>
@@ -281,12 +260,12 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
                       <Input
                         id="file"
                         type="file"
-                        accept={formData.type === 'pdf' ? '.pdf' : '*'}
+                        accept={formData.file_type === 'pdf' ? '.pdf' : '*'}
                         onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
                       />
                       {formData.file && (
                         <p className="text-sm text-muted-foreground">
-                          {formData.file.name} ({formatFileSize(formData.file.size)})
+                          {formData.file.name}
                         </p>
                       )}
                     </div>
@@ -325,7 +304,7 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
                 className="flex items-start gap-3 p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
               >
                 <div className="flex-shrink-0 mt-1 text-primary">
-                  {getIcon(material.type)}
+                  {getIcon(material.file_type)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold truncate">{material.title}</h4>
@@ -334,21 +313,16 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
                       {material.description}
                     </p>
                   )}
-                  {material.file_size && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatFileSize(material.file_size)}
-                    </p>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {material.url && (
+                  {material.file_url && (
                     <Button
                       size="sm"
                       variant="outline"
                       asChild
                     >
-                      <a href={material.url} target="_blank" rel="noopener noreferrer">
-                        {material.type === 'link' ? (
+                      <a href={material.file_url} target="_blank" rel="noopener noreferrer">
+                        {material.file_type === 'link' ? (
                           <>
                             <ExternalLink className="mr-2 h-4 w-4" />
                             Abrir
@@ -366,7 +340,7 @@ export function ModuleMaterials({ moduleId }: ModuleMaterialsProps) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleDelete(material.id, material.file_path)}
+                      onClick={() => handleDelete(material.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
