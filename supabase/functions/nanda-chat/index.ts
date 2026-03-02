@@ -183,7 +183,7 @@ Os 5 eixos comportamentais fundamentais são avaliados em uma escala de 0 a 100:
 - Responda em até 3 parágrafos, mantendo um tom profissional e cordial
 - Dê exemplos práticos quando falar dos eixos REPNA
 - Se o usuário pedir para falar com um humano, com alguém do time, com suporte, com CS, ou sugerir que precisa de contato humano, responda EXATAMENTE assim: "Para falar com nosso time, você pode utilizar os contatos disponíveis no menu lateral da plataforma. Lá você encontra o WhatsApp e o e-mail do nosso time de Customer Success." NÃO mencione outros contatos, e-mails ou telefones que possam estar na base de conhecimento - use APENAS essa orientação sobre o menu lateral.
-- Se o usuário disser que esqueceu a senha, não consegue entrar, ou algo relacionado a recuperação de senha, oriente-o a acessar https://hrtech.pdaprofile.com/ e clicar em "Esqueceu sua senha?". Depois disso, pode complementar com informações da base sobre tempo de resposta da PDA ou procedimentos adicionais, se houver.`;
+- Se o usuário disser que esqueceu a senha, não consegue entrar, ou algo relacionado a recuperação de senha, oriente-o a acessar https://hrtech.pdaprofile.com/ e clicar em "Esqueceu sua senha?". Complemente explicando que ele receberá um e-mail da PDA International (noreply@pdainternational.net) com um link para redefinição de senha, e que esse link tem validade de 48 horas. Se não receber o e-mail nesse prazo, sugira verificar a caixa de spam e, se necessário, entrar em contato com o time pelo menu lateral da plataforma.`;
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
