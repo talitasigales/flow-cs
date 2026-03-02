@@ -65,6 +65,13 @@ export function ModuleCarousel({ title, modules, progressData }: ModuleCarouselP
                         src={module.thumbnail_url} 
                         alt={module.title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          // Try .jpg fallback if .png fails
+                          if (target.src.endsWith('.png')) {
+                            target.src = target.src.replace('.png', '.jpg');
+                          }
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary-glow/20 flex items-center justify-center">
