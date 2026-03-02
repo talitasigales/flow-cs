@@ -13,6 +13,7 @@ import {
   ClipboardList,
   GraduationCap,
   Briefcase,
+  BookOpen,
   User,
   Users2,
   ChevronDown,
@@ -70,6 +71,7 @@ export function AppSidebar() {
   const adminMenuItems = [
     { title: 'Gerenciar Usuários', icon: Users, path: '/admin/users' },
     { title: 'Logs', icon: FileText, path: '/admin/logs' },
+    { title: 'Base de Conhecimento', icon: BookOpen, path: '/admin/knowledge-base' },
   ];
 
   const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {
