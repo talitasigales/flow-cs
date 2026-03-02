@@ -77,7 +77,7 @@ export default function PDICreate() {
           user_id: user.id,
           employee_name: employeeName,
           pda_axis: selectedAxis,
-          status: 'active',
+          status: 'devolutiva',
           current_stage: 2,
           start_date: startDate || new Date().toISOString().split('T')[0],
           target_date: targetDate || null,
