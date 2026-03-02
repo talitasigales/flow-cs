@@ -1,35 +1,36 @@
 
 
-## Problema
+## Problem
 
-O link de redefinição de senha enviado pelo Supabase redireciona para uma página quebrada. Isso acontece por **dois motivos**:
+The `reset-password` edge function fails with "Token inválido" because on line 49:
+```typescript
+await supabaseAuth.auth.getUser(token)
+```
+When you pass the token directly to `getUser()`, it bypasses the Authorization header and attempts to resolve a local session, which doesn't exist in edge functions — hence `AuthSessionMissingError`.
 
-1. **Configuração do Supabase Auth** — O "Site URL" no painel do Supabase provavelmente aponta para `localhost:3000` ou para o preview do Lovable, e não para `cs.grougp.com.br`. Isso faz o link no email ser inválido. **Isso precisa ser configurado manualmente no painel do Supabase** (não é possível alterar via código).
+## Fix
 
-2. **Código do `redirectTo`** — O `Auth.tsx` usa `window.location.origin`, que funciona se o usuário estiver acessando de `cs.grougp.com.br`, mas o Supabase tem uma lista de Redirect URLs permitidas que precisa incluir esse domínio.
+One-line change in `supabase/functions/reset-password/index.ts`:
 
-## O que precisa ser feito
-
-### 1. Configuração no Supabase Dashboard (manual, obrigatório)
-Acesse [Auth → URL Configuration](https://supabase.com/dashboard/project/hapzzpwywnahovmddlej/auth/url-configuration):
-
-- **Site URL**: `https://cs.grougp.com.br`
-- **Redirect URLs** (adicionar todos):
-  - `https://cs.grougp.com.br/reset-password`
-  - `https://flow-cs.lovable.app/reset-password`
-  - `https://cs.grougp.com.br/**`
-
-### 2. Alteração no código — Hardcode do redirectTo (mudança no código)
-Alterar `Auth.tsx` para usar `https://cs.grougp.com.br/reset-password` como URL fixa de redirect, em vez de depender de `window.location.origin` (que pode ser o preview do Lovable):
+1. **Remove the `token` variable** (line 42) — it's no longer needed.
+2. **Call `getUser()` without arguments** (line 49) — this makes the client use the `Authorization` header from the global config to validate the user.
 
 ```typescript
-redirectTo: 'https://cs.grougp.com.br/reset-password'
+// Before (broken):
+const token = authHeader.replace('Bearer ', '');
+const supabaseAuth = createClient(supabaseUrl, anonKey, {
+  global: { headers: { Authorization: authHeader } },
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+
+// After (fixed):
+const supabaseAuth = createClient(supabaseUrl, anonKey, {
+  global: { headers: { Authorization: authHeader } },
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
 ```
 
-### 3. Melhoria no ResetPassword.tsx — tratamento de erro
-Adicionar tratamento para quando o token é inválido ou expirou, em vez de mostrar uma página quebrada com spinner infinito. Exibir mensagem clara com link para solicitar novo email.
-
-## Resumo das alterações em código
-- **`src/pages/Auth.tsx`**: Fixar `redirectTo` para `https://cs.grougp.com.br/reset-password`
-- **`src/pages/ResetPassword.tsx`**: Adicionar timeout e mensagem de erro quando o link é inválido/expirado
+3. **Deploy and test** by calling the function from the admin page.
 
