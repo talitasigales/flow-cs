@@ -1,45 +1,32 @@
 
 
-## Problem
+## Plan: Admin Knowledge Base Management Page
 
-The bug is on line 377 of `AdminUsers.tsx`. When clicking "Resetar Senha", the code passes `userData.full_name` as the email:
+### What
+Create a new admin-only page where admins can view, add, edit, and delete knowledge base entries that power Nanda's responses.
 
-```typescript
-onClick={() => openResetDialog(userData.full_name || '', userData.full_name)}
-```
+### Approach
 
-The edge function logs confirm this: `Looking for user with email: marcela vaz` -- it's searching for a name, not an email.
+**1. New page: `src/pages/AdminKnowledgeBase.tsx`**
+- Admin guard using `useIsAdmin` hook (same pattern as AdminUsers)
+- Display existing knowledge base entries in a table (title, category, keywords count, content preview, actions)
+- "Add New" button opens a dialog with form fields: title, category, content (textarea), keywords (comma-separated input)
+- Edit button opens the same dialog pre-filled
+- Delete button with confirmation dialog
+- All CRUD operations use the Supabase client directly (RLS already allows admin full access via `has_role` policy)
 
-The `profiles` table doesn't store the email. Only `user_id`, `full_name`, `company`, `created_at` are fetched.
+**2. Update routing: `src/App.tsx`**
+- Add route `/admin/knowledge-base` pointing to the new page
 
-## Fix
+**3. Update sidebar: `src/components/AppSidebar.tsx`**
+- Add "Base de Conhecimento" to the admin menu items (under Administração section)
 
-Two changes needed:
+### Technical Details
 
-### 1. Fetch email from auth in the edge function by user_id instead of email
-
-Since the profiles table doesn't have an email column, the cleanest fix is to change the reset-password flow to use `user_id` instead of `email`:
-
-- **AdminUsers.tsx** (line 377): Pass `userData.user_id` instead of `userData.full_name`
-- **AdminUsers.tsx** (`handleResetPassword`): Send `{ userId: resetUserId }` instead of `{ email: resetUserEmail }`
-- **reset-password edge function**: Accept `userId` and use `supabaseAdmin.auth.admin.updateUserById(userId, { password })` directly, skipping the email-based lookup entirely
-
-This eliminates the fragile `listUsers` + find-by-email logic completely.
-
-### 2. Alternative (simpler): Add email to the profiles query
-
-Another option is to also store/retrieve email from profiles. But since `user_id` is already available and the edge function already uses `updateUserById`, passing `user_id` directly is simpler and more reliable.
-
-## Technical Details
-
-**AdminUsers.tsx changes:**
-- Rename state from `resetUserEmail` to `resetUserId`
-- Update `openResetDialog` to accept `userId` 
-- Pass `userData.user_id` on the button click
-- Send `{ userId }` in the function invoke body
-
-**reset-password/index.ts changes:**
-- Accept `userId` instead of `email`
-- Remove the entire `listUsers` lookup block
-- Call `updateUserById(userId, { password })` directly
+- The `knowledge_base` table already has proper RLS: admins have ALL access, authenticated users have SELECT
+- No database migrations needed
+- CRUD uses `supabase.from('knowledge_base')` with `as any` cast (same pattern used elsewhere since the type isn't in the generated types)
+- Form validation with required fields: title, category, content
+- Keywords stored as text array (user inputs comma-separated, code splits into array)
+- Categories offered as a select dropdown with existing categories (Fundamentos, Modelos PDI, Guia PDI, Metodologias, Plataforma, Diferenciais, Aplicação) plus option to type custom
 
