@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.reset-password]
 verify_jwt = false
 
+[functions.request-password-reset]
+verify_jwt = false
+
 [functions.parse-knowledge-file]
 verify_jwt = false
 
