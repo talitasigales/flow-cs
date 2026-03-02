@@ -204,6 +204,16 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border/50 pt-2 space-y-3">
         <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/50">
+          <a
+            href="https://grouacademy.memberkit.com.br/invites/xNNXox/join"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-[11px] text-primary hover:text-primary/80 font-medium transition-colors mb-2"
+          >
+            <GraduationCap className="w-3 h-3" />
+            <span>Acessar Grou Academy</span>
+          </a>
+          <Separator className="mb-2" />
           <p className="text-xs font-semibold text-foreground mb-1">Precisa falar com o time de CS?</p>
           <div className="space-y-1">
             <a
