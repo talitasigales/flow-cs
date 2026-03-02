@@ -184,10 +184,10 @@ const AdminKnowledgeBase = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedExts = ['txt', 'md', 'csv', 'json', 'pdf'];
+    const allowedExts = ['txt', 'md', 'csv', 'json', 'pdf', 'doc', 'docx'];
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (!ext || !allowedExts.includes(ext)) {
-      toast({ title: 'Formato não suportado', description: 'Use arquivos .txt, .md, .csv, .json ou .pdf', variant: 'destructive' });
+      toast({ title: 'Formato não suportado', description: 'Use arquivos .txt, .md, .csv, .json, .pdf, .doc ou .docx', variant: 'destructive' });
       e.target.value = '';
       return;
     }
@@ -258,7 +258,7 @@ const AdminKnowledgeBase = () => {
           <div className="flex gap-2">
             <input
               type="file"
-              accept=".txt,.md,.csv,.json,.pdf"
+              accept=".txt,.md,.csv,.json,.pdf,.doc,.docx"
               onChange={handleFileUpload}
               className="hidden"
               id="knowledge-file-upload"
