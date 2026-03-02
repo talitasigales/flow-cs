@@ -18,6 +18,7 @@ import {
   Users2,
   ChevronDown,
   Wrench,
+  Sparkles,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -35,6 +36,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import groLogo from '@/assets/grou-logo-laranja.png';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 const toolsSubItems = [
   { title: 'Fale com a Nanda', icon: MessageSquare, path: '/chat-nanda' },
@@ -57,9 +61,25 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useIsAdmin();
+  const { user } = useAuth();
   const { unreadCount } = useUnreadMessages();
   const { unreadCount: notifCount } = useNotifications();
+  const [communityNotActivated, setCommunityNotActivated] = useState(false);
   const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('community_visible')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data && !data.community_visible) {
+          setCommunityNotActivated(true);
+        }
+      });
+  }, [user]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   const isInTools = toolsPaths.some(p => isActive(p));
@@ -124,6 +144,12 @@ export function AppSidebar() {
             {badgeCount != null && badgeCount > 0 && (
               <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">{badgeCount}</span>
             )}
+            {badgeCount === -1 && (
+              <span className="flex items-center gap-0.5 bg-primary/20 text-primary text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full animate-pulse">
+                <Sparkles className="w-3 h-3" />
+                Novo
+              </span>
+            )}
             <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
           </SidebarMenuButton>
         </CollapsibleTrigger>
@@ -181,7 +207,16 @@ export function AppSidebar() {
             <SidebarMenu>
               {renderTopLevelItem('Trilhas de Sucesso', GraduationCap, '/dashboard', 0)}
               {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
-              {renderCollapsible('Comunidade', Users2, openCommunity, setOpenCommunity, isInCommunity, communitySubItems, 2, totalCommunityBadge)}
+              {renderCollapsible(
+                'Comunidade',
+                Users2,
+                openCommunity,
+                setOpenCommunity,
+                isInCommunity,
+                communitySubItems,
+                2,
+                totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
+              )}
               {renderTopLevelItem('Meu Perfil', User, '/profile', 3)}
             </SidebarMenu>
           </SidebarGroupContent>
