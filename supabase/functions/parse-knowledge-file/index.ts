@@ -125,10 +125,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Não foi possível extrair texto do arquivo. Para PDFs, verifique se o documento contém texto selecionável (não apenas imagens escaneadas).' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Truncate if too long (max ~50k chars)
-    if (extractedText.length > 50000) {
-      extractedText = extractedText.substring(0, 50000) + '\n\n[... conteúdo truncado por exceder limite de 50.000 caracteres]';
-    }
+    // No truncation - store full content
 
     // Generate title from filename
     const title = fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
