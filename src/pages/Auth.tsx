@@ -22,6 +22,7 @@ export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotCooldown, setForgotCooldown] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const navigate = useNavigate();
@@ -44,6 +45,12 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
+    if (forgotCooldown <= 0) return;
+    const t = setTimeout(() => setForgotCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [forgotCooldown]);
+
+  useEffect(() => {
     if (user) {
       navigate('/dashboard');
     }
@@ -62,6 +69,7 @@ export default function Auth() {
       });
       if (error) throw error;
       toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
+      setForgotCooldown(60);
       setMode('login');
     } catch (error: any) {
       if (error.message?.includes('rate limit') || error.status === 429) {
@@ -150,9 +158,9 @@ export default function Auth() {
             <Label htmlFor="reset-email">Email</Label>
             <Input id="reset-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={forgotLoading} />
           </div>
-          <Button type="submit" className="w-full gradient-primary" disabled={forgotLoading}>
+          <Button type="submit" className="w-full gradient-primary" disabled={forgotLoading || forgotCooldown > 0}>
             {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Enviar Link de Redefinição
+            {forgotCooldown > 0 ? `Aguarde ${forgotCooldown}s` : 'Enviar Link de Redefinição'}
           </Button>
           <Button type="button" variant="ghost" className="w-full" onClick={() => setMode('login')}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Voltar ao Login
