@@ -7,31 +7,38 @@ const corsHeaders = {
 
 async function extractTextFromPDF(pdfData: ArrayBuffer): Promise<string> {
   try {
-    const { getDocument } = await import('https://esm.sh/pdfjs-dist@4.0.379/build/pdf.min.mjs');
+    // Use pdf.js via npm specifier which works in Deno
+    const pdfjsLib = await import('npm:pdfjs-dist@4.0.379/legacy/build/pdf.mjs');
     
-    const pdf = await getDocument({ data: new Uint8Array(pdfData) }).promise;
+    const loadingTask = pdfjsLib.getDocument({ 
+      data: new Uint8Array(pdfData),
+      useSystemFonts: true,
+    });
+    const pdf = await loadingTask.promise;
     const textParts: string[] = [];
     
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
       const pageText = textContent.items
+        .filter((item: any) => item.str !== undefined)
         .map((item: any) => item.str)
-        .join(' ');
-      if (pageText.trim()) {
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (pageText) {
         textParts.push(pageText);
       }
     }
     
-    return textParts.join('\n\n');
+    const result = textParts.join('\n\n');
+    if (result.trim().length > 50) {
+      return result;
+    }
+    throw new Error('Extracted text too short, likely failed');
   } catch (e) {
-    console.error('pdfjs-dist extraction failed, trying raw text:', e);
-    // Fallback: decode as raw text (works for some PDFs with embedded text)
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    const rawText = decoder.decode(new Uint8Array(pdfData));
-    // Extract readable strings from PDF binary
-    const readable = rawText.match(/[\x20-\x7E\xC0-\xFF]{4,}/g);
-    return readable ? readable.join(' ') : '';
+    console.error('pdfjs extraction failed:', e);
+    throw new Error('Não foi possível extrair texto do PDF. Verifique se o documento contém texto selecionável (não apenas imagens escaneadas).');
   }
 }
 
