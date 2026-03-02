@@ -17,6 +17,7 @@ interface Message {
 export const ChatbotNanda = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -86,12 +87,23 @@ export const ChatbotNanda = () => {
   };
 
   // Não renderizar se o usuário não estiver autenticado
-  if (!user) {
+  if (!user || isHidden) {
     return null;
   }
 
   return (
     <>
+      {/* Close/dismiss button */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsHidden(true)}
+          className="fixed bottom-[6.5rem] right-5 h-7 w-7 rounded-full bg-muted/90 backdrop-blur-sm border border-border/50 shadow-md z-50 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          aria-label="Fechar Nanda"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
+
       {/* Floating Button */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
