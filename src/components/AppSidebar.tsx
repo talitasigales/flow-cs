@@ -202,7 +202,28 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border/50 pt-4">
+      <SidebarFooter className="border-t border-sidebar-border/50 pt-2 space-y-3">
+        <div className="px-3 py-2 rounded-lg bg-muted/30 border border-border/50">
+          <p className="text-xs font-semibold text-foreground mb-1">Precisa falar com o time de CS?</p>
+          <div className="space-y-1">
+            <a
+              href="https://wa.me/5551920554177"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <MessageSquare className="w-3 h-3" />
+              <span>(51) 9205-5417</span>
+            </a>
+            <a
+              href="mailto:isac.rodrigues@grougp.com.br"
+              className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Mail className="w-3 h-3" />
+              <span>isac.rodrigues@grougp.com.br</span>
+            </a>
+          </div>
+        </div>
         <UserAvatarMenu />
       </SidebarFooter>
     </Sidebar>
