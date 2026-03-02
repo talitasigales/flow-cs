@@ -52,13 +52,11 @@ function splitIntoChunks(text: string, maxChunkSize = 2000): string[] {
     chunks.push(current.trim());
   }
 
-  // Handle chunks that are still too large (single giant paragraphs)
   const finalChunks: string[] = [];
   for (const chunk of chunks) {
     if (chunk.length <= maxChunkSize * 1.5) {
       finalChunks.push(chunk);
     } else {
-      // Split by sentences
       const sentences = chunk.split(/(?<=[.!?])\s+/);
       let sub = '';
       for (const s of sentences) {
@@ -76,7 +74,89 @@ function splitIntoChunks(text: string, maxChunkSize = 2000): string[] {
   return finalChunks;
 }
 
-async function extractTextFromPDF(pdfData: ArrayBuffer): Promise<string> {
+function countSignificantWords(text: string): number {
+  return text.toLowerCase()
+    .replace(/[^a-záàâãéèêíïóôõöúüçñ\s]/gi, '')
+    .split(/\s+/)
+    .filter((w: string) => w.length > 3 && !PT_STOPWORDS.has(w))
+    .length;
+}
+
+async function extractPdfWithVisionAPI(pdfBytes: Uint8Array): Promise<string> {
+  const apiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!apiKey) {
+    throw new Error('LOVABLE_API_KEY não configurada para fallback de extração');
+  }
+
+  // Check size limit (~15MB base64 ≈ ~11MB binary)
+  if (pdfBytes.length > 15 * 1024 * 1024) {
+    throw new Error('PDF muito grande para extração via IA (limite ~15MB)');
+  }
+
+  // Convert to base64
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < pdfBytes.length; i += chunkSize) {
+    const chunk = pdfBytes.subarray(i, i + chunkSize);
+    for (let j = 0; j < chunk.length; j++) {
+      binary += String.fromCharCode(chunk[j]);
+    }
+  }
+  const base64Pdf = btoa(binary);
+
+  console.log(`[Vision Fallback] Sending PDF (${(pdfBytes.length / 1024).toFixed(0)}KB) to AI for text extraction...`);
+
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        {
+          role: 'system',
+          content: 'Você é um assistente especializado em extração de texto de documentos PDF. Extraia TODO o texto do documento fornecido, preservando a estrutura de parágrafos e seções. Retorne APENAS o texto extraído, sem comentários adicionais, sem markdown, sem formatação extra. Preserve títulos, subtítulos, listas e parágrafos como texto puro separado por quebras de linha.'
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Extraia todo o conteúdo de texto deste documento PDF. Inclua absolutamente todo o texto visível, página por página. Não resuma, não omita nada.'
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:application/pdf;base64,${base64Pdf}`
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 16000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('[Vision Fallback] API error:', response.status, errText);
+    throw new Error(`Erro na API de extração: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const extractedText = data.choices?.[0]?.message?.content || '';
+  
+  console.log(`[Vision Fallback] Extracted ${extractedText.length} chars, ${countSignificantWords(extractedText)} significant words`);
+  
+  return extractedText;
+}
+
+async function extractTextFromPDF(pdfData: ArrayBuffer): Promise<{ text: string; method: string }> {
+  let nativeText = '';
+  
+  // Try pdfjs-dist first
   try {
     const pdfjsLib = await import('npm:pdfjs-dist@4.0.379/legacy/build/pdf.mjs');
     const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(pdfData), useSystemFonts: true });
@@ -93,13 +173,41 @@ async function extractTextFromPDF(pdfData: ArrayBuffer): Promise<string> {
         .trim();
       if (pageText) textParts.push(pageText);
     }
-    const result = textParts.join('\n\n');
-    if (result.trim().length > 50) return result;
-    throw new Error('Extracted text too short');
+    nativeText = textParts.join('\n\n');
+    console.log(`[pdfjs] Extracted ${nativeText.length} chars, ${countSignificantWords(nativeText)} significant words from ${pdf.numPages} pages`);
   } catch (e) {
-    console.error('pdfjs extraction failed:', e);
-    throw new Error('Não foi possível extrair texto do PDF. Verifique se o documento contém texto selecionável.');
+    console.error('[pdfjs] extraction failed:', e);
   }
+
+  // Check quality of native extraction
+  const sigWords = countSignificantWords(nativeText);
+  const isGoodExtraction = nativeText.trim().length >= 500 && sigWords >= 100;
+
+  if (isGoodExtraction) {
+    console.log('[PDF] Using native pdfjs extraction (good quality)');
+    return { text: nativeText, method: 'pdfjs' };
+  }
+
+  // Fallback to AI vision
+  console.log(`[PDF] Native extraction poor (${nativeText.length} chars, ${sigWords} words). Trying AI vision fallback...`);
+  
+  try {
+    const visionText = await extractPdfWithVisionAPI(new Uint8Array(pdfData));
+    if (visionText.trim().length > nativeText.trim().length) {
+      console.log(`[PDF] Using AI vision extraction (${visionText.length} chars vs native ${nativeText.length} chars)`);
+      return { text: visionText, method: 'ai-vision' };
+    }
+  } catch (e) {
+    console.error('[Vision Fallback] Failed:', e);
+  }
+
+  // If vision also failed, use whatever we have
+  if (nativeText.trim().length > 50) {
+    console.log('[PDF] Falling back to native extraction (vision failed)');
+    return { text: nativeText, method: 'pdfjs-fallback' };
+  }
+
+  throw new Error('Não foi possível extrair texto do PDF. Verifique se o documento contém texto selecionável.');
 }
 
 async function extractTextFromDOCX(data: ArrayBuffer): Promise<string> {
@@ -173,10 +281,13 @@ serve(async (req) => {
 
     const ext = fileName.toLowerCase().split('.').pop();
     let extractedText = '';
+    let extractionMethod = 'direct';
 
     if (ext === 'pdf') {
       const arrayBuffer = await fileData.arrayBuffer();
-      extractedText = await extractTextFromPDF(arrayBuffer);
+      const result = await extractTextFromPDF(arrayBuffer);
+      extractedText = result.text;
+      extractionMethod = result.method;
     } else if (ext === 'docx' || ext === 'doc') {
       const arrayBuffer = await fileData.arrayBuffer();
       extractedText = await extractTextFromDOCX(arrayBuffer);
@@ -196,9 +307,8 @@ serve(async (req) => {
     const title = fileName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
     const finalCategory = category || 'Importado';
 
-    // Split into chunks and generate keywords per chunk
     const chunks = splitIntoChunks(extractedText, 15000);
-    console.log(`Splitting "${title}" into ${chunks.length} chunks`);
+    console.log(`Splitting "${title}" into ${chunks.length} chunks (method: ${extractionMethod}, total: ${extractedText.length} chars)`);
 
     const entries = chunks.map((chunk: string, i: number) => ({
       title: chunks.length > 1 ? `${title} - Parte ${i + 1}` : title,
@@ -225,6 +335,7 @@ serve(async (req) => {
         entry: inserted?.[0],
         totalChunks: chunks.length,
         extractedLength: extractedText.length,
+        extractionMethod,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
