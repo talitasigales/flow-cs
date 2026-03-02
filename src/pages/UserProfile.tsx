@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp, History, RefreshCw, Camera, Linkedin, Phone } from 'lucide-react';
+import { ArrowLeft, User, Shield, Lock, BarChart3, Save, ClipboardList, Grid3x3, GraduationCap, TrendingUp, History, RefreshCw, Camera, Linkedin, Phone, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoluntaryChangePasswordDialog } from '@/components/VoluntaryChangePasswordDialog';
 import { AppLayout } from '@/components/AppLayout';
@@ -40,6 +40,7 @@ interface ProfileData {
   last_password_change: string | null;
   password_changed: boolean | null;
   pda_public: boolean;
+  community_visible: boolean;
 }
 
 interface Stats {
@@ -86,6 +87,7 @@ export default function UserProfile() {
   const [pdaA, setPdaA] = useState(0);
   const [savingPda, setSavingPda] = useState(false);
   const [pdaPublic, setPdaPublic] = useState(true);
+  const [communityVisible, setCommunityVisible] = useState(false);
 
   // Activity history state
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -111,7 +113,7 @@ export default function UserProfile() {
     try {
       const { data, error } = await (supabase as any)
         .from('profiles')
-        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, pda_profile_name, pda_dominant_axis, pda_r_value, pda_e_value, pda_p_value, pda_n_value, pda_a_value, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed, pda_public')
+        .select('full_name, company, job_title, avatar_url, linkedin_url, bio, phone, pda_profile_name, pda_dominant_axis, pda_r_value, pda_e_value, pda_p_value, pda_n_value, pda_a_value, lgpd_accepted, lgpd_accepted_at, last_password_change, password_changed, pda_public, community_visible')
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
@@ -131,6 +133,7 @@ export default function UserProfile() {
       setPdaN(data?.pda_n_value || 0);
       setPdaA(data?.pda_a_value || 0);
       setPdaPublic(data?.pda_public !== false);
+      setCommunityVisible(data?.community_visible === true);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -230,6 +233,7 @@ export default function UserProfile() {
           linkedin_url: linkedinUrl || null,
           bio: bio || null,
           phone: phone || null,
+          community_visible: communityVisible,
         })
         .eq('user_id', user!.id);
       if (error) throw error;
@@ -446,6 +450,29 @@ export default function UserProfile() {
                     <div className="space-y-2">
                       <Label>Bio</Label>
                       <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Conte um pouco sobre você, sua experiência e interesses profissionais..." rows={3} />
+                    </div>
+
+                    {/* Community Visibility Toggle */}
+                    <div className="border-t border-border/50 pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="flex items-center gap-1.5 text-base font-medium">
+                            <Users className="h-4 w-4" /> Participar da Comunidade
+                          </Label>
+                          <p className="text-sm text-muted-foreground">
+                            Quando ativado, seu perfil fica visível na página de Membros e na Comunidade
+                          </p>
+                        </div>
+                        <Switch
+                          checked={communityVisible}
+                          onCheckedChange={setCommunityVisible}
+                        />
+                      </div>
+                      {!communityVisible && (
+                        <p className="text-xs text-amber-600 bg-amber-500/10 rounded-md px-3 py-2 mt-3">
+                          Seu perfil está oculto. Outros membros não poderão ver você na comunidade ou na página de membros.
+                        </p>
+                      )}
                     </div>
 
                     <Button onClick={handleSave} disabled={saving} className="gap-2">

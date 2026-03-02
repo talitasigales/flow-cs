@@ -779,6 +779,7 @@ export type Database = {
           analysis_result: Json | null
           avatar_url: string | null
           bio: string | null
+          community_visible: boolean
           company: string | null
           created_at: string
           full_name: string | null
@@ -805,6 +806,7 @@ export type Database = {
           analysis_result?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          community_visible?: boolean
           company?: string | null
           created_at?: string
           full_name?: string | null
@@ -831,6 +833,7 @@ export type Database = {
           analysis_result?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          community_visible?: boolean
           company?: string | null
           created_at?: string
           full_name?: string | null
