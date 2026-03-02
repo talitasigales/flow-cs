@@ -1,0 +1,1 @@
+UPDATE modules SET thumbnail_url = REPLACE(thumbnail_url, '.png', '.jpg') WHERE thumbnail_url LIKE '%.png';
