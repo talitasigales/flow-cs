@@ -38,15 +38,12 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Validate the caller's token using anon client with user's auth header
-    const token = authHeader.replace('Bearer ', '');
-    
     const supabaseAuth = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
     
     if (userError || !userData?.user) {
       console.error('Token validation failed:', userError);
