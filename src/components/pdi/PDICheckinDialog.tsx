@@ -3,10 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface PDICheckinDialogProps {
@@ -24,7 +22,6 @@ export default function PDICheckinDialog({
   checkinNumber,
   onSuccess 
 }: PDICheckinDialogProps) {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     checkin_date: new Date().toISOString().split('T')[0],
@@ -34,8 +31,8 @@ export default function PDICheckinDialog({
     obstacles: '',
     biggest_effort: '',
     who_can_help: '',
-    new_ideas: '',
-    overall_status: ''
+    new_action_ideas: '',
+    notes: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,22 +40,29 @@ export default function PDICheckinDialog({
     setLoading(true);
 
     try {
-      const { error: checkinError } = await (supabase as any)
+      const { error: checkinError } = await supabase
         .from('pdi_checkins')
         .insert({
-          ...formData,
           pdi_id: pdiId,
           checkin_number: checkinNumber,
-          created_by: user?.id
+          checkin_date: formData.checkin_date,
+          what_worked: formData.what_worked || null,
+          best_moment: formData.best_moment || null,
+          what_didnt_work: formData.what_didnt_work || null,
+          obstacles: formData.obstacles || null,
+          biggest_effort: formData.biggest_effort || null,
+          who_can_help: formData.who_can_help || null,
+          new_action_ideas: formData.new_action_ideas || null,
+          notes: formData.notes || null,
         });
 
       if (checkinError) throw checkinError;
 
-      // Atualizar etapa do PDI para "Acompanhamento" (etapa 4)
-      const { error: pdiError } = await (supabase as any)
+      // Update PDI stage to "Acompanhamento" (stage 4)
+      const { error: pdiError } = await supabase
         .from('pdis')
         .update({ 
-          current_step: 4,
+          current_stage: 4,
           status: 'acompanhamento'
         })
         .eq('id', pdiId);
@@ -164,32 +168,25 @@ export default function PDICheckinDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new_ideas">Novas ideias de ação?</Label>
+            <Label htmlFor="new_action_ideas">Novas ideias de ação?</Label>
             <Textarea
-              id="new_ideas"
-              value={formData.new_ideas}
-              onChange={(e) => setFormData({ ...formData, new_ideas: e.target.value })}
+              id="new_action_ideas"
+              value={formData.new_action_ideas}
+              onChange={(e) => setFormData({ ...formData, new_action_ideas: e.target.value })}
               rows={3}
               placeholder="Compartilhe novas ideias que surgiram..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="overall_status">Status Geral</Label>
-            <Select
-              value={formData.overall_status}
-              onValueChange={(value) => setFormData({ ...formData, overall_status: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Como está o andamento?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="on_track">🟢 No Caminho - Tudo conforme planejado</SelectItem>
-                <SelectItem value="at_risk">🟡 Em Risco - Necessita atenção</SelectItem>
-                <SelectItem value="delayed">🔴 Atrasado - Requer intervenção</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="notes">Observações gerais</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              placeholder="Anotações adicionais..."
+            />
           </div>
 
           <div className="flex justify-end gap-2">

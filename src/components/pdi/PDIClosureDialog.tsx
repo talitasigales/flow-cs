@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface PDIClosureDialogProps {
@@ -22,19 +21,19 @@ export default function PDIClosureDialog({
   pdiId,
   onSuccess 
 }: PDIClosureDialogProps) {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     closure_date: new Date().toISOString().split('T')[0],
-    how_finishing: '',
-    learnings: '',
+    final_status: '',
+    main_learnings: '',
     what_accomplished: '',
     what_not_accomplished: '',
     satisfaction_score: 50,
     what_was_missing: '',
     next_steps: '',
-    gains: '',
-    still_to_develop: ''
+    gains_obtained: '',
+    still_needs_development: '',
+    notes: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,23 +41,31 @@ export default function PDIClosureDialog({
     setLoading(true);
 
     try {
-      const { error: closureError } = await (supabase as any)
+      const { error: closureError } = await supabase
         .from('pdi_closures')
         .insert({
-          ...formData,
           pdi_id: pdiId,
-          created_by: user?.id
+          closure_date: formData.closure_date,
+          final_status: formData.final_status || null,
+          main_learnings: formData.main_learnings || null,
+          what_accomplished: formData.what_accomplished || null,
+          what_not_accomplished: formData.what_not_accomplished || null,
+          satisfaction_score: formData.satisfaction_score,
+          what_was_missing: formData.what_was_missing || null,
+          next_steps: formData.next_steps || null,
+          gains_obtained: formData.gains_obtained || null,
+          still_needs_development: formData.still_needs_development || null,
+          notes: formData.notes || null,
         });
 
       if (closureError) throw closureError;
 
-      // Atualizar PDI para "Fechamento" (etapa 5) e status "completed"
-      const { error: pdiError } = await (supabase as any)
+      // Update PDI to stage 5 and status completed
+      const { error: pdiError } = await supabase
         .from('pdis')
         .update({ 
-          current_step: 5,
-          status: 'completed',
-          overall_progress: 100
+          current_stage: 5,
+          status: 'completed'
         })
         .eq('id', pdiId);
 
@@ -95,11 +102,11 @@ export default function PDIClosureDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="how_finishing">Como está finalizando seu PDI?</Label>
+            <Label htmlFor="final_status">Como está finalizando seu PDI?</Label>
             <Textarea
-              id="how_finishing"
-              value={formData.how_finishing}
-              onChange={(e) => setFormData({ ...formData, how_finishing: e.target.value })}
+              id="final_status"
+              value={formData.final_status}
+              onChange={(e) => setFormData({ ...formData, final_status: e.target.value })}
               rows={3}
               placeholder="Descreva como você se sente ao concluir este ciclo..."
             />
@@ -159,22 +166,22 @@ export default function PDIClosureDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="learnings">Quais foram seus maiores aprendizados?</Label>
+            <Label htmlFor="main_learnings">Quais foram seus maiores aprendizados?</Label>
             <Textarea
-              id="learnings"
-              value={formData.learnings}
-              onChange={(e) => setFormData({ ...formData, learnings: e.target.value })}
+              id="main_learnings"
+              value={formData.main_learnings}
+              onChange={(e) => setFormData({ ...formData, main_learnings: e.target.value })}
               rows={4}
               placeholder="Compartilhe seus principais aprendizados..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="gains">Quais ganhos você obteve?</Label>
+            <Label htmlFor="gains_obtained">Quais ganhos você obteve?</Label>
             <Textarea
-              id="gains"
-              value={formData.gains}
-              onChange={(e) => setFormData({ ...formData, gains: e.target.value })}
+              id="gains_obtained"
+              value={formData.gains_obtained}
+              onChange={(e) => setFormData({ ...formData, gains_obtained: e.target.value })}
               rows={3}
               placeholder="Descreva os benefícios alcançados..."
             />
@@ -182,11 +189,11 @@ export default function PDIClosureDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="still_to_develop">O que você ainda precisa desenvolver?</Label>
+              <Label htmlFor="still_needs_development">O que você ainda precisa desenvolver?</Label>
               <Textarea
-                id="still_to_develop"
-                value={formData.still_to_develop}
-                onChange={(e) => setFormData({ ...formData, still_to_develop: e.target.value })}
+                id="still_needs_development"
+                value={formData.still_needs_development}
+                onChange={(e) => setFormData({ ...formData, still_needs_development: e.target.value })}
                 rows={3}
                 placeholder="Identifique áreas para continuar..."
               />
@@ -202,6 +209,17 @@ export default function PDIClosureDialog({
                 placeholder="Defina seus próximos passos..."
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações gerais</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={2}
+              placeholder="Notas adicionais..."
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

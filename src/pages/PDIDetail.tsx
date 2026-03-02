@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Edit, Plus, FileCheck } from 'lucide-react';
+import { ArrowLeft, Plus, FileCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { PDA_AXES } from '@/data/pdiTemplates';
 import PDIJourneyTimeline from '@/components/pdi/PDIJourneyTimeline';
@@ -36,8 +36,7 @@ export default function PDIDetail() {
 
   const fetchPDIData = async () => {
     try {
-      // Fetch PDI
-      const { data: pdiData, error: pdiError } = await (supabase as any)
+      const { data: pdiData, error: pdiError } = await supabase
         .from('pdis')
         .select('*')
         .eq('id', pdiId)
@@ -47,31 +46,28 @@ export default function PDIDetail() {
       if (pdiError) throw pdiError;
       setPdi(pdiData);
 
-      // Fetch Actions
-      const { data: actionsData, error: actionsError } = await (supabase as any)
+      const { data: actionsData, error: actionsError } = await supabase
         .from('pdi_actions')
         .select('*')
-        .eq('pdi_id', pdiId)
+        .eq('pdi_id', pdiId!)
         .order('created_at', { ascending: false });
 
       if (actionsError) throw actionsError;
       setActions(actionsData || []);
 
-      // Fetch Check-ins
-      const { data: checkinsData, error: checkinsError } = await (supabase as any)
+      const { data: checkinsData, error: checkinsError } = await supabase
         .from('pdi_checkins')
         .select('*')
-        .eq('pdi_id', pdiId)
+        .eq('pdi_id', pdiId!)
         .order('checkin_date', { ascending: false });
 
       if (checkinsError) throw checkinsError;
       setCheckins(checkinsData || []);
 
-      // Fetch Closure
-      const { data: closureData, error: closureError } = await (supabase as any)
+      const { data: closureData, error: closureError } = await supabase
         .from('pdi_closures')
         .select('*')
-        .eq('pdi_id', pdiId)
+        .eq('pdi_id', pdiId!)
         .maybeSingle();
 
       if (closureError) throw closureError;
@@ -100,13 +96,24 @@ export default function PDIDetail() {
   if (!pdi) return null;
 
   const axisInfo = PDA_AXES[pdi.pda_axis];
-  const behaviors = pdi.behavior_ratings || [];
+  const behaviors = pdi.behavior_assessments || [];
   const nextCheckinNumber = checkins.length + 1;
   const canClose = checkins.length >= 2 && !closure;
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      draft: 'Rascunho',
+      devolutiva: 'Devolutiva',
+      construcao: 'Construção',
+      acompanhamento: 'Acompanhamento',
+      fechamento: 'Fechamento',
+      completed: 'Concluído'
+    };
+    return labels[status] || status;
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-card border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -116,15 +123,6 @@ export default function PDIDetail() {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold">PDI - {pdi.employee_name}</h1>
-                <div className="flex items-center gap-3 mt-1">
-                  <p className="text-muted-foreground">{pdi.employee_role}</p>
-                  {pdi.employee_department && (
-                    <>
-                      <span className="text-muted-foreground">•</span>
-                      <p className="text-muted-foreground">{pdi.employee_department}</p>
-                    </>
-                  )}
-                </div>
               </div>
             </div>
             <div className="flex gap-2">
@@ -146,10 +144,6 @@ export default function PDIDetail() {
                   )}
                 </>
               )}
-              <Button variant="outline">
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
             </div>
           </div>
 
@@ -163,18 +157,17 @@ export default function PDIDetail() {
               {axisInfo?.name}
             </Badge>
             <Badge variant="secondary">
-              Etapa {pdi.current_step}/5
+              Etapa {pdi.current_stage}/5
             </Badge>
             <Badge variant={closure ? 'default' : 'outline'}>
-              {pdi.status}
+              {getStatusLabel(pdi.status)}
             </Badge>
           </div>
 
-          <PDIJourneyTimeline currentStep={pdi.current_step} />
+          <PDIJourneyTimeline currentStep={pdi.current_stage} />
         </div>
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
@@ -212,14 +205,18 @@ export default function PDIDetail() {
                     <p className="text-sm font-medium">Nota de Satisfação</p>
                     <p className="text-3xl font-bold text-primary">{closure.satisfaction_score}/100</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">Principais Aprendizados</p>
-                    <p className="text-sm text-muted-foreground">{closure.learnings}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Próximos Passos</p>
-                    <p className="text-sm text-muted-foreground">{closure.next_steps}</p>
-                  </div>
+                  {closure.main_learnings && (
+                    <div>
+                      <p className="text-sm font-medium">Principais Aprendizados</p>
+                      <p className="text-sm text-muted-foreground">{closure.main_learnings}</p>
+                    </div>
+                  )}
+                  {closure.next_steps && (
+                    <div>
+                      <p className="text-sm font-medium">Próximos Passos</p>
+                      <p className="text-sm text-muted-foreground">{closure.next_steps}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -278,14 +275,11 @@ export default function PDIDetail() {
                         <p className="text-sm text-muted-foreground">{checkin.obstacles}</p>
                       </div>
                     )}
-                    {checkin.overall_status && (
-                      <Badge variant={
-                        checkin.overall_status === 'on_track' ? 'default' :
-                        checkin.overall_status === 'at_risk' ? 'secondary' : 'destructive'
-                      }>
-                        {checkin.overall_status === 'on_track' ? '🟢 No Caminho' :
-                         checkin.overall_status === 'at_risk' ? '🟡 Em Risco' : '🔴 Atrasado'}
-                      </Badge>
+                    {checkin.notes && (
+                      <div>
+                        <p className="text-sm font-medium">📝 Notas</p>
+                        <p className="text-sm text-muted-foreground">{checkin.notes}</p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>

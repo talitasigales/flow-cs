@@ -22,8 +22,6 @@ export default function PDICreate() {
   // Form data
   const [selectedAxis, setSelectedAxis] = useState('');
   const [employeeName, setEmployeeName] = useState('');
-  const [employeeRole, setEmployeeRole] = useState('');
-  const [employeeDepartment, setEmployeeDepartment] = useState('');
   const [startDate, setStartDate] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [behaviorRatings, setBehaviorRatings] = useState<Record<number, number>>({});
@@ -63,27 +61,28 @@ export default function PDICreate() {
 
     setLoading(true);
     try {
-      const { data, error } = await (supabase as any)
+      const behaviorAssessments = Object.entries(behaviorRatings).map(([index, rating]) => ({
+        behavior: axisInfo?.behaviors[parseInt(index)],
+        rating
+      }));
+
+      const formattedAnswers = Object.entries(reflectiveAnswers).reduce((acc, [index, answer]) => {
+        acc[`question_${index}`] = answer;
+        return acc;
+      }, {} as Record<string, string>);
+
+      const { data, error } = await supabase
         .from('pdis')
         .insert({
           user_id: user.id,
           employee_name: employeeName,
-          employee_role: employeeRole || null,
-          employee_department: employeeDepartment || null,
           pda_axis: selectedAxis,
           status: 'devolutiva',
-          current_step: 2,
-          start_date: startDate || null,
+          current_stage: 2,
+          start_date: startDate || new Date().toISOString().split('T')[0],
           target_date: targetDate || null,
-          behavior_ratings: Object.entries(behaviorRatings).map(([index, rating]) => ({
-            behavior: axisInfo?.behaviors[parseInt(index)],
-            rating
-          })),
-          reflective_answers: Object.entries(reflectiveAnswers).reduce((acc, [index, answer]) => {
-            acc[`question_${index}`] = answer;
-            return acc;
-          }, {} as Record<string, string>),
-          overall_progress: 0
+          behavior_assessments: behaviorAssessments,
+          reflective_answers: formattedAnswers,
         })
         .select()
         .single();
@@ -102,7 +101,6 @@ export default function PDICreate() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-card border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
@@ -147,13 +145,11 @@ export default function PDICreate() {
           </div>
         </div>
 
-        {/* Step Content */}
         <Card>
           <CardHeader>
             <CardTitle>{STEPS[currentStep]}</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Step 0: Eixo PDA */}
             {currentStep === 0 && (
               <div className="space-y-4">
                 <p className="text-muted-foreground mb-6">
@@ -184,7 +180,6 @@ export default function PDICreate() {
               </div>
             )}
 
-            {/* Step 1: Dados */}
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div>
@@ -194,24 +189,6 @@ export default function PDICreate() {
                     value={employeeName}
                     onChange={(e) => setEmployeeName(e.target.value)}
                     placeholder="Digite o nome completo"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="employeeRole">Cargo</Label>
-                  <Input
-                    id="employeeRole"
-                    value={employeeRole}
-                    onChange={(e) => setEmployeeRole(e.target.value)}
-                    placeholder="Ex: Analista Jr."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="employeeDepartment">Departamento</Label>
-                  <Input
-                    id="employeeDepartment"
-                    value={employeeDepartment}
-                    onChange={(e) => setEmployeeDepartment(e.target.value)}
-                    placeholder="Ex: Tecnologia"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -237,7 +214,6 @@ export default function PDICreate() {
               </div>
             )}
 
-            {/* Step 2: Autoavaliação */}
             {currentStep === 2 && axisInfo && (
               <div className="space-y-6">
                 <p className="text-muted-foreground">
@@ -268,7 +244,6 @@ export default function PDICreate() {
               </div>
             )}
 
-            {/* Step 3: Perguntas Reflexivas */}
             {currentStep === 3 && axisInfo && (
               <div className="space-y-6">
                 <p className="text-muted-foreground mb-4">
@@ -293,7 +268,6 @@ export default function PDICreate() {
           </CardContent>
         </Card>
 
-        {/* Navigation Buttons */}
         <div className="flex justify-between mt-6">
           <Button
             variant="outline"

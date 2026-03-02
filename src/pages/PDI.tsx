@@ -14,14 +14,13 @@ import { exportPDIs } from '@/utils/exportUtils';
 interface PDI {
   id: string;
   employee_name: string;
-  employee_role: string | null;
   pda_axis: string;
   status: string;
-  current_step: number;
-  overall_progress: number;
+  current_stage: number;
   start_date: string | null;
   target_date: string | null;
   created_at: string;
+  notes: string | null;
 }
 
 export default function PDI() {
@@ -41,7 +40,7 @@ export default function PDI() {
 
   const fetchPDIs = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('pdis')
         .select('*')
         .eq('user_id', user?.id)
@@ -68,7 +67,7 @@ export default function PDI() {
     total: pdis.length,
     active: pdis.filter(p => ['devolutiva', 'construcao', 'acompanhamento'].includes(p.status)).length,
     completed: pdis.filter(p => p.status === 'completed').length,
-    atRisk: pdis.filter(p => p.overall_progress < 30 && p.status !== 'completed').length
+    atRisk: pdis.filter(p => p.current_stage < 3 && p.status !== 'completed').length
   };
 
   const getStatusColor = (status: string) => {
@@ -78,7 +77,7 @@ export default function PDI() {
       case 'acompanhamento': return 'text-yellow-600';
       case 'construcao': return 'text-orange-600';
       case 'devolutiva': return 'text-purple-600';
-      default: return 'text-gray-600';
+      default: return 'text-muted-foreground';
     }
   };
 
@@ -131,7 +130,7 @@ export default function PDI() {
                     employee_name: p.employee_name,
                     pda_axis: p.pda_axis,
                     status: p.status,
-                    current_stage: p.current_step,
+                    current_stage: p.current_stage,
                     start_date: p.start_date,
                     target_date: p.target_date
                   })), axisLabels);
@@ -205,7 +204,6 @@ export default function PDI() {
 
       {/* Filters and List */}
       <div className="container mx-auto px-4 py-6">
-        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -274,9 +272,6 @@ export default function PDI() {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h3 className="font-semibold text-lg">{pdi.employee_name}</h3>
-                        {pdi.employee_role && (
-                          <p className="text-sm text-muted-foreground">{pdi.employee_role}</p>
-                        )}
                       </div>
                       <div 
                         className="w-3 h-3 rounded-full"
@@ -299,7 +294,7 @@ export default function PDI() {
 
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Etapa:</span>
-                        <span className="font-medium">{pdi.current_step}/5</span>
+                        <span className="font-medium">{pdi.current_stage}/5</span>
                       </div>
 
                       {pdi.target_date && (
@@ -310,19 +305,6 @@ export default function PDI() {
                           </span>
                         </div>
                       )}
-
-                      <div>
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-muted-foreground">Progresso:</span>
-                          <span className="font-medium">{pdi.overall_progress}%</span>
-                        </div>
-                        <div className="w-full bg-secondary rounded-full h-2">
-                          <div 
-                            className="bg-primary rounded-full h-2 transition-all"
-                            style={{ width: `${pdi.overall_progress}%` }}
-                          />
-                        </div>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
