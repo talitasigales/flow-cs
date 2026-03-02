@@ -27,6 +27,12 @@ export const ChatbotNanda = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Preload avatar image
+  useEffect(() => {
+    const img = new Image();
+    img.src = nandaAvatar;
+  }, []);
+
   useEffect(() => {
     // Atualizar base de conhecimento completa com REPNA e todos os modelos de PDI
     const updateKnowledge = async () => {
@@ -108,10 +114,7 @@ export const ChatbotNanda = () => {
         {isOpen ? (
           <X className="h-10 w-10" />
         ) : (
-          <Avatar className="h-24 w-24">
-            <AvatarImage src={nandaAvatar} alt="Nanda" />
-            <AvatarFallback>N</AvatarFallback>
-          </Avatar>
+          <img src={nandaAvatar} alt="Nanda" className="h-24 w-24 object-cover rounded-full" loading="eager" />
         )}
       </Button>
 
@@ -120,10 +123,7 @@ export const ChatbotNanda = () => {
         <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 gradient-card border-border/50 flex flex-col">
           <CardHeader className="border-b border-border/50">
             <CardTitle className="flex items-center gap-2">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={nandaAvatar} alt="Nanda" />
-                <AvatarFallback>N</AvatarFallback>
-              </Avatar>
+              <img src={nandaAvatar} alt="Nanda" className="h-12 w-12 rounded-full object-cover" loading="eager" />
               Nanda - Assistente PDA
             </CardTitle>
           </CardHeader>
@@ -136,10 +136,7 @@ export const ChatbotNanda = () => {
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <Avatar className="h-12 w-12 mt-1">
-                    <AvatarImage src={nandaAvatar} alt="Nanda" />
-                    <AvatarFallback>N</AvatarFallback>
-                  </Avatar>
+                  <img src={nandaAvatar} alt="Nanda" className="h-12 w-12 rounded-full object-cover mt-1 flex-shrink-0" loading="eager" />
                 )}
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
