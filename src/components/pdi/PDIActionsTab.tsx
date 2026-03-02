@@ -24,10 +24,10 @@ interface PDIActionsTabProps {
   onRefresh: () => void;
 }
 
-const LEARNING_TYPES = {
-  experience: { label: '🟢 Experiência', color: 'bg-green-500' },
-  mentoring: { label: '🟡 Mentoria', color: 'bg-yellow-500' },
-  formal: { label: '🔵 Formal', color: 'bg-blue-500' }
+const ACTION_TYPE_LABELS: Record<string, string> = {
+  experience: '🟢 Experiência',
+  mentoring: '🟡 Mentoria',
+  formal: '🔵 Formal'
 };
 
 const STATUS_CONFIG = {
@@ -60,7 +60,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
         updateData.completed_at = new Date().toISOString();
       }
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('pdi_actions')
         .update(updateData)
         .eq('id', actionId);
@@ -78,7 +78,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
     if (!actionToDelete) return;
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('pdi_actions')
         .delete()
         .eq('id', actionToDelete);
@@ -159,9 +159,9 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
                     <Card key={action.id} className="p-3">
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium text-sm">{action.title}</p>
+                          <p className="font-medium text-sm line-clamp-2">{action.description}</p>
                           <Badge variant="outline" className="text-xs shrink-0">
-                            {LEARNING_TYPES[action.learning_type as keyof typeof LEARNING_TYPES].label}
+                            {ACTION_TYPE_LABELS[action.action_type] || action.action_type}
                           </Badge>
                         </div>
                         <div className="flex gap-1">
@@ -195,7 +195,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
 
         {['experience', 'mentoring', 'formal'].map(type => (
           <TabsContent key={type} value={type} className="space-y-4">
-            {actions.filter(a => a.learning_type === type).map(action => (
+            {actions.filter(a => a.action_type === type).map(action => (
               <ActionCard
                 key={action.id}
                 action={action}
@@ -235,7 +235,8 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
 }
 
 function ActionCard({ action, onEdit, onStatusChange, onDelete }: any) {
-  const StatusIcon = STATUS_CONFIG[action.status as keyof typeof STATUS_CONFIG].icon;
+  const statusConfig = STATUS_CONFIG[action.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+  const StatusIcon = statusConfig.icon;
 
   return (
     <Card>
@@ -243,33 +244,28 @@ function ActionCard({ action, onEdit, onStatusChange, onDelete }: any) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
             <div className="flex items-start gap-3">
-              <StatusIcon className={`h-5 w-5 mt-0.5 ${STATUS_CONFIG[action.status as keyof typeof STATUS_CONFIG].color}`} />
+              <StatusIcon className={`h-5 w-5 mt-0.5 ${statusConfig.color}`} />
               <div className="flex-1">
-                <h4 className="font-semibold">{action.title}</h4>
-                <p className="text-sm text-muted-foreground mt-1">{action.description}</p>
+                <p className="font-medium">{action.description}</p>
+                {action.specific && (
+                  <p className="text-sm text-muted-foreground mt-1">{action.specific}</p>
+                )}
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">
-                {LEARNING_TYPES[action.learning_type as keyof typeof LEARNING_TYPES].label}
+                {ACTION_TYPE_LABELS[action.action_type] || action.action_type}
               </Badge>
               <Badge variant="outline">
-                {STATUS_CONFIG[action.status as keyof typeof STATUS_CONFIG].label}
+                {statusConfig.label}
               </Badge>
-              {action.due_date && (
+              {action.end_date && (
                 <Badge variant="outline">
-                  Prazo: {new Date(action.due_date).toLocaleDateString('pt-BR')}
+                  Prazo: {new Date(action.end_date).toLocaleDateString('pt-BR')}
                 </Badge>
               )}
             </div>
-
-            {action.what_to_do && (
-              <div className="text-sm">
-                <span className="font-medium">O quê: </span>
-                <span className="text-muted-foreground">{action.what_to_do}</span>
-              </div>
-            )}
           </div>
 
           <div className="flex gap-1">

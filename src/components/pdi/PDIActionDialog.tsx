@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ interface PDIActionDialogProps {
   onSuccess: () => void;
 }
 
-const LEARNING_TYPES = [
+const ACTION_TYPES = [
   { value: 'experience', label: '🟢 Experiência (70%)', description: 'Aprendizado através da prática' },
   { value: 'mentoring', label: '🟡 Mentoria (20%)', description: 'Aprendizado com orientação' },
   { value: 'formal', label: '🔵 Educação Formal (10%)', description: 'Cursos, treinamentos, leituras' }
@@ -31,34 +31,79 @@ export default function PDIActionDialog({
 }: PDIActionDialogProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: action?.title || '',
-    description: action?.description || '',
-    learning_type: action?.learning_type || '',
-    what_to_do: action?.what_to_do || '',
-    how_to_do: action?.how_to_do || '',
-    why_to_do: action?.why_to_do || '',
-    where_to_do: action?.where_to_do || '',
-    when_to_do: action?.when_to_do || '',
-    due_date: action?.due_date || ''
+    description: '',
+    action_type: '',
+    specific: '',
+    measurable: '',
+    achievable: '',
+    relevant: '',
+    time_bound: '',
+    start_date: '',
+    end_date: ''
   });
+
+  useEffect(() => {
+    if (action) {
+      setFormData({
+        description: action.description || '',
+        action_type: action.action_type || '',
+        specific: action.specific || '',
+        measurable: action.measurable || '',
+        achievable: action.achievable || '',
+        relevant: action.relevant || '',
+        time_bound: action.time_bound || '',
+        start_date: action.start_date || '',
+        end_date: action.end_date || ''
+      });
+    } else {
+      setFormData({
+        description: '',
+        action_type: '',
+        specific: '',
+        measurable: '',
+        achievable: '',
+        relevant: '',
+        time_bound: '',
+        start_date: '',
+        end_date: ''
+      });
+    }
+  }, [action, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.description.trim() || !formData.action_type) {
+      toast.error('Preencha a descrição e o tipo da ação');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const payload = {
+        description: formData.description,
+        action_type: formData.action_type,
+        specific: formData.specific || null,
+        measurable: formData.measurable || null,
+        achievable: formData.achievable || null,
+        relevant: formData.relevant || null,
+        time_bound: formData.time_bound || null,
+        start_date: formData.start_date || null,
+        end_date: formData.end_date || null,
+      };
+
       if (action) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('pdi_actions')
-          .update(formData)
+          .update(payload)
           .eq('id', action.id);
         
         if (error) throw error;
         toast.success('Ação atualizada com sucesso!');
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('pdi_actions')
-          .insert({ ...formData, pdi_id: pdiId });
+          .insert({ ...payload, pdi_id: pdiId });
         
         if (error) throw error;
         toast.success('Ação criada com sucesso!');
@@ -83,27 +128,28 @@ export default function PDIActionDialog({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Título da Ação</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            <Label htmlFor="description">Descrição da Ação *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
               required
+              placeholder="Descreva a ação de desenvolvimento..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="learning_type">Tipo de Aprendizado (70/20/10)</Label>
+            <Label htmlFor="action_type">Tipo de Aprendizado (70/20/10) *</Label>
             <Select
-              value={formData.learning_type}
-              onValueChange={(value) => setFormData({ ...formData, learning_type: value })}
-              required
+              value={formData.action_type}
+              onValueChange={(value) => setFormData({ ...formData, action_type: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
-                {LEARNING_TYPES.map((type) => (
+                {ACTION_TYPES.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     <div>
                       <div className="font-medium">{type.label}</div>
@@ -115,76 +161,84 @@ export default function PDIActionDialog({
             </Select>
           </div>
 
+          <div className="space-y-3 p-4 bg-muted rounded-lg">
+            <p className="text-sm font-medium">Critérios SMART</p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="specific">S - Específico (O quê?)</Label>
+              <Textarea
+                id="specific"
+                value={formData.specific}
+                onChange={(e) => setFormData({ ...formData, specific: e.target.value })}
+                rows={2}
+                placeholder="O que exatamente será feito?"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="measurable">M - Mensurável (Como medir?)</Label>
+              <Textarea
+                id="measurable"
+                value={formData.measurable}
+                onChange={(e) => setFormData({ ...formData, measurable: e.target.value })}
+                rows={2}
+                placeholder="Como será medido o progresso?"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="achievable">A - Atingível (É possível?)</Label>
+              <Textarea
+                id="achievable"
+                value={formData.achievable}
+                onChange={(e) => setFormData({ ...formData, achievable: e.target.value })}
+                rows={2}
+                placeholder="É realista e alcançável?"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="relevant">R - Relevante (Por quê?)</Label>
+              <Textarea
+                id="relevant"
+                value={formData.relevant}
+                onChange={(e) => setFormData({ ...formData, relevant: e.target.value })}
+                rows={2}
+                placeholder="Por que é importante?"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="time_bound">T - Temporal (Quando?)</Label>
+              <Textarea
+                id="time_bound"
+                value={formData.time_bound}
+                onChange={(e) => setFormData({ ...formData, time_bound: e.target.value })}
+                rows={2}
+                placeholder="Qual o prazo?"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="what_to_do">O quê fazer?</Label>
-              <Textarea
-                id="what_to_do"
-                value={formData.what_to_do}
-                onChange={(e) => setFormData({ ...formData, what_to_do: e.target.value })}
-                rows={3}
+              <Label htmlFor="start_date">Data de Início</Label>
+              <Input
+                id="start_date"
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
               />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="how_to_do">Como fazer?</Label>
-              <Textarea
-                id="how_to_do"
-                value={formData.how_to_do}
-                onChange={(e) => setFormData({ ...formData, how_to_do: e.target.value })}
-                rows={3}
+              <Label htmlFor="end_date">Data Limite</Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="why_to_do">Por quê fazer?</Label>
-              <Textarea
-                id="why_to_do"
-                value={formData.why_to_do}
-                onChange={(e) => setFormData({ ...formData, why_to_do: e.target.value })}
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="where_to_do">Onde fazer?</Label>
-              <Textarea
-                id="where_to_do"
-                value={formData.where_to_do}
-                onChange={(e) => setFormData({ ...formData, where_to_do: e.target.value })}
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="when_to_do">Quando fazer?</Label>
-            <Textarea
-              id="when_to_do"
-              value={formData.when_to_do}
-              onChange={(e) => setFormData({ ...formData, when_to_do: e.target.value })}
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="due_date">Data Limite</Label>
-            <Input
-              id="due_date"
-              type="date"
-              value={formData.due_date}
-              onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição Detalhada</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-            />
           </div>
 
           <div className="flex justify-end gap-2">

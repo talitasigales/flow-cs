@@ -9,9 +9,9 @@ interface PDIProgressCardProps {
 }
 
 export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) {
-  const experienceActions = actions.filter(a => a.learning_type === 'experience');
-  const mentoringActions = actions.filter(a => a.learning_type === 'mentoring');
-  const formalActions = actions.filter(a => a.learning_type === 'formal');
+  const experienceActions = actions.filter(a => a.action_type === 'experience');
+  const mentoringActions = actions.filter(a => a.action_type === 'mentoring');
+  const formalActions = actions.filter(a => a.action_type === 'formal');
 
   const experienceCompleted = experienceActions.filter(a => a.status === 'completed').length;
   const mentoringCompleted = mentoringActions.filter(a => a.status === 'completed').length;
@@ -21,6 +21,18 @@ export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) 
   const progressPercentage = actions.length > 0 
     ? Math.round((totalCompleted / actions.length) * 100)
     : 0;
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      draft: 'Rascunho',
+      devolutiva: 'Devolutiva',
+      construcao: 'Construção',
+      acompanhamento: 'Acompanhamento',
+      fechamento: 'Fechamento',
+      completed: 'Concluído'
+    };
+    return labels[status] || status;
+  };
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -97,7 +109,7 @@ export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) 
             <div>
               <p className="text-muted-foreground">Status</p>
               <Badge variant={pdi.status === 'completed' ? 'default' : 'secondary'}>
-                {pdi.status}
+                {getStatusLabel(pdi.status)}
               </Badge>
             </div>
           </div>
