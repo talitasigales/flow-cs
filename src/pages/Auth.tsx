@@ -58,7 +58,7 @@ export default function Auth() {
     setForgotLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: 'https://cs.grougp.com.br/reset-password',
       });
       if (error) throw error;
       toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
