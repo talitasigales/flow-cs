@@ -30,7 +30,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { UserAvatarMenu } from './UserAvatarMenu';
+
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import groLogo from '@/assets/grou-logo-laranja.png';
@@ -157,7 +157,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border" variant="floating">
-      <SidebarHeader className="border-b border-sidebar-border/50 pb-3">
+      <SidebarHeader className="border-b border-sidebar-border/50 pb-4">
         <div className="flex items-center gap-3 px-2">
           <div className="relative group/logo">
             <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover/logo:bg-primary/30 transition-colors" />
@@ -168,8 +168,6 @@ export function AppSidebar() {
             <p className="text-xs text-muted-foreground truncate">Plataforma de Sucesso do Cliente</p>
           </div>
         </div>
-        <Separator className="my-2" />
-        <UserAvatarMenu />
       </SidebarHeader>
 
       <SidebarContent className="px-2">
