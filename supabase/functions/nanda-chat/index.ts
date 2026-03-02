@@ -5,6 +5,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const stopwords = new Set(['como', 'para', 'quais', 'qual', 'está', 'esse', 'essa', 'todos', 'todo', 'toda', 'todas', 'mais', 'muito', 'sobre', 'pode', 'cada', 'onde', 'aqui', 'pela', 'pelo', 'seus', 'suas', 'são', 'que', 'dos', 'das', 'com', 'uma', 'por', 'não', 'nos', 'nas', 'entre', 'também', 'ainda', 'quando', 'desde', 'após', 'antes', 'depois', 'durante', 'fazer', 'feito', 'sido', 'será', 'deve', 'devo', 'tenho', 'temos', 'vocês', 'eles', 'elas', 'meus', 'minha', 'este', 'esta', 'estes', 'estas', 'esse', 'essa', 'esses', 'essas', 'aquele', 'aquela', 'lista', 'liste', 'exatamente']);
+
+function extractQuestionWords(text: string): string[] {
+  return text.toLowerCase()
+    .replace(/[?!.,;:'"()]/g, '')
+    .split(/\s+/)
+    .filter((w: string) => w.length > 3 && !stopwords.has(w));
+}
+
+function scoreDoc(doc: any, questionWords: string[]): number {
+  const kwSet = new Set(doc.keywords || []);
+  let score = 0;
+  for (const w of questionWords) {
+    if (kwSet.has(w)) score += 3;
+  }
+  // Bonus for title match
+  const titleLower = (doc.title || '').toLowerCase();
+  for (const w of questionWords) {
+    if (titleLower.includes(w)) score += 2;
+  }
+  return score;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -13,110 +36,93 @@ serve(async (req) => {
   try {
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
-    // Buscar contexto relevante na base de conhecimento
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.3');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
     const userQuestion = messages[messages.length - 1]?.content || '';
-    
-    // Extract meaningful search words (>3 chars, no stopwords)
-    const stopwords = new Set(['como', 'para', 'quais', 'qual', 'está', 'esse', 'essa', 'todos', 'todo', 'toda', 'todas', 'mais', 'muito', 'sobre', 'pode', 'cada', 'onde', 'aqui', 'pela', 'pelo', 'seus', 'suas', 'são', 'que', 'dos', 'das', 'com', 'uma', 'por', 'não', 'nos', 'nas', 'entre', 'também', 'ainda', 'quando', 'desde', 'após', 'antes', 'depois', 'durante', 'fazer', 'feito', 'sido', 'será', 'deve', 'devo', 'tenho', 'temos', 'vocês', 'eles', 'elas', 'meus', 'minha', 'este', 'esta', 'estes', 'estas', 'esse', 'essa', 'esses', 'essas', 'aquele', 'aquela', 'lista', 'liste', 'exatamente']);
-    const questionWords = userQuestion.toLowerCase()
-      .replace(/[?!.,;:'"()]/g, '')
-      .split(/\s+/)
-      .filter((w: string) => w.length > 3 && !stopwords.has(w));
+    const questionWords = extractQuestionWords(userQuestion);
 
-    // Strategy 1: Search by keywords array overlap
+    // Strategy 1: Keywords overlap
     let keywordDocs: any[] = [];
     if (questionWords.length > 0) {
-      const { data: kwDocs } = await supabase
+      const { data } = await supabase
         .from('knowledge_base')
         .select('title, content, category, keywords')
         .overlaps('keywords', questionWords)
-        .limit(5);
-      keywordDocs = kwDocs || [];
+        .limit(10);
+      keywordDocs = data || [];
     }
 
-    // Strategy 2: Search by title/content ILIKE with key terms
+    // Strategy 2: ILIKE search
     let ilikeDocs: any[] = [];
-    const keyTerms = questionWords.slice(0, 5); // Use top 5 words
+    const keyTerms = questionWords.slice(0, 5);
     for (const term of keyTerms) {
-      if (ilikeDocs.length >= 5) break;
-      const { data: docs } = await supabase
+      if (ilikeDocs.length >= 8) break;
+      const { data } = await supabase
         .from('knowledge_base')
         .select('title, content, category, keywords')
         .or(`title.ilike.%${term}%,content.ilike.%${term}%`)
-        .limit(3);
-      if (docs) {
-        for (const doc of docs) {
-          if (!ilikeDocs.find(d => d.title === doc.title)) {
-            ilikeDocs.push(doc);
-          }
+        .limit(5);
+      if (data) {
+        for (const doc of data) {
+          if (!ilikeDocs.find(d => d.title === doc.title)) ilikeDocs.push(doc);
         }
       }
     }
 
-    // Strategy 3: Full-text search as additional source (may return 0)
+    // Strategy 3: Full-text search
     const { data: ftsDocs } = await supabase
       .from('knowledge_base')
       .select('title, content, category, keywords')
-      .textSearch('content', userQuestion, {
-        type: 'websearch',
-        config: 'portuguese'
-      })
-      .limit(3);
+      .textSearch('content', userQuestion, { type: 'websearch', config: 'portuguese' })
+      .limit(5);
 
-    console.log('Busca na base:', { 
-      userQuestion: userQuestion.substring(0, 80),
-      keyTerms,
-      keywordFound: keywordDocs.length,
-      ilikeFound: ilikeDocs.length,
-      ftsFound: ftsDocs?.length || 0
-    });
+    console.log('Busca:', { questionWords: questionWords.slice(0, 5), kw: keywordDocs.length, ilike: ilikeDocs.length, fts: ftsDocs?.length || 0 });
 
-    // Combine all results without duplicates, prioritize keyword matches
-    const allFoundDocs = new Map();
+    // Deduplicate
+    const allDocs = new Map();
     for (const doc of [...keywordDocs, ...ilikeDocs, ...(ftsDocs || [])]) {
-      if (!allFoundDocs.has(doc.title)) {
-        allFoundDocs.set(doc.title, doc);
-      }
+      if (!allDocs.has(doc.title)) allDocs.set(doc.title, doc);
     }
-    let uniqueDocs = Array.from(allFoundDocs.values());
 
-    // If still few results, load all docs as fallback
-    if (uniqueDocs.length < 3) {
-      console.log('Poucos resultados, carregando base completa...');
-      const { data: allDocs } = await supabase
+    // If few results, load fallback
+    if (allDocs.size < 3) {
+      const { data } = await supabase
         .from('knowledge_base')
         .select('title, content, category, keywords')
         .order('category')
-        .limit(15);
-      
-      if (allDocs) {
-        for (const doc of allDocs) {
-          if (!allFoundDocs.has(doc.title)) {
-            allFoundDocs.set(doc.title, doc);
-          }
+        .limit(20);
+      if (data) {
+        for (const doc of data) {
+          if (!allDocs.has(doc.title)) allDocs.set(doc.title, doc);
         }
-        uniqueDocs = Array.from(allFoundDocs.values());
       }
     }
 
+    // Rank by relevance and apply context size limit
+    let ranked = Array.from(allDocs.values())
+      .map(doc => ({ ...doc, _score: scoreDoc(doc, questionWords) }))
+      .sort((a, b) => b._score - a._score);
+
+    const MAX_CONTEXT_CHARS = 15000;
+    let totalChars = 0;
+    const selectedDocs: any[] = [];
+    for (const doc of ranked) {
+      if (totalChars + doc.content.length > MAX_CONTEXT_CHARS && selectedDocs.length >= 3) break;
+      selectedDocs.push(doc);
+      totalChars += doc.content.length;
+    }
+
     let contextInfo = '';
-    if (uniqueDocs.length > 0) {
-      contextInfo = '\n\n📚 CONTEXTO DA BASE DE CONHECIMENTO:\n' + 
-        uniqueDocs.map(doc => {
+    if (selectedDocs.length > 0) {
+      contextInfo = '\n\n📚 CONTEXTO DA BASE DE CONHECIMENTO:\n' +
+        selectedDocs.map(doc => {
           const kwInfo = doc.keywords?.length ? ` (palavras-chave: ${doc.keywords.join(', ')})` : '';
           return `[${doc.category}] ${doc.title}${kwInfo}:\n${doc.content}`;
         }).join('\n\n');
-      console.log('Total documentos no contexto:', uniqueDocs.length, 'títulos:', uniqueDocs.map((d: any) => d.title));
+      console.log('Contexto:', selectedDocs.length, 'docs,', totalChars, 'chars');
     }
 
     const systemPrompt = `Você é a Nanda, uma profissional de RH calorosa e experiente, especializada em desenvolvimento humano e PDA Assessment (Personal Development Analysis).
@@ -179,8 +185,6 @@ Os 5 eixos comportamentais fundamentais são avaliados em uma escala de 0 a 100:
 - Responda em até 3 parágrafos, mantendo sempre o tom caloroso e encorajador
 - Dê exemplos práticos quando falar dos eixos REPNA`;
 
-    console.log('Enviando para Gemini com contexto:', contextInfo.length > 0 ? 'SIM' : 'NÃO');
-
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -189,10 +193,7 @@ Os 5 eixos comportamentais fundamentais são avaliados em uma escala de 0 a 100:
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
+        messages: [{ role: 'system', content: systemPrompt }, ...messages],
         temperature: 0.7,
         max_tokens: 800,
       }),
@@ -200,35 +201,23 @@ Os 5 eixos comportamentais fundamentais são avaliados em uma escala de 0 a 100:
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns instantes.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Por favor, adicione créditos no workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'Créditos insuficientes. Por favor, adicione créditos no workspace.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      
       const errorText = await response.text();
       console.error('AI gateway error:', response.status, errorText);
       throw new Error('Erro ao se comunicar com o gateway de IA');
     }
 
     const data = await response.json();
-    
-    return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
     console.error('Error in nanda-chat function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
