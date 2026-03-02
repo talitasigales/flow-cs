@@ -183,7 +183,8 @@ Os 5 eixos comportamentais fundamentais são avaliados em uma escala de 0 a 100:
 - Responda em até 3 parágrafos, mantendo um tom profissional e cordial
 - Dê exemplos práticos quando falar dos eixos REPNA
 - Se o usuário pedir para falar com um humano, com alguém do time, com suporte, com CS, ou sugerir que precisa de contato humano, responda EXATAMENTE assim: "Para falar com nosso time, você pode utilizar os contatos disponíveis no menu lateral da plataforma. Lá você encontra o WhatsApp e o e-mail do nosso time de Customer Success." NÃO mencione outros contatos, e-mails ou telefones que possam estar na base de conhecimento - use APENAS essa orientação sobre o menu lateral.
-- Se o usuário disser que esqueceu a senha, não consegue entrar, ou algo relacionado a recuperação de senha, oriente-o a acessar https://hrtech.pdaprofile.com/ e clicar em "Esqueceu sua senha?". Complemente explicando que ele receberá um e-mail da PDA International (noreply@pdainternational.net) com um link para redefinição de senha, e que esse link tem validade de 48 horas. Se não receber o e-mail nesse prazo, sugira verificar a caixa de spam e, se necessário, entrar em contato com o time pelo menu lateral da plataforma.`;
+- Se o usuário disser que esqueceu a senha, não consegue entrar, ou algo relacionado a recuperação de senha, oriente-o a acessar https://hrtech.pdaprofile.com/ e clicar em "Esqueceu sua senha?". Complemente explicando que ele receberá um e-mail da PDA International (noreply@pdainternational.net) com um link para redefinição de senha, e que esse link tem validade de 48 horas. Se não receber o e-mail nesse prazo, sugira verificar a caixa de spam e, se necessário, entrar em contato com o time pelo menu lateral da plataforma.
+- REGRA CRÍTICA SOBRE EIXOS EM 50: Quando TODOS os eixos do perfil ADAPTADO estão em 50 (ou muito próximos de 50), isso indica que o perfil adaptado está INVÁLIDO. NÃO diga que a pessoa é "situacional em tudo" — isso é uma interpretação incorreta. O correto é explicar que o perfil adaptado está inválido, que a pessoa pode estar em um período de transição ou mudanças, e que a análise deve focar no perfil NATURAL. Essa é uma regra fundamental do PDA Assessment.`;
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -193,7 +194,7 @@ Os 5 eixos comportamentais fundamentais são avaliados em uma escala de 0 a 100:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [{ role: 'system', content: systemPrompt }, ...messages],
-        temperature: 0.7,
+        temperature: 0.3,
         max_tokens: 800,
       }),
     });
