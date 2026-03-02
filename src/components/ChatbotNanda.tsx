@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,7 +22,7 @@ export const ChatbotNanda = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '👋 Olá! Que bom ter você aqui!\n\nSou a Nanda, sua parceira de desenvolvimento humano especializada em PDA e PDI. 💚\n\nPosso ajudar você com:\n• Entender os eixos comportamentais REPNA\n• Orientar sobre criação e acompanhamento de PDIs\n• Esclarecer dúvidas sobre perfis comportamentais\n• Dar dicas de desenvolvimento baseadas nos modelos PDA\n\nComo posso ajudar você hoje?',
+      content: 'Olá! Sou a Nanda, especialista em desenvolvimento humano e PDA.\n\nPosso ajudar você com:\n\n• Entender os eixos comportamentais REPNA\n• Orientar sobre criação e acompanhamento de PDIs\n• Esclarecer dúvidas sobre perfis comportamentais\n• Dar dicas de desenvolvimento baseadas nos modelos PDA\n\nComo posso ajudar?',
     },
   ]);
   const [input, setInput] = useState('');
@@ -144,7 +145,9 @@ export const ChatbotNanda = () => {
                       : 'bg-muted'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <div className="text-sm prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             ))}
