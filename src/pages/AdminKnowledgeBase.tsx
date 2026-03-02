@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Search, BookOpen, Upload, FileText, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, BookOpen, Upload, FileText, Loader2, CheckSquare } from 'lucide-react';
 
 interface KnowledgeEntry {
   id: string;
@@ -62,6 +63,11 @@ const AdminKnowledgeBase = () => {
   // Delete state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // File upload state
   const [uploading, setUploading] = useState(false);
@@ -178,6 +184,43 @@ const AdminKnowledgeBase = () => {
     }
     setDeleteDialogOpen(false);
     setDeletingId(null);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from('knowledge_base')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: `${ids.length} entrada(s) excluída(s) com sucesso` });
+      setSelectedIds(new Set());
+      fetchEntries();
+    }
+    setBulkDeleting(false);
+    setBulkDeleteDialogOpen(false);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(e => e.id)));
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -303,11 +346,36 @@ const AdminKnowledgeBase = () => {
           </Select>
         </div>
 
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+            <span className="text-sm font-medium">{selectedIds.size} selecionada(s)</span>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-2"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" /> Excluir selecionadas
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
+              Limpar seleção
+            </Button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Selecionar todos"
+                  />
+                </TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead className="hidden md:table-cell">Palavras-chave</TableHead>
@@ -318,15 +386,22 @@ const AdminKnowledgeBase = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Carregando...</TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma entrada encontrada</TableCell>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma entrada encontrada</TableCell>
                 </TableRow>
               ) : (
                 filtered.map(entry => (
-                  <TableRow key={entry.id}>
+                  <TableRow key={entry.id} className={selectedIds.has(entry.id) ? 'bg-muted/30' : ''}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(entry.id)}
+                        onCheckedChange={() => toggleSelect(entry.id)}
+                        aria-label={`Selecionar ${entry.title}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium max-w-[200px] truncate">{entry.title}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{entry.category}</Badge>
@@ -441,6 +516,28 @@ const AdminKnowledgeBase = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {selectedIds.size} entrada(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. As {selectedIds.size} entrada(s) selecionada(s) serão removidas permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkDeleting ? 'Excluindo...' : `Excluir ${selectedIds.size}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
