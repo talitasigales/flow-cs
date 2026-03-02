@@ -106,7 +106,7 @@ serve(async (req) => {
       .map(doc => ({ ...doc, _score: scoreDoc(doc, questionWords) }))
       .sort((a, b) => b._score - a._score);
 
-    const MAX_CONTEXT_CHARS = 15000;
+    const MAX_CONTEXT_CHARS = 30000;
     let totalChars = 0;
     const selectedDocs: any[] = [];
     for (const doc of ranked) {

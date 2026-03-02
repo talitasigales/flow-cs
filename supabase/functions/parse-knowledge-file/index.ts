@@ -197,7 +197,7 @@ serve(async (req) => {
     const finalCategory = category || 'Importado';
 
     // Split into chunks and generate keywords per chunk
-    const chunks = splitIntoChunks(extractedText, 2000);
+    const chunks = splitIntoChunks(extractedText, 15000);
     console.log(`Splitting "${title}" into ${chunks.length} chunks`);
 
     const entries = chunks.map((chunk: string, i: number) => ({
