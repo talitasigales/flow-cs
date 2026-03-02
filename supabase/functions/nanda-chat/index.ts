@@ -26,59 +26,88 @@ serve(async (req) => {
 
     const userQuestion = messages[messages.length - 1]?.content || '';
     
-    // 1. Buscar FAQs primeiro (prioridade alta)
-    const { data: faqDocs } = await supabase
-      .from('knowledge_base')
-      .select('title, content, category, keywords')
-      .eq('category', 'FAQ')
-      .textSearch('content', userQuestion, {
-        type: 'websearch',
-        config: 'portuguese'
-      })
-      .limit(3);
+    // Extract meaningful search words (>3 chars, no stopwords)
+    const stopwords = new Set(['como', 'para', 'quais', 'qual', 'está', 'esse', 'essa', 'todos', 'todo', 'toda', 'todas', 'mais', 'muito', 'sobre', 'pode', 'cada', 'onde', 'aqui', 'pela', 'pelo', 'seus', 'suas', 'são', 'que', 'dos', 'das', 'com', 'uma', 'por', 'não', 'nos', 'nas', 'entre', 'também', 'ainda', 'quando', 'desde', 'após', 'antes', 'depois', 'durante', 'fazer', 'feito', 'sido', 'será', 'deve', 'devo', 'tenho', 'temos', 'vocês', 'eles', 'elas', 'meus', 'minha', 'este', 'esta', 'estes', 'estas', 'esse', 'essa', 'esses', 'essas', 'aquele', 'aquela', 'lista', 'liste', 'exatamente']);
+    const questionWords = userQuestion.toLowerCase()
+      .replace(/[?!.,;:'"()]/g, '')
+      .split(/\s+/)
+      .filter((w: string) => w.length > 3 && !stopwords.has(w));
 
-    // 2. Buscar usando full-text search em português (conteúdo geral)
-    const { data: knowledgeDocs, error: searchError } = await supabase
-      .from('knowledge_base')
-      .select('title, content, category, keywords')
-      .neq('category', 'FAQ')
-      .textSearch('content', userQuestion, {
-        type: 'websearch',
-        config: 'portuguese'
-      })
-      .limit(5);
-
-    // 3. Buscar por keywords que contenham termos da pergunta
-    const questionWords = userQuestion.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+    // Strategy 1: Search by keywords array overlap
     let keywordDocs: any[] = [];
     if (questionWords.length > 0) {
       const { data: kwDocs } = await supabase
         .from('knowledge_base')
         .select('title, content, category, keywords')
         .overlaps('keywords', questionWords)
-        .limit(3);
+        .limit(5);
       keywordDocs = kwDocs || [];
     }
 
-    console.log('Busca na base:', { 
-      userQuestion, 
-      faqFound: faqDocs?.length || 0,
-      contentFound: knowledgeDocs?.length || 0,
-      keywordFound: keywordDocs.length 
-    });
-    
-    if (searchError) {
-      console.error('Erro na busca:', searchError);
+    // Strategy 2: Search by title/content ILIKE with key terms
+    let ilikeDocs: any[] = [];
+    const keyTerms = questionWords.slice(0, 5); // Use top 5 words
+    for (const term of keyTerms) {
+      if (ilikeDocs.length >= 5) break;
+      const { data: docs } = await supabase
+        .from('knowledge_base')
+        .select('title, content, category, keywords')
+        .or(`title.ilike.%${term}%,content.ilike.%${term}%`)
+        .limit(3);
+      if (docs) {
+        for (const doc of docs) {
+          if (!ilikeDocs.find(d => d.title === doc.title)) {
+            ilikeDocs.push(doc);
+          }
+        }
+      }
     }
 
-    // Combinar resultados sem duplicatas
+    // Strategy 3: Full-text search as additional source (may return 0)
+    const { data: ftsDocs } = await supabase
+      .from('knowledge_base')
+      .select('title, content, category, keywords')
+      .textSearch('content', userQuestion, {
+        type: 'websearch',
+        config: 'portuguese'
+      })
+      .limit(3);
+
+    console.log('Busca na base:', { 
+      userQuestion: userQuestion.substring(0, 80),
+      keyTerms,
+      keywordFound: keywordDocs.length,
+      ilikeFound: ilikeDocs.length,
+      ftsFound: ftsDocs?.length || 0
+    });
+
+    // Combine all results without duplicates, prioritize keyword matches
     const allFoundDocs = new Map();
-    for (const doc of [...(faqDocs || []), ...(knowledgeDocs || []), ...keywordDocs]) {
+    for (const doc of [...keywordDocs, ...ilikeDocs, ...(ftsDocs || [])]) {
       if (!allFoundDocs.has(doc.title)) {
         allFoundDocs.set(doc.title, doc);
       }
     }
-    const uniqueDocs = Array.from(allFoundDocs.values());
+    let uniqueDocs = Array.from(allFoundDocs.values());
+
+    // If still few results, load all docs as fallback
+    if (uniqueDocs.length < 3) {
+      console.log('Poucos resultados, carregando base completa...');
+      const { data: allDocs } = await supabase
+        .from('knowledge_base')
+        .select('title, content, category, keywords')
+        .order('category')
+        .limit(15);
+      
+      if (allDocs) {
+        for (const doc of allDocs) {
+          if (!allFoundDocs.has(doc.title)) {
+            allFoundDocs.set(doc.title, doc);
+          }
+        }
+        uniqueDocs = Array.from(allFoundDocs.values());
+      }
+    }
 
     let contextInfo = '';
     if (uniqueDocs.length > 0) {
@@ -87,23 +116,7 @@ serve(async (req) => {
           const kwInfo = doc.keywords?.length ? ` (palavras-chave: ${doc.keywords.join(', ')})` : '';
           return `[${doc.category}] ${doc.title}${kwInfo}:\n${doc.content}`;
         }).join('\n\n');
-      console.log('Documentos encontrados:', uniqueDocs.map((d: any) => d.title));
-    } else {
-      console.log('Nenhum documento encontrado, buscando todos...');
-      // Fallback: buscar todos os documentos disponíveis
-      const { data: allDocs } = await supabase
-        .from('knowledge_base')
-        .select('title, content, category, keywords')
-        .order('category')
-        .limit(10);
-      
-      if (allDocs && allDocs.length > 0) {
-        contextInfo = '\n\n📚 CONTEXTO DA BASE DE CONHECIMENTO:\n' + 
-          allDocs.map(doc => {
-            const kwInfo = doc.keywords?.length ? ` (palavras-chave: ${doc.keywords.join(', ')})` : '';
-            return `[${doc.category}] ${doc.title}${kwInfo}:\n${doc.content}`;
-          }).join('\n\n');
-      }
+      console.log('Total documentos no contexto:', uniqueDocs.length, 'títulos:', uniqueDocs.map((d: any) => d.title));
     }
 
     const systemPrompt = `Você é a Nanda, uma profissional de RH calorosa e experiente, especializada em desenvolvimento humano e PDA Assessment (Personal Development Analysis).
