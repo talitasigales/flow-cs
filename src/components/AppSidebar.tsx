@@ -165,7 +165,7 @@ export function AppSidebar() {
           </div>
           <div className="flex-1 overflow-hidden">
             <h2 className="text-lg font-bold gradient-text whitespace-nowrap">CS da Grou</h2>
-            <p className="text-xs text-muted-foreground truncate">Plataforma de Sucesso do Cliente</p>
+            <p className="text-xs text-muted-foreground">Plataforma de Sucesso do Cliente</p>
           </div>
         </div>
       </SidebarHeader>
