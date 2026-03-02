@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.reset-password]
 verify_jwt = false
+
+[functions.parse-knowledge-file]
+verify_jwt = false
+
+[functions.nanda-chat]
+verify_jwt = false

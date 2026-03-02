@@ -26,38 +26,83 @@ serve(async (req) => {
 
     const userQuestion = messages[messages.length - 1]?.content || '';
     
-    // Buscar usando full-text search em português
-    const { data: knowledgeDocs, error: searchError } = await supabase
+    // 1. Buscar FAQs primeiro (prioridade alta)
+    const { data: faqDocs } = await supabase
       .from('knowledge_base')
-      .select('title, content, category')
+      .select('title, content, category, keywords')
+      .eq('category', 'FAQ')
       .textSearch('content', userQuestion, {
         type: 'websearch',
         config: 'portuguese'
       })
       .limit(3);
 
-    console.log('Busca na base:', { userQuestion, found: knowledgeDocs?.length || 0 });
+    // 2. Buscar usando full-text search em português (conteúdo geral)
+    const { data: knowledgeDocs, error: searchError } = await supabase
+      .from('knowledge_base')
+      .select('title, content, category, keywords')
+      .neq('category', 'FAQ')
+      .textSearch('content', userQuestion, {
+        type: 'websearch',
+        config: 'portuguese'
+      })
+      .limit(5);
+
+    // 3. Buscar por keywords que contenham termos da pergunta
+    const questionWords = userQuestion.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+    let keywordDocs: any[] = [];
+    if (questionWords.length > 0) {
+      const { data: kwDocs } = await supabase
+        .from('knowledge_base')
+        .select('title, content, category, keywords')
+        .overlaps('keywords', questionWords)
+        .limit(3);
+      keywordDocs = kwDocs || [];
+    }
+
+    console.log('Busca na base:', { 
+      userQuestion, 
+      faqFound: faqDocs?.length || 0,
+      contentFound: knowledgeDocs?.length || 0,
+      keywordFound: keywordDocs.length 
+    });
     
     if (searchError) {
       console.error('Erro na busca:', searchError);
     }
 
+    // Combinar resultados sem duplicatas
+    const allFoundDocs = new Map();
+    for (const doc of [...(faqDocs || []), ...(knowledgeDocs || []), ...keywordDocs]) {
+      if (!allFoundDocs.has(doc.title)) {
+        allFoundDocs.set(doc.title, doc);
+      }
+    }
+    const uniqueDocs = Array.from(allFoundDocs.values());
+
     let contextInfo = '';
-    if (knowledgeDocs && knowledgeDocs.length > 0) {
+    if (uniqueDocs.length > 0) {
       contextInfo = '\n\n📚 CONTEXTO DA BASE DE CONHECIMENTO:\n' + 
-        knowledgeDocs.map(doc => `[${doc.category}] ${doc.title}:\n${doc.content}`).join('\n\n');
-      console.log('Documentos encontrados:', knowledgeDocs.map(d => d.title));
+        uniqueDocs.map(doc => {
+          const kwInfo = doc.keywords?.length ? ` (palavras-chave: ${doc.keywords.join(', ')})` : '';
+          return `[${doc.category}] ${doc.title}${kwInfo}:\n${doc.content}`;
+        }).join('\n\n');
+      console.log('Documentos encontrados:', uniqueDocs.map((d: any) => d.title));
     } else {
       console.log('Nenhum documento encontrado, buscando todos...');
-      // Fallback: se não encontrar nada, buscar todos os documentos
+      // Fallback: buscar todos os documentos disponíveis
       const { data: allDocs } = await supabase
         .from('knowledge_base')
-        .select('title, content, category')
-        .limit(4);
+        .select('title, content, category, keywords')
+        .order('category')
+        .limit(10);
       
       if (allDocs && allDocs.length > 0) {
         contextInfo = '\n\n📚 CONTEXTO DA BASE DE CONHECIMENTO:\n' + 
-          allDocs.map(doc => `[${doc.category}] ${doc.title}:\n${doc.content}`).join('\n\n');
+          allDocs.map(doc => {
+            const kwInfo = doc.keywords?.length ? ` (palavras-chave: ${doc.keywords.join(', ')})` : '';
+            return `[${doc.category}] ${doc.title}${kwInfo}:\n${doc.content}`;
+          }).join('\n\n');
       }
     }
 

@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Search, BookOpen } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, BookOpen, Upload, FileText, Loader2 } from 'lucide-react';
 
 interface KnowledgeEntry {
   id: string;
@@ -34,6 +34,8 @@ const CATEGORIES = [
   'Plataforma',
   'Diferenciais',
   'Aplicação',
+  'FAQ',
+  'Importado',
 ];
 
 const AdminKnowledgeBase = () => {
@@ -60,6 +62,10 @@ const AdminKnowledgeBase = () => {
   // Delete state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // File upload state
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useState<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -174,6 +180,55 @@ const AdminKnowledgeBase = () => {
     setDeletingId(null);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedExts = ['txt', 'md', 'csv', 'json'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !allowedExts.includes(ext)) {
+      toast({ title: 'Formato não suportado', description: 'Use arquivos .txt, .md, .csv ou .json', variant: 'destructive' });
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Arquivo muito grande', description: 'O limite é 5MB', variant: 'destructive' });
+      e.target.value = '';
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const filePath = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('knowledge-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data, error } = await supabase.functions.invoke('parse-knowledge-file', {
+        body: { filePath, fileName: file.name, category: 'Importado' }
+      });
+
+      if (error) {
+        const errorMsg = (error as any)?.context?.body?.error || error.message;
+        throw new Error(errorMsg);
+      }
+
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: 'Arquivo importado com sucesso!', description: `${data.extractedLength} caracteres extraídos` });
+      fetchEntries();
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({ title: 'Erro ao importar arquivo', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
   const filtered = entries.filter(e => {
     const matchSearch =
       !search ||
@@ -199,9 +254,28 @@ const AdminKnowledgeBase = () => {
               <p className="text-sm text-muted-foreground">Gerencie o conteúdo que alimenta as respostas da Nanda</p>
             </div>
           </div>
-          <Button onClick={openAddDialog} className="gap-2">
-            <Plus className="h-4 w-4" /> Nova Entrada
-          </Button>
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept=".txt,.md,.csv,.json"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="knowledge-file-upload"
+              disabled={uploading}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              disabled={uploading}
+              onClick={() => document.getElementById('knowledge-file-upload')?.click()}
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploading ? 'Importando...' : 'Importar Arquivo'}
+            </Button>
+            <Button onClick={openAddDialog} className="gap-2">
+              <Plus className="h-4 w-4" /> Nova Entrada
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

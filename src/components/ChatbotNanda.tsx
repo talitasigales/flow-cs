@@ -33,19 +33,6 @@ export const ChatbotNanda = () => {
     img.src = nandaAvatar;
   }, []);
 
-  useEffect(() => {
-    // Atualizar base de conhecimento completa com REPNA e todos os modelos de PDI
-    const updateKnowledge = async () => {
-      try {
-        const { data } = await supabase.functions.invoke('update-knowledge-complete');
-        console.log('Base de conhecimento completa atualizada:', data);
-      } catch (error) {
-        console.error('Erro ao atualizar base:', error);
-      }
-    };
-    updateKnowledge();
-  }, []);
-
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
