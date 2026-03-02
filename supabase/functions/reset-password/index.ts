@@ -38,27 +38,29 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Validate the caller's token
+    // Validate the caller's token using getClaims
     const token = authHeader.replace('Bearer ', '');
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const { data: userData, error: userError } = await callerClient.auth.getUser(token);
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
     
-    if (userError || !userData?.user) {
-      console.error('Token validation failed:', userError);
+    if (claimsError || !claimsData?.claims) {
+      console.error('Token validation failed:', claimsError);
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const callerUserId = claimsData.claims.sub;
+
     // Check if caller is admin
     const { data: roleData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', userData.user.id)
+      .eq('user_id', callerUserId)
       .eq('role', 'admin')
       .maybeSingle();
 
@@ -91,7 +93,7 @@ serve(async (req) => {
       .update({ password_changed: false })
       .eq('user_id', userId);
 
-    console.log(`Password reset by admin ${userData.user.email} for userId: ${userId}`);
+    console.log(`Password reset by admin ${callerUserId} for userId: ${userId}`);
 
     return new Response(
       JSON.stringify({ 
