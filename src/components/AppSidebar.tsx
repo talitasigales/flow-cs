@@ -216,11 +216,11 @@ export function AppSidebar() {
               <span>(51) 9205-5417</span>
             </a>
             <a
-              href="mailto:isac.rodrigues@grougp.com.br"
+              href="mailto:cs@grougp.com.br"
               className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-primary transition-colors"
             >
               <Mail className="w-3 h-3" />
-              <span>isac.rodrigues@grougp.com.br</span>
+              <span>cs@grougp.com.br</span>
             </a>
           </div>
         </div>
