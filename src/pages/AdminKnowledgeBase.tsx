@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Search, BookOpen, Upload, FileText, Loader2, CheckSquare } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, BookOpen, Upload, FileText, Loader2, CheckSquare, Globe, Link } from 'lucide-react';
 
 interface KnowledgeEntry {
   id: string;
@@ -72,6 +72,13 @@ const AdminKnowledgeBase = () => {
   // File upload state
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useState<HTMLInputElement | null>(null);
+
+  // URL import state
+  const [urlDialogOpen, setUrlDialogOpen] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [urlTitle, setUrlTitle] = useState('');
+  const [urlCategory, setUrlCategory] = useState('Importado');
+  const [importingUrl, setImportingUrl] = useState(false);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -273,6 +280,39 @@ const AdminKnowledgeBase = () => {
     }
   };
 
+  const handleUrlImport = async () => {
+    if (!urlInput.trim()) {
+      toast({ title: 'Digite uma URL', variant: 'destructive' });
+      return;
+    }
+
+    setImportingUrl(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-knowledge-url', {
+        body: { url: urlInput.trim(), title: urlTitle.trim() || undefined, category: urlCategory }
+      });
+
+      if (error) {
+        const errorMsg = (error as any)?.context?.body?.error || error.message;
+        throw new Error(errorMsg);
+      }
+
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: 'URL importada com sucesso!', description: `${data.extractedLength} caracteres extraídos em ${data.totalChunks} parte(s)` });
+      setUrlDialogOpen(false);
+      setUrlInput('');
+      setUrlTitle('');
+      setUrlCategory('Importado');
+      fetchEntries();
+    } catch (error: any) {
+      console.error('URL import error:', error);
+      toast({ title: 'Erro ao importar URL', description: error.message, variant: 'destructive' });
+    } finally {
+      setImportingUrl(false);
+    }
+  };
+
   const filtered = entries.filter(e => {
     const matchSearch =
       !search ||
@@ -298,7 +338,7 @@ const AdminKnowledgeBase = () => {
               <p className="text-sm text-muted-foreground">Gerencie o conteúdo que alimenta as respostas da Nanda</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <input
               type="file"
               accept=".txt,.md,.csv,.json,.pdf,.doc,.docx"
@@ -315,6 +355,13 @@ const AdminKnowledgeBase = () => {
             >
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               {uploading ? 'Importando...' : 'Importar Arquivo'}
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => setUrlDialogOpen(true)}
+            >
+              <Globe className="h-4 w-4" /> Importar URL
             </Button>
             <Button onClick={openAddDialog} className="gap-2">
               <Plus className="h-4 w-4" /> Nova Entrada
@@ -542,6 +589,63 @@ const AdminKnowledgeBase = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* URL Import Dialog */}
+      <Dialog open={urlDialogOpen} onOpenChange={setUrlDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" /> Importar de URL
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="url-input">URL do site *</Label>
+              <Input
+                id="url-input"
+                value={urlInput}
+                onChange={e => setUrlInput(e.target.value)}
+                placeholder="https://exemplo.com/pagina"
+                type="url"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="url-title">Título (opcional)</Label>
+              <Input
+                id="url-title"
+                value={urlTitle}
+                onChange={e => setUrlTitle(e.target.value)}
+                placeholder="Será extraído automaticamente do site se vazio"
+                maxLength={200}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="url-category">Categoria</Label>
+              <Select value={urlCategory} onValueChange={setUrlCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              O conteúdo textual da página será extraído e adicionado à base de conhecimento.
+              Páginas com conteúdo dinâmico (JavaScript) podem não ser totalmente extraídas.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUrlDialogOpen(false)} disabled={importingUrl}>Cancelar</Button>
+            <Button onClick={handleUrlImport} disabled={importingUrl} className="gap-2">
+              {importingUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+              {importingUrl ? 'Importando...' : 'Importar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

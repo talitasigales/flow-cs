@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.nanda-chat]
 verify_jwt = false
+
+[functions.import-knowledge-url]
+verify_jwt = false
