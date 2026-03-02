@@ -30,7 +30,7 @@ export function ModuleHero({ module, progress }: ModuleHeroProps) {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: module.thumbnail_url 
-            ? `url(${module.thumbnail_url})` 
+            ? `url(${module.thumbnail_url}), url(${module.thumbnail_url.replace('.png', '.jpg')})` 
             : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%)',
         }}
       >
