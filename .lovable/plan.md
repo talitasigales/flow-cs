@@ -1,27 +1,27 @@
-## Sugestões para tornar a rede social mais inovadora
 
-Baseado no que já existe (comunidade com posts, follows, mensagens, perfis com dados PDA/REPNA), aqui estão ideias organizadas por impacto:
 
-### 1. Feed "Seguindo" + Algoritmo de relevância
+## Problem
 
-- Aba no feed para ver apenas posts de quem o usuário segue
-- Ordenação por relevância (likes + comentários recentes) além de cronológico
-- Posts "em alta" destacados no topo
+The `reset-password` edge function is **not listed in `supabase/config.toml`**, so it defaults to `verify_jwt = true`. Supabase's gateway rejects the JWT before the function code executes, returning a non-2xx error. The function never gets to run its own auth logic.
 
-### 3. Perfil público enriquecido
+Additionally, the CORS `Access-Control-Allow-Headers` is missing several headers that the Supabase JS client sends, which could cause preflight failures.
 
-- Página de perfil visível por outros membros com: bio, empresa, cargo, perfil PDA, posts publicados, número de seguidores/seguindo
-  &nbsp;
+## Fix
 
-### 4. Sistema de reações expandido
+### 1. Add `reset-password` to `supabase/config.toml`
 
-- Além do like, adicionar reações como: 🔥 Inspirador, 💡 Útil, 👏 Parabéns (similar ao LinkedIn)
-- Mostra contagem por tipo de reação
+```toml
+[functions.reset-password]
+verify_jwt = false
+```
 
-### 5. Menções e notificações
+### 2. Update CORS headers in the edge function
 
-- Mencionar outros usuários com @nome nos posts e comentários
-- Centro de notificações: "Fulano começou a te seguir", "Seu post recebeu 5 likes", "Fulano mencionou você"
-- Badge de notificação no sidebar
+Update the `Access-Control-Allow-Headers` to include all headers the Supabase client sends:
 
----
+```
+authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version
+```
+
+These are two small, targeted changes that should resolve the issue completely.
+
