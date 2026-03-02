@@ -42,6 +42,40 @@ async function extractTextFromPDF(pdfData: ArrayBuffer): Promise<string> {
   }
 }
 
+async function extractTextFromDOCX(data: ArrayBuffer): Promise<string> {
+  try {
+    const JSZip = (await import('npm:jszip@3.10.1')).default;
+    const zip = await JSZip.loadAsync(data);
+    
+    const docXml = zip.file('word/document.xml');
+    if (!docXml) {
+      throw new Error('document.xml not found in DOCX');
+    }
+    
+    const xmlContent = await docXml.async('text');
+    
+    // Extract text by splitting on paragraph endings
+    const parts = xmlContent.split(/<\/w:p>/);
+    const paragraphs: string[] = [];
+    for (const part of parts) {
+      const texts = part.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
+      if (texts) {
+        const paraText = texts
+          .map((t: string) => t.replace(/<w:t[^>]*>/, '').replace(/<\/w:t>/, ''))
+          .join('');
+        if (paraText.trim()) {
+          paragraphs.push(paraText.trim());
+        }
+      }
+    }
+    
+    return paragraphs.join('\n\n');
+  } catch (e) {
+    console.error('DOCX extraction failed:', e);
+    throw new Error('Não foi possível extrair texto do DOCX.');
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -107,6 +141,11 @@ serve(async (req) => {
       const arrayBuffer = await fileData.arrayBuffer();
       extractedText = await extractTextFromPDF(arrayBuffer);
       console.log(`PDF extraction result: ${extractedText.length} chars`);
+    } else if (ext === 'docx' || ext === 'doc') {
+      console.log('Extracting text from DOCX...');
+      const arrayBuffer = await fileData.arrayBuffer();
+      extractedText = await extractTextFromDOCX(arrayBuffer);
+      console.log(`DOCX extraction result: ${extractedText.length} chars`);
     } else if (ext === 'txt' || ext === 'md' || ext === 'csv') {
       extractedText = await fileData.text();
     } else if (ext === 'json') {
