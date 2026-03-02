@@ -2,27 +2,34 @@
 
 ## Problema
 
-O `pdfjs-dist` no ambiente Deno Edge Functions não consegue extrair todo o texto de PDFs — o arquivo "Masterclass Construção de Cargo 2025" que deveria ter muito conteúdo ficou com apenas 933 caracteres. Os warnings de `Path2D` e `DOMMatrix` confirmam que a biblioteca não funciona bem nesse ambiente.
+O link de redefinição de senha enviado pelo Supabase redireciona para uma página quebrada. Isso acontece por **dois motivos**:
 
-## Solução: Fallback com IA (Vision) para PDFs com extração fraca
+1. **Configuração do Supabase Auth** — O "Site URL" no painel do Supabase provavelmente aponta para `localhost:3000` ou para o preview do Lovable, e não para `cs.grougp.com.br`. Isso faz o link no email ser inválido. **Isso precisa ser configurado manualmente no painel do Supabase** (não é possível alterar via código).
 
-### Abordagem
+2. **Código do `redirectTo`** — O `Auth.tsx` usa `window.location.origin`, que funciona se o usuário estiver acessando de `cs.grougp.com.br`, mas o Supabase tem uma lista de Redirect URLs permitidas que precisa incluir esse domínio.
 
-1. **Manter `pdfjs-dist` como tentativa primária** (rápido e gratuito quando funciona)
-2. **Adicionar fallback com a Lovable API (GPT-4o)** quando o texto extraído for curto demais:
-   - Converter o PDF para base64
-   - Enviar como documento para o modelo via API, pedindo extração de todo o texto
-   - Usar o `LOVABLE_API_KEY` que já está configurado no projeto
-3. **Critério de fallback**: se o texto extraído tiver menos de 500 caracteres ou menos de 100 palavras significativas, acionar o fallback
+## O que precisa ser feito
 
-### Alterações
+### 1. Configuração no Supabase Dashboard (manual, obrigatório)
+Acesse [Auth → URL Configuration](https://supabase.com/dashboard/project/hapzzpwywnahovmddlej/auth/url-configuration):
 
-**`supabase/functions/parse-knowledge-file/index.ts`**:
-- Adicionar função `extractPdfWithVisionAPI(pdfBytes)` que envia o PDF base64 para a Lovable API com prompt de extração
-- Modificar `extractTextFromPDF` para verificar qualidade do resultado e chamar fallback automaticamente
-- Logar qual método foi usado (nativo vs vision) para debugging
+- **Site URL**: `https://cs.grougp.com.br`
+- **Redirect URLs** (adicionar todos):
+  - `https://cs.grougp.com.br/reset-password`
+  - `https://flow-cs.lovable.app/reset-password`
+  - `https://cs.grougp.com.br/**`
 
-### Limitações
-- PDFs muito grandes (>20MB) podem exceder limites da API — nesse caso mantém a extração nativa
-- O fallback consome créditos da API, mas só é acionado quando necessário
+### 2. Alteração no código — Hardcode do redirectTo (mudança no código)
+Alterar `Auth.tsx` para usar `https://cs.grougp.com.br/reset-password` como URL fixa de redirect, em vez de depender de `window.location.origin` (que pode ser o preview do Lovable):
+
+```typescript
+redirectTo: 'https://cs.grougp.com.br/reset-password'
+```
+
+### 3. Melhoria no ResetPassword.tsx — tratamento de erro
+Adicionar tratamento para quando o token é inválido ou expirou, em vez de mostrar uma página quebrada com spinner infinito. Exibir mensagem clara com link para solicitar novo email.
+
+## Resumo das alterações em código
+- **`src/pages/Auth.tsx`**: Fixar `redirectTo` para `https://cs.grougp.com.br/reset-password`
+- **`src/pages/ResetPassword.tsx`**: Adicionar timeout e mensagem de erro quando o link é inválido/expirado
 
