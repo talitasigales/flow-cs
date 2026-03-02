@@ -21,7 +21,6 @@ serve(async (req) => {
       );
     }
 
-    // Verify the caller is an authenticated admin
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
@@ -33,23 +32,29 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
+    // Validate the caller's token using the Auth REST API directly
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        'Authorization': authHeader,
+        'apikey': serviceRoleKey,
+      },
     });
 
-    // Validate the caller's token using admin client (service role can verify any token)
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (userError || !userData?.user) {
-      console.error('Token validation failed:', userError);
+    if (!userResponse.ok) {
+      const errorBody = await userResponse.text();
+      console.error('Token validation failed:', errorBody);
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const callerUserId = userData.user.id;
+    const callerUser = await userResponse.json();
+    const callerUserId = callerUser.id;
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
 
     // Check if caller is admin
     const { data: roleData } = await supabaseAdmin
