@@ -64,20 +64,21 @@ export default function Auth() {
     }
     setForgotLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://flow-cs.lovable.app/reset-password',
+      const { data, error } = await supabase.functions.invoke('request-password-reset', {
+        body: { email },
       });
       if (error) throw error;
-      toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
-      setForgotCooldown(120);
-      setMode('login');
-    } catch (error: any) {
-      if (error.message?.includes('rate limit') || error.status === 429) {
-        setForgotCooldown(120);
-        toast.error('Muitas tentativas em pouco tempo. Aguarde 2 minutos antes de tentar novamente.', { duration: 6000 });
+
+      if (data?.success && data?.actionLink) {
+        toast.success('Redirecionando para redefinição de senha...');
+        // Redirect directly to the Supabase recovery link
+        // This establishes the recovery session and redirects to /reset-password
+        window.location.href = data.actionLink;
       } else {
-        toast.error(error.message || 'Erro ao enviar email de redefinição');
+        toast.error(data?.message || 'Email não encontrado. Verifique e tente novamente.');
       }
+    } catch (error: any) {
+      toast.error('Erro ao solicitar redefinição de senha. Tente novamente.');
     } finally {
       setForgotLoading(false);
     }
