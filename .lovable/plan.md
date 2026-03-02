@@ -1,32 +1,61 @@
 
 
-## Plan: Admin Knowledge Base Management Page
+## Diagnóstico do Problema
 
-### What
-Create a new admin-only page where admins can view, add, edit, and delete knowledge base entries that power Nanda's responses.
+O fluxo atual tem uma falha crítica: o componente `ChatbotNanda.tsx` chama a edge function `update-knowledge-complete` **toda vez que é montado**, e essa função **apaga toda a base de conhecimento** e reinsere dados hardcoded. Isso significa que qualquer conteúdo adicionado pelo admin na página de Base de Conhecimento é **destruído** quando alguém abre o chatbot.
 
-### Approach
+Além disso, a busca na `nanda-chat` é limitada (full-text search com limite de 3 docs, fallback de apenas 4), e não há suporte para upload de arquivos.
 
-**1. New page: `src/pages/AdminKnowledgeBase.tsx`**
-- Admin guard using `useIsAdmin` hook (same pattern as AdminUsers)
-- Display existing knowledge base entries in a table (title, category, keywords count, content preview, actions)
-- "Add New" button opens a dialog with form fields: title, category, content (textarea), keywords (comma-separated input)
-- Edit button opens the same dialog pre-filled
-- Delete button with confirmation dialog
-- All CRUD operations use the Supabase client directly (RLS already allows admin full access via `has_role` policy)
+---
 
-**2. Update routing: `src/App.tsx`**
-- Add route `/admin/knowledge-base` pointing to the new page
+## Plano de Correção e Melhorias
 
-**3. Update sidebar: `src/components/AppSidebar.tsx`**
-- Add "Base de Conhecimento" to the admin menu items (under Administração section)
+### 1. Remover a chamada destrutiva ao `update-knowledge-complete`
 
-### Technical Details
+- Remover o `useEffect` em `ChatbotNanda.tsx` que chama `update-knowledge-complete` a cada montagem
+- Verificar se `ChatNanda.tsx` tem comportamento similar e corrigir
+- A base de conhecimento passa a ser gerenciada **exclusivamente** pela interface admin
 
-- The `knowledge_base` table already has proper RLS: admins have ALL access, authenticated users have SELECT
-- No database migrations needed
-- CRUD uses `supabase.from('knowledge_base')` with `as any` cast (same pattern used elsewhere since the type isn't in the generated types)
-- Form validation with required fields: title, category, content
-- Keywords stored as text array (user inputs comma-separated, code splits into array)
-- Categories offered as a select dropdown with existing categories (Fundamentos, Modelos PDI, Guia PDI, Metodologias, Plataforma, Diferenciais, Aplicação) plus option to type custom
+### 2. Adicionar upload de arquivos na Base de Conhecimento
+
+- Criar edge function `parse-knowledge-file` que recebe arquivos (PDF, TXT, DOCX) e extrai o texto
+- Adicionar botão "Importar Arquivo" na página `AdminKnowledgeBase.tsx`
+- O admin faz upload, o conteúdo é extraído e inserido como uma nova entrada (título derivado do nome do arquivo, conteúdo extraído)
+- Usar o bucket `module-materials` existente ou criar um novo `knowledge-files`
+
+### 3. Melhorar a busca de contexto no `nanda-chat`
+
+- Aumentar limite de documentos retornados (de 3 para 5)
+- Adicionar busca por keywords além de full-text no content
+- Aumentar o fallback de 4 para buscar todos os documentos disponíveis (com limite razoável de ~10)
+- Incluir o campo `keywords` no contexto enviado ao modelo
+
+### 4. Adicionar suporte a FAQs na interface admin
+
+- Adicionar categoria "FAQ" às categorias padrão
+- Adicionar campo opcional "Pergunta Frequente" no formulário de criação/edição, para facilitar a organização de perguntas e respostas
+- A Nanda priorizará FAQs quando a pergunta do usuário tiver alta correspondência
+
+---
+
+## Detalhes Técnicos
+
+**Arquivos a modificar:**
+- `src/components/ChatbotNanda.tsx` — remover useEffect de update-knowledge
+- `src/pages/AdminKnowledgeBase.tsx` — adicionar upload de arquivo e categoria FAQ
+- `supabase/functions/nanda-chat/index.ts` — melhorar busca de contexto (keywords + mais docs)
+- Criar `supabase/functions/parse-knowledge-file/index.ts` — extração de texto de arquivos
+- Criar migration para bucket de storage `knowledge-files`
+- Atualizar `supabase/config.toml` com nova function
+
+**Fluxo resultante:**
+```text
+Admin adiciona conteúdo (texto manual ou upload de arquivo)
+        ↓
+  knowledge_base (tabela Supabase)
+        ↓
+  nanda-chat busca contexto relevante (keywords + full-text)
+        ↓
+  Nanda responde com base no conteúdo atualizado
+```
 
