@@ -69,11 +69,12 @@ export default function Auth() {
       });
       if (error) throw error;
       toast.success('Email de redefinição enviado! Verifique sua caixa de entrada.');
-      setForgotCooldown(60);
+      setForgotCooldown(120);
       setMode('login');
     } catch (error: any) {
       if (error.message?.includes('rate limit') || error.status === 429) {
-        toast.error('Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.', { duration: 6000 });
+        setForgotCooldown(120);
+        toast.error('Muitas tentativas em pouco tempo. Aguarde 2 minutos antes de tentar novamente.', { duration: 6000 });
       } else {
         toast.error(error.message || 'Erro ao enviar email de redefinição');
       }
