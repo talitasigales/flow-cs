@@ -24,23 +24,15 @@ export function UserAvatarMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group">
+          <button className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-primary/30 transition-all group">
             <div className="relative">
-              <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+              <Avatar className="h-9 w-9 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
                 <AvatarImage src="" alt={user?.email || ''} />
-                <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-sm">
                   {user?.email ? getInitials(user.email) : 'U'}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-sidebar" />
-            </div>
-            <div className="flex-1 text-left overflow-hidden group-data-[collapsible=icon]:hidden">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {user?.email?.split('@')[0] || 'Usuário'}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email || 'email@exemplo.com'}
-              </p>
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-success rounded-full border-2 border-background" />
             </div>
           </button>
         </DropdownMenuTrigger>
