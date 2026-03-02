@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,28 +30,24 @@ serve(async (req) => {
       );
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
-    // Validate the caller's token and check admin role
-    const callerClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
 
+    // Validate the caller's token
     const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getUser(token);
+    const callerClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: userData, error: userError } = await callerClient.auth.getUser(token);
     
-    if (claimsError || !claimsData?.user) {
+    if (userError || !userData?.user) {
+      console.error('Token validation failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -62,7 +58,7 @@ serve(async (req) => {
     const { data: roleData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', claimsData.user.id)
+      .eq('user_id', userData.user.id)
       .eq('role', 'admin')
       .maybeSingle();
 
@@ -73,47 +69,47 @@ serve(async (req) => {
       );
     }
 
-    // Search for target user by email
+    // Find target user by email using admin API
     const normalizedEmail = email.trim().toLowerCase();
-    let user = null;
-    let page = 1;
-    const perPage = 50;
+    console.log(`Looking for user with email: ${normalizedEmail}`);
     
-    while (!user) {
-      const { data, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-        page,
-        perPage,
-      });
-      
-      if (listError) {
-        throw new Error(`Error listing users: ${listError.message}`);
-      }
-      
-      user = data?.users?.find(u => u.email?.toLowerCase() === normalizedEmail) || null;
-      
-      if (!data?.users || data.users.length < perPage) {
-        break;
-      }
-      page++;
+    // Use listUsers to find the user - fetch all in one go
+    const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+
+    if (listError) {
+      console.error('Error listing users:', listError);
+      throw new Error(`Error listing users: ${listError.message}`);
     }
+
+    const users = listData?.users || [];
+    console.log(`Found ${users.length} total users`);
     
-    if (!user) {
+    const targetUser = users.find(u => u.email?.toLowerCase() === normalizedEmail);
+
+    if (!targetUser) {
+      console.error(`User not found. Available emails: ${users.map(u => u.email).join(', ')}`);
       return new Response(
         JSON.stringify({ error: 'Usuário não encontrado' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Generate provisional password (random 8-char string)
+    console.log(`Found user: ${targetUser.id} (${targetUser.email})`);
+
+    // Generate provisional password
     const provisionalPassword = newPassword || generateSecurePassword();
 
     // Update password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      targetUser.id,
       { password: provisionalPassword }
     );
 
     if (updateError) {
+      console.error('Error updating password:', updateError);
       throw new Error(`Error updating password: ${updateError.message}`);
     }
 
@@ -121,15 +117,15 @@ serve(async (req) => {
     await supabaseAdmin
       .from('profiles')
       .update({ password_changed: false })
-      .eq('user_id', user.id);
+      .eq('user_id', targetUser.id);
 
-    console.log(`Password reset by admin ${claimsData.user.email} for user: ${user.email} (${user.id})`);
+    console.log(`Password reset by admin ${userData.user.email} for user: ${targetUser.email}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Senha resetada com sucesso',
-        provisionalPassword: provisionalPassword 
+        provisionalPassword 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
