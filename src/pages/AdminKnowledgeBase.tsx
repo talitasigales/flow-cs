@@ -200,7 +200,8 @@ const AdminKnowledgeBase = () => {
 
     setUploading(true);
     try {
-      const filePath = `${Date.now()}-${file.name}`;
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filePath = `${Date.now()}-${sanitizedName}`;
       const { error: uploadError } = await supabase.storage
         .from('knowledge-files')
         .upload(filePath, file);
