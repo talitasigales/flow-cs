@@ -192,8 +192,8 @@ const AdminKnowledgeBase = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'Arquivo muito grande', description: 'O limite é 5MB', variant: 'destructive' });
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ title: 'Arquivo muito grande', description: 'O limite é 20MB', variant: 'destructive' });
       e.target.value = '';
       return;
     }
