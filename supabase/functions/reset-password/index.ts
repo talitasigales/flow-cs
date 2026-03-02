@@ -43,17 +43,18 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
     
-    if (userError || !userData?.user) {
-      console.error('Token validation failed:', userError);
+    if (claimsError || !claimsData?.claims) {
+      console.error('Token validation failed:', claimsError);
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const callerUserId = userData.user.id;
+    const callerUserId = claimsData.claims.sub as string;
 
     // Check if caller is admin
     const { data: roleData } = await supabaseAdmin
