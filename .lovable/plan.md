@@ -1,45 +1,28 @@
 
 
-## Problema Atual
+## Problema
 
-A busca de contexto da Nanda tem limitações significativas:
+O `pdfjs-dist` no ambiente Deno Edge Functions não consegue extrair todo o texto de PDFs — o arquivo "Masterclass Construção de Cargo 2025" que deveria ter muito conteúdo ficou com apenas 933 caracteres. Os warnings de `Path2D` e `DOMMatrix` confirmam que a biblioteca não funciona bem nesse ambiente.
 
-1. **Documentos importados ficam como uma entrada gigante** (38K-50K caracteres) - ao ser encontrado, o documento inteiro vai como contexto, estourando limites de tokens
-2. **Keywords são geradas apenas do nome do arquivo** (ex: "manual", "técnico", "pda") - não refletem o conteúdo real
-3. **A busca ILIKE com palavras individuais** é imprecisa em documentos grandes - quase sempre encontra algo, mas envia o documento inteiro
+## Solução: Fallback com IA (Vision) para PDFs com extração fraca
 
-## Solução: Chunking + Auto-Keywords
+### Abordagem
 
-### 1. Dividir documentos em chunks na importação (`parse-knowledge-file`)
+1. **Manter `pdfjs-dist` como tentativa primária** (rápido e gratuito quando funciona)
+2. **Adicionar fallback com a Lovable API (GPT-4o)** quando o texto extraído for curto demais:
+   - Converter o PDF para base64
+   - Enviar como documento para o modelo via API, pedindo extração de todo o texto
+   - Usar o `LOVABLE_API_KEY` que já está configurado no projeto
+3. **Critério de fallback**: se o texto extraído tiver menos de 500 caracteres ou menos de 100 palavras significativas, acionar o fallback
 
-Ao importar um arquivo, em vez de criar UMA entrada com todo o conteúdo, dividir em múltiplas entradas menores (~2000 caracteres cada), cada uma com:
-- Titulo: `"Nome do Arquivo - Parte 1"`, `"Parte 2"`, etc.
-- Keywords geradas automaticamente do conteúdo de cada chunk (palavras mais frequentes e relevantes)
-- Mesma categoria
+### Alterações
 
-Isso permite que a busca encontre apenas os trechos relevantes, não o documento inteiro.
+**`supabase/functions/parse-knowledge-file/index.ts`**:
+- Adicionar função `extractPdfWithVisionAPI(pdfBytes)` que envia o PDF base64 para a Lovable API com prompt de extração
+- Modificar `extractTextFromPDF` para verificar qualidade do resultado e chamar fallback automaticamente
+- Logar qual método foi usado (nativo vs vision) para debugging
 
-### 2. Melhorar geração de keywords por chunk
-
-Extrair as palavras mais significativas de cada chunk (excluindo stopwords), selecionando as 10-15 mais frequentes como keywords. Isso torna a busca por overlap de keywords muito mais eficaz.
-
-### 3. Melhorar a busca no `nanda-chat`
-
-- Aumentar o limite de documentos retornados
-- Adicionar um limite de caracteres total no contexto enviado (~15K chars) para não estourar o prompt
-- Priorizar chunks com mais palavras em comum com a pergunta
-
-### Detalhes Técnicos
-
-**`parse-knowledge-file/index.ts`**:
-- Após extrair o texto, dividir em chunks de ~2000 chars respeitando quebras de parágrafo
-- Para cada chunk, gerar keywords automaticamente (top 15 palavras com >3 chars, excluindo stopwords em português)
-- Inserir múltiplas linhas na `knowledge_base` em vez de uma
-
-**`nanda-chat/index.ts`**:
-- Limitar o contexto total a ~15.000 caracteres para caber no prompt
-- Manter as 3 estratégias de busca existentes, mas com melhor ranqueamento
-- Ordenar resultados por relevância (mais keywords em comum primeiro)
-
-**Nenhuma mudança no banco de dados** - a tabela `knowledge_base` já suporta tudo necessário.
+### Limitações
+- PDFs muito grandes (>20MB) podem exceder limites da API — nesse caso mantém a extração nativa
+- O fallback consome créditos da API, mas só é acionado quando necessário
 
