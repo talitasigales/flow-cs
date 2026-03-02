@@ -5,6 +5,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+async function extractTextFromPDF(pdfData: ArrayBuffer): Promise<string> {
+  try {
+    const { getDocument } = await import('https://esm.sh/pdfjs-dist@4.0.379/build/pdf.min.mjs');
+    
+    const pdf = await getDocument({ data: new Uint8Array(pdfData) }).promise;
+    const textParts: string[] = [];
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      if (pageText.trim()) {
+        textParts.push(pageText);
+      }
+    }
+    
+    return textParts.join('\n\n');
+  } catch (e) {
+    console.error('pdfjs-dist extraction failed, trying raw text:', e);
+    // Fallback: decode as raw text (works for some PDFs with embedded text)
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    const rawText = decoder.decode(new Uint8Array(pdfData));
+    // Extract readable strings from PDF binary
+    const readable = rawText.match(/[\x20-\x7E\xC0-\xFF]{4,}/g);
+    return readable ? readable.join(' ') : '';
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -66,7 +96,12 @@ serve(async (req) => {
     const ext = fileName.toLowerCase().split('.').pop();
     let extractedText = '';
 
-    if (ext === 'txt' || ext === 'md' || ext === 'csv') {
+    if (ext === 'pdf') {
+      console.log('Extracting text from PDF...');
+      const arrayBuffer = await fileData.arrayBuffer();
+      extractedText = await extractTextFromPDF(arrayBuffer);
+      console.log(`PDF extraction result: ${extractedText.length} chars`);
+    } else if (ext === 'txt' || ext === 'md' || ext === 'csv') {
       extractedText = await fileData.text();
     } else if (ext === 'json') {
       const jsonText = await fileData.text();
@@ -77,12 +112,11 @@ serve(async (req) => {
         extractedText = jsonText;
       }
     } else {
-      // For PDF and other binary formats, extract raw text
       extractedText = await fileData.text();
     }
 
     if (!extractedText.trim()) {
-      return new Response(JSON.stringify({ error: 'Não foi possível extrair texto do arquivo. Use arquivos .txt, .md ou .csv para melhores resultados.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ error: 'Não foi possível extrair texto do arquivo. Para PDFs, verifique se o documento contém texto selecionável (não apenas imagens escaneadas).' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Truncate if too long (max ~50k chars)
