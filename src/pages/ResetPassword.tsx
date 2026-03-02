@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, Lock, CheckCircle } from 'lucide-react';
+import { Loader2, Lock, CheckCircle, AlertTriangle } from 'lucide-react';
 import grouLogo from '@/assets/grou-logo-laranja.png';
 
 export default function ResetPassword() {
@@ -15,24 +15,35 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [expired, setExpired] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase handles the token exchange automatically via onAuthStateChange
+    let timeout: ReturnType<typeof setTimeout>;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true);
+        clearTimeout(timeout);
       }
     });
 
-    // Also check if there's already a session (user clicked the link)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSessionReady(true);
+        clearTimeout(timeout);
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Timeout: se após 8s não tiver sessão, o link é inválido/expirado
+    timeout = setTimeout(() => {
+      setExpired(true);
+    }, 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -97,6 +108,16 @@ export default function ResetPassword() {
                 <p className="text-center text-muted-foreground">
                   Senha redefinida! Redirecionando...
                 </p>
+              </div>
+            ) : expired && !sessionReady ? (
+              <div className="flex flex-col items-center gap-4 py-4">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
+                <p className="text-center text-muted-foreground">
+                  Este link de redefinição é inválido ou expirou.
+                </p>
+                <Button variant="outline" onClick={() => navigate('/auth')}>
+                  Solicitar novo link
+                </Button>
               </div>
             ) : !sessionReady ? (
               <div className="flex flex-col items-center gap-4 py-4">
