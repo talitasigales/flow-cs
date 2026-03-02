@@ -12,6 +12,7 @@ import ProfileEvolution from "./pages/ProfileEvolution";
 import ChatNanda from "./pages/ChatNanda";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
+import AdminKnowledgeBase from "./pages/AdminKnowledgeBase";
 import PDI from "./pages/PDI";
 import PDIDetail from "./pages/PDIDetail";
 import PDIGuide from "./pages/PDIGuide";
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/chat-nanda" element={<ChatNanda />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
+          <Route path="/admin/knowledge-base" element={<AdminKnowledgeBase />} />
           <Route path="/pdi" element={<PDI />} />
           <Route path="/pdi/new" element={<PDICreate />} />
           <Route path="/pdi/guide" element={<PDIGuide />} />
