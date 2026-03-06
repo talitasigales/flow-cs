@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Wrench,
   Sparkles,
+  Video,
 } from 'lucide-react';
 import {
   Sidebar,

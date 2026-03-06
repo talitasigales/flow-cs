@@ -21,6 +21,7 @@ import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
 import Community from "./pages/Community";
+import Webinars from "./pages/Webinars";
 import CommunityPost from "./pages/CommunityPost";
 import Messages from "./pages/Messages";
 import ChatConversation from "./pages/ChatConversation";
