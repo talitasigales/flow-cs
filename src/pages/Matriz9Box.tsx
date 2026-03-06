@@ -797,7 +797,7 @@ export default function Matriz9Box() {
               <div className="grid grid-cols-4 gap-3 mt-4">
                 <div className="w-20" />
                 <div className="col-span-3 text-center font-bold text-sm uppercase tracking-wider text-muted-foreground">
-                  Desempenho
+                  Compatibilidade com o Cargo
                 </div>
               </div>
             </div>
