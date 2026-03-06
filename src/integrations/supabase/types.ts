@@ -992,6 +992,45 @@ export type Database = {
         }
         Relationships: []
       }
+      webinars: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          presenter: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+          webinar_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          presenter?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+          webinar_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          presenter?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+          webinar_date?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       public_profiles: {

@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Wrench,
   Sparkles,
+  Video,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -206,7 +207,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {renderTopLevelItem('Trilhas de Sucesso', GraduationCap, '/dashboard', 0)}
-              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
+              {renderTopLevelItem('Webinars', Video, '/webinars', 1)}
+              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 2)}
               {renderCollapsible(
                 'Comunidade',
                 Users2,
@@ -214,10 +216,10 @@ export function AppSidebar() {
                 setOpenCommunity,
                 isInCommunity,
                 communitySubItems,
-                2,
+                3,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 3)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

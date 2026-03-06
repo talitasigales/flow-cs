@@ -21,6 +21,7 @@ import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
 import Community from "./pages/Community";
+import Webinars from "./pages/Webinars";
 import CommunityPost from "./pages/CommunityPost";
 import Messages from "./pages/Messages";
 import ChatConversation from "./pages/ChatConversation";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/job-construction" element={<JobConstruction />} />
           <Route path="/job-construction/result" element={<JobConstructionResult />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/webinars" element={<Webinars />} />
           <Route path="/community/:postId" element={<CommunityPost />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/members" element={<Members />} />
