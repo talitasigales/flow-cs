@@ -696,7 +696,7 @@ export default function Matriz9Box() {
             {/* Y-axis label (outside grid) */}
             <div className="absolute -left-12 top-1/2 transform -translate-y-1/2">
               <div className="transform -rotate-90 whitespace-nowrap font-bold text-sm uppercase tracking-wider text-muted-foreground">
-                Fit com a Função
+                Desempenho
               </div>
             </div>
 
