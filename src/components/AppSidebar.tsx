@@ -216,10 +216,10 @@ export function AppSidebar() {
                 setOpenCommunity,
                 isInCommunity,
                 communitySubItems,
-                2,
+                3,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 3)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
