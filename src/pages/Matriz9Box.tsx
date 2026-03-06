@@ -696,7 +696,7 @@ export default function Matriz9Box() {
             {/* Y-axis label (outside grid) */}
             <div className="absolute -left-12 top-1/2 transform -translate-y-1/2">
               <div className="transform -rotate-90 whitespace-nowrap font-bold text-sm uppercase tracking-wider text-muted-foreground">
-                Fit com a Função
+                Desempenho
               </div>
             </div>
 
@@ -711,17 +711,17 @@ export default function Matriz9Box() {
               </div>
 
               {/* Rows */}
-              {[3, 2, 1].map(roleFit => (
-                <div key={roleFit} className="grid grid-cols-4 gap-3 mb-3">
+              {[3, 2, 1].map(performance => (
+                <div key={performance} className="grid grid-cols-4 gap-3 mb-3">
                   {/* Row Label */}
                   <div className="w-20 flex items-center justify-end pr-3">
                     <span className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
-                      {roleFit === 3 ? 'Alto' : roleFit === 2 ? 'Médio' : 'Baixo'}
+                      {performance === 3 ? 'Alto' : performance === 2 ? 'Médio' : 'Baixo'}
                     </span>
                   </div>
 
                   {/* Cells */}
-                  {[1, 2, 3].map(performance => {
+                  {[1, 2, 3].map(roleFit => {
                     const cellEntries = getEntriesForCell(performance, roleFit);
                     const category = getCategoryForScore(performance, roleFit);
                     
@@ -797,7 +797,7 @@ export default function Matriz9Box() {
               <div className="grid grid-cols-4 gap-3 mt-4">
                 <div className="w-20" />
                 <div className="col-span-3 text-center font-bold text-sm uppercase tracking-wider text-muted-foreground">
-                  Desempenho
+                  Compatibilidade com o Cargo
                 </div>
               </div>
             </div>

@@ -1,22 +1,36 @@
 
 
-## Plan: Swap 9Box Matrix Axes (Y=Desempenho, X=Compatibilidade)
+## Problem
 
-### Problem
-Currently the matrix has **Desempenho (Performance) on the X-axis** (columns) and **Fit com a Função on the Y-axis** (rows). The user wants them **swapped**: Desempenho on Y, Compatibilidade/Fit on X.
+The `reset-password` edge function fails with "Token inválido" because on line 49:
+```typescript
+await supabaseAuth.auth.getUser(token)
+```
+When you pass the token directly to `getUser()`, it bypasses the Authorization header and attempts to resolve a local session, which doesn't exist in edge functions — hence `AuthSessionMissingError`.
 
-### Changes in `src/pages/Matriz9Box.tsx`
+## Fix
 
-1. **Swap grid iteration (desktop view, ~line 714-794)**:
-   - Outer loop (rows): change from iterating `roleFit` values `[3,2,1]` to iterating `performance` values `[3,2,1]`
-   - Inner loop (columns): change from iterating `performance` values `[1,2,3]` to iterating `roleFit` values `[1,2,3]`
-   - Update `getEntriesForCell` call params accordingly
+One-line change in `supabase/functions/reset-password/index.ts`:
 
-2. **Swap axis labels**:
-   - Y-axis label (~line 699): change from "Fit com a Função" to "Desempenho"
-   - X-axis label (~line 800): change from "Desempenho" to "Compatibilidade com o Cargo"
+1. **Remove the `token` variable** (line 42) — it's no longer needed.
+2. **Call `getUser()` without arguments** (line 49) — this makes the client use the `Authorization` header from the global config to validate the user.
 
-3. **CATEGORIES definitions stay the same** -- their `performance` and `roleFit` values are already semantically correct; only the visual axis placement changes.
+```typescript
+// Before (broken):
+const token = authHeader.replace('Bearer ', '');
+const supabaseAuth = createClient(supabaseUrl, anonKey, {
+  global: { headers: { Authorization: authHeader } },
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
 
-4. **No database changes needed** -- the `performance` and `potential` (fit) columns remain as-is.
+// After (fixed):
+const supabaseAuth = createClient(supabaseUrl, anonKey, {
+  global: { headers: { Authorization: authHeader } },
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
+```
+
+3. **Deploy and test** by calling the function from the admin page.
 
