@@ -711,17 +711,17 @@ export default function Matriz9Box() {
               </div>
 
               {/* Rows */}
-              {[3, 2, 1].map(roleFit => (
-                <div key={roleFit} className="grid grid-cols-4 gap-3 mb-3">
+              {[3, 2, 1].map(performance => (
+                <div key={performance} className="grid grid-cols-4 gap-3 mb-3">
                   {/* Row Label */}
                   <div className="w-20 flex items-center justify-end pr-3">
                     <span className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
-                      {roleFit === 3 ? 'Alto' : roleFit === 2 ? 'Médio' : 'Baixo'}
+                      {performance === 3 ? 'Alto' : performance === 2 ? 'Médio' : 'Baixo'}
                     </span>
                   </div>
 
                   {/* Cells */}
-                  {[1, 2, 3].map(performance => {
+                  {[1, 2, 3].map(roleFit => {
                     const cellEntries = getEntriesForCell(performance, roleFit);
                     const category = getCategoryForScore(performance, roleFit);
                     
