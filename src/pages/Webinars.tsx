@@ -33,14 +33,14 @@ interface Webinar {
   created_at: string;
 }
 
+function getYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
 function getYouTubeEmbedUrl(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return `https://www.youtube.com/embed/${match[1]}`;
-  }
+  const id = getYouTubeId(url);
+  if (id) return `https://www.youtube.com/embed/${id}`;
   return null;
 }
 
