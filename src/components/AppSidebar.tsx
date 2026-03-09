@@ -73,6 +73,7 @@ const academyEnrolledItems = [
 
 const trilhasPaths = trilhasSubItems.map(i => i.path);
 const toolsPaths = toolsSubItems.map(i => i.path);
+const communityPaths = ['/community', '/members', '/messages'];
 
 export function AppSidebar() {
   const navigate = useNavigate();
