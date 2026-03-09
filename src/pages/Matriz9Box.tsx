@@ -449,7 +449,7 @@ const Matriz9Box = () => {
             </div>
 
             <p className="text-center text-[11px] font-bold tracking-widest text-muted-foreground mt-3">
-              DESEMPENHO (ENTREGA TÉCNICA)
+              COMPATIBILIDADE COM O CARGO PDA
             </p>
           </div>
         </div>
