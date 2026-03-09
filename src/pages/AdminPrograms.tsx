@@ -33,7 +33,7 @@ const QUESTION_LABELS: Record<string, string> = {
 
 export default function AdminPrograms() {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [csvText, setCsvText] = useState('');
