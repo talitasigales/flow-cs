@@ -530,6 +530,81 @@ export default function AdminPrograms() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* MATERIAIS TAB */}
+            <TabsContent value="materials" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Adicionar Material</CardTitle>
+                  <CardDescription>Adicione links, PDFs ou documentos para os alunos deste programa</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Título</Label>
+                      <Input value={materialTitle} onChange={e => setMaterialTitle(e.target.value)} placeholder="Ex: Apostila do Módulo 1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tipo</Label>
+                      <Select value={materialFileType} onValueChange={setMaterialFileType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="doc">Documento</SelectItem>
+                          <SelectItem value="video">Vídeo</SelectItem>
+                          <SelectItem value="other">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL do arquivo / link</Label>
+                    <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descrição (opcional)</Label>
+                    <Textarea value={materialDescription} onChange={e => setMaterialDescription(e.target.value)} placeholder="Breve descrição do material..." className="min-h-[80px]" />
+                  </div>
+                  <Button onClick={handleSaveMaterial} disabled={savingMaterial}>
+                    {savingMaterial ? 'Salvando...' : 'Adicionar Material'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>URL</TableHead>
+                        <TableHead className="w-[80px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {materials.length === 0 ? (
+                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum material cadastrado</TableCell></TableRow>
+                      ) : materials.map((m: any) => (
+                        <TableRow key={m.id}>
+                          <TableCell className="font-medium">{m.title}</TableCell>
+                          <TableCell><Badge variant="secondary">{m.file_type || '—'}</Badge></TableCell>
+                          <TableCell className="max-w-[200px] truncate text-xs">{m.file_url || '—'}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         )}
       </div>
