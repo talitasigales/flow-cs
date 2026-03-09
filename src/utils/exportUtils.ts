@@ -33,17 +33,17 @@ export function generateCSV(headers: string[], rows: (string | number | null | u
 // 9Box Matrix Export
 export interface Matriz9BoxEntry {
   employee_name: string;
-  performance_score: number;
-  role_fit_score: number;
+  performance: number;
+  potential: number;
   notes: string;
 }
 
 export function exportMatriz9Box(entries: Matriz9BoxEntry[]): void {
-  const headers = ['Nome', 'Performance', 'Fit com Cargo', 'Observações'];
+  const headers = ['Nome', 'Desempenho (Compatibilidade PDA)', 'Potencial (Liderança)', 'Observações'];
   const rows = entries.map(entry => [
     entry.employee_name,
-    entry.performance_score,
-    entry.role_fit_score,
+    entry.performance,
+    entry.potential,
     entry.notes
   ]);
   const csv = generateCSV(headers, rows);
