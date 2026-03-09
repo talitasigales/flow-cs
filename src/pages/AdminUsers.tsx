@@ -64,7 +64,7 @@ const AdminUsers = () => {
       // Fetch all profiles with their roles
       const { data: profiles, error: profilesError } = await (supabase as any)
         .from('profiles')
-        .select('id, user_id, full_name, company, created_at')
+        .select('id, user_id, full_name, email, company, created_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
