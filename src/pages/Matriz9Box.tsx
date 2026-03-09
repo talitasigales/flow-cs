@@ -531,10 +531,10 @@ const Matriz9Box = () => {
                 <input type="range" min={0} max={100} value={formData.performance} onChange={e => setFormData(p => ({ ...p, performance: +e.target.value }))} className="flex-1 accent-primary" />
                 <Input type="number" min={0} max={100} value={formData.performance} onChange={e => setFormData(p => ({ ...p, performance: Math.min(100, Math.max(0, +e.target.value)) }))} className="w-20" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">0-33 Baixo · 34-66 Médio · 67-100 Alto</p>
+                <p className="text-xs text-muted-foreground mt-1">0-33 Baixo · 34-66 Médio · 67-100 Alto</p>
             </div>
             <div>
-              <Label>Potencial / Liderança (0–100)</Label>
+              <Label>Compatibilidade com o Cargo PDA (0–100)</Label>
               <div className="flex items-center gap-3">
                 <input type="range" min={0} max={100} value={formData.potential} onChange={e => setFormData(p => ({ ...p, potential: +e.target.value }))} className="flex-1 accent-primary" />
                 <Input type="number" min={0} max={100} value={formData.potential} onChange={e => setFormData(p => ({ ...p, potential: Math.min(100, Math.max(0, +e.target.value)) }))} className="w-20" />
