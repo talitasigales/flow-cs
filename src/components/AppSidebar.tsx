@@ -22,6 +22,7 @@ import {
   Sparkles,
   Video,
   Award,
+  CalendarDays,
 } from 'lucide-react';
 import {
   Sidebar,
