@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useEnrolledPrograms } from '@/hooks/useEnrolledPrograms';
 import {
   MessageSquare,
   Mail,
@@ -20,6 +21,7 @@ import {
   Wrench,
   Sparkles,
   Video,
+  Award,
 } from 'lucide-react';
 import {
   Sidebar,
