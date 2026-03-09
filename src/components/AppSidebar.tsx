@@ -97,11 +97,15 @@ export function AppSidebar() {
   const isInPrograms = location.pathname.startsWith('/programas');
   const isInAcademy = isInPrograms;
 
-  const programSubItems = enrollments.map((p: any) => ({
-    title: p.name,
-    icon: BookOpen,
-    path: `/programas/${p.slug}`,
-  }));
+  // Build academy sub-items: static items + enrolled program pages
+  const allAcademySubItems = [
+    ...academySubItems,
+    ...enrollments.map((p: any) => ({
+      title: p.name,
+      icon: BookOpen,
+      path: `/programas/${p.slug}`,
+    })),
+  ];
 
   const [openTools, setOpenTools] = useState(isInTools);
   const [openCommunity, setOpenCommunity] = useState(isInCommunity);
