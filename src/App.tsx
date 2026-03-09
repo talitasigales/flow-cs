@@ -68,7 +68,9 @@ const App = () => (
           <Route path="/profile/:userId" element={<PublicProfile />} />
           <Route path="/messages/:conversationId" element={<ChatConversation />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/programas/calendario" element={<ProgramCalendar />} />
           <Route path="/programas/lider-360" element={<ProgramLider360 />} />
+          <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
           
           <Route path="/profile" element={<UserProfile />} />
