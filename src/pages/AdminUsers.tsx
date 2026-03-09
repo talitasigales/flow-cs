@@ -342,6 +342,7 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Permissão</TableHead>
                   <TableHead>Cadastrado em</TableHead>
