@@ -885,26 +885,71 @@ export type Database = {
         }
         Relationships: []
       }
+      program_classes: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          name: string
+          program_id: string
+          start_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name: string
+          program_id: string
+          start_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          program_id?: string
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_classes_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_enrollments: {
         Row: {
+          class_id: string | null
           enrolled_at: string
           id: string
           program_id: string
           user_id: string
         }
         Insert: {
+          class_id?: string | null
           enrolled_at?: string
           id?: string
           program_id: string
           user_id: string
         }
         Update: {
+          class_id?: string | null
           enrolled_at?: string
           id?: string
           program_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "program_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "program_enrollments_program_id_fkey"
             columns: ["program_id"]

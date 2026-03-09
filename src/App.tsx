@@ -28,6 +28,8 @@ import ChatConversation from "./pages/ChatConversation";
 import Members from "./pages/Members";
 import PublicProfile from "./pages/PublicProfile";
 import ProgramLider360 from "./pages/ProgramLider360";
+import ProgramGeneric from "./pages/ProgramGeneric";
+import ProgramCalendar from "./pages/ProgramCalendar";
 import AdminPrograms from "./pages/AdminPrograms";
 
 import UserProfile from "./pages/UserProfile";
@@ -66,7 +68,9 @@ const App = () => (
           <Route path="/profile/:userId" element={<PublicProfile />} />
           <Route path="/messages/:conversationId" element={<ChatConversation />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/programas/calendario" element={<ProgramCalendar />} />
           <Route path="/programas/lider-360" element={<ProgramLider360 />} />
+          <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
           
           <Route path="/profile" element={<UserProfile />} />

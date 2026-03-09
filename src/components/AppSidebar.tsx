@@ -22,6 +22,7 @@ import {
   Sparkles,
   Video,
   Award,
+  CalendarDays,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -232,7 +233,8 @@ export function AppSidebar() {
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
               {isEnrolled && renderCollapsible('Programas e Workshops', Award, openPrograms, setOpenPrograms, isInPrograms, programSubItems, 4)}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
+              {renderTopLevelItem('Calendário de Programas', CalendarDays, '/programas/calendario', 5)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 6)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
