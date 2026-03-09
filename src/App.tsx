@@ -66,6 +66,8 @@ const App = () => (
           <Route path="/profile/:userId" element={<PublicProfile />} />
           <Route path="/messages/:conversationId" element={<ChatConversation />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/programas/lider-360" element={<ProgramLider360 />} />
+          <Route path="/admin/programs" element={<AdminPrograms />} />
           
           <Route path="/profile" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
