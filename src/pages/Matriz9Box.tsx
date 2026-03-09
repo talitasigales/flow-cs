@@ -352,14 +352,14 @@ const Matriz9Box = () => {
               </SelectContent>
             </Select>
             <Select value={filterFit} onValueChange={setFilterFit}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Potencial" />
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Compatibilidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os potenciais</SelectItem>
-                <SelectItem value="alto">Muito bom (67-100)</SelectItem>
-                <SelectItem value="médio">Aceitável (34-66)</SelectItem>
-                <SelectItem value="baixo">Baixo (0-33)</SelectItem>
+                <SelectItem value="all">Todas compatibilidades</SelectItem>
+                <SelectItem value="alto">Alta (67-100)</SelectItem>
+                <SelectItem value="médio">Média (34-66)</SelectItem>
+                <SelectItem value="baixo">Baixa (0-33)</SelectItem>
               </SelectContent>
             </Select>
             {hasFilters && (
