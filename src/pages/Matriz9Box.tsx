@@ -600,7 +600,7 @@ const Matriz9Box = () => {
                       </div>
                     </TableCell>
                     <TableCell>{emp.performance}</TableCell>
-                    <TableCell>{emp.potential}%</TableCell>
+                    <TableCell>{emp.potential}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         <Button size="icon" variant="ghost" onClick={() => { setDetailQuadrant(null); openEdit(emp); }}>
