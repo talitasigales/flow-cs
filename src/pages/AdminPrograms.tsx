@@ -118,6 +118,19 @@ export default function AdminPrograms() {
     },
   });
 
+  const { data: materials = [], refetch: refetchMaterials } = useQuery({
+    queryKey: ['program-materials-admin', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_materials')
+        .select('*')
+        .eq('program_id', selectedProgram)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
   const handleSaveClass = async () => {
     if (!className.trim() || !selectedProgram) {
       toast.error('Nome da turma é obrigatório');
