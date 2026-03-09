@@ -231,7 +231,8 @@ export function AppSidebar() {
                 3,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
+              {isEnrolled && renderCollapsible('Programas e Workshops', Award, openPrograms, setOpenPrograms, isInPrograms, programSubItems, 4)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
