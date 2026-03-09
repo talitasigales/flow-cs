@@ -241,9 +241,9 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {renderTopLevelItem('Trilhas de Sucesso', GraduationCap, '/dashboard', 0)}
-              {renderTopLevelItem('Webinars', Video, '/webinars', 1)}
-              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 2)}
+              {renderCollapsible('Trilhas de Sucesso', GraduationCap, openTrilhas, setOpenTrilhas, isInTrilhas, trilhasSubItems, 0)}
+              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
+              {renderCollapsible(
               {renderCollapsible(
                 'Comunidade',
                 Users2,
