@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Trash2, Download, Upload, ArrowLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus, Pencil, Trash2, Download, Upload, ArrowLeft, Users, Search, TrendingUp, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportMatriz9Box } from '@/utils/exportUtils';
 
@@ -29,23 +31,17 @@ interface QuadrantDef {
   text: string;
 }
 
-// Grid layout: rows = Desempenho (Y axis), cols = Compatibilidade com o Cargo (X axis)
-// Row 0 = ALTO desempenho (top), Row 2 = BAIXO desempenho (bottom)
-// Col 0 = BAIXO fit (left), Col 2 = ALTO fit (right)
 const QUADRANTS: QuadrantDef[][] = [
-  // Row 0 — ALTO desempenho
   [
     { label: 'Especialista', description: 'Alto desempenho + Baixo fit', bg: 'bg-indigo-900/60', border: 'border-indigo-500/60', text: 'text-indigo-300' },
     { label: 'Destaque', description: 'Alto desempenho + Médio fit', bg: 'bg-teal-900/50', border: 'border-teal-500/60', text: 'text-teal-300' },
     { label: 'Estrela', description: 'Alto desempenho + Alto fit', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
   ],
-  // Row 1 — MÉDIO desempenho
   [
     { label: 'Confiável', description: 'Médio desempenho + Baixo fit', bg: 'bg-slate-800/60', border: 'border-slate-500/40', text: 'text-slate-300' },
     { label: 'Sólido', description: 'Médio desempenho + Médio fit', bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-300' },
     { label: 'Alto Potencial', description: 'Médio desempenho + Alto fit', bg: 'bg-emerald-900/40', border: 'border-emerald-500/50', text: 'text-emerald-300' },
   ],
-  // Row 2 — BAIXO desempenho
   [
     { label: 'Atenção', description: 'Baixo desempenho + Baixo fit', bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-300' },
     { label: 'Desenvolvimento', description: 'Baixo desempenho + Médio fit', bg: 'bg-amber-900/30', border: 'border-amber-500/40', text: 'text-amber-300' },
@@ -74,11 +70,21 @@ function getTier(value: number): number {
   return 2;
 }
 
+function getTierLabel(value: number): string {
+  if (value <= 33) return 'Baixo';
+  if (value <= 66) return 'Médio';
+  return 'Alto';
+}
+
 function getQuadrant(performance: number, potential: number): { row: number; col: number } {
-  const col = getTier(potential); // X = compatibility/fit
-  const perfTier = getTier(performance); // Y = performance/desempenho
-  const row = 2 - perfTier; // high perf = row 0 (top)
+  const col = getTier(potential);
+  const row = 2 - getTier(performance);
   return { row, col };
+}
+
+function getQuadrantLabel(performance: number, potential: number): string {
+  const { row, col } = getQuadrant(performance, potential);
+  return QUADRANTS[row][col].label;
 }
 
 function getInitials(name: string): string {
@@ -108,6 +114,11 @@ const Matriz9Box = () => {
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
   const [formData, setFormData] = useState({ employee_name: '', performance: 50, potential: 50, notes: '' });
 
+  // Filters
+  const [searchName, setSearchName] = useState('');
+  const [filterPerformance, setFilterPerformance] = useState<string>('all');
+  const [filterFit, setFilterFit] = useState<string>('all');
+
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
   }, [user, loading, navigate]);
@@ -123,15 +134,30 @@ const Matriz9Box = () => {
     setDataLoading(false);
   };
 
+  // Filtered employees for the grid
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(emp => {
+      if (searchName && !emp.employee_name.toLowerCase().includes(searchName.toLowerCase())) return false;
+      if (filterPerformance !== 'all' && getTierLabel(emp.performance).toLowerCase() !== filterPerformance) return false;
+      if (filterFit !== 'all' && getTierLabel(emp.potential).toLowerCase() !== filterFit) return false;
+      return true;
+    });
+  }, [employees, searchName, filterPerformance, filterFit]);
+
   const employeesByQuadrant = useMemo(() => {
     const map: Record<string, Employee[]> = {};
     for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) map[`${r}-${c}`] = [];
-    employees.forEach(emp => {
+    filteredEmployees.forEach(emp => {
       const { row, col } = getQuadrant(emp.performance, emp.potential);
       map[`${row}-${col}`].push(emp);
     });
     return map;
-  }, [employees]);
+  }, [filteredEmployees]);
+
+  // Metrics
+  const avgPerformance = employees.length > 0 ? Math.round(employees.reduce((s, e) => s + e.performance, 0) / employees.length) : 0;
+  const avgFit = employees.length > 0 ? Math.round(employees.reduce((s, e) => s + e.potential, 0) / employees.length) : 0;
+  const topQuadrantCount = employees.filter(e => getTier(e.performance) === 2 && getTier(e.potential) === 2).length;
 
   const openAdd = () => {
     setEditingEmployee(null);
@@ -221,6 +247,7 @@ const Matriz9Box = () => {
 
   const detailEmployees = detailQuadrant ? employeesByQuadrant[`${detailQuadrant.row}-${detailQuadrant.col}`] : [];
   const detailDef = detailQuadrant ? QUADRANTS[detailQuadrant.row][detailQuadrant.col] : null;
+  const hasFilters = searchName || filterPerformance !== 'all' || filterFit !== 'all';
 
   return (
     <AppLayout>
@@ -249,6 +276,101 @@ const Matriz9Box = () => {
           </div>
         </div>
 
+        {/* Metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{employees.length}</p>
+                <p className="text-xs text-muted-foreground">Total de Colaboradores</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10">
+                <TrendingUp className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{avgPerformance}</p>
+                <p className="text-xs text-muted-foreground">Média Desempenho</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Target className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{avgFit}%</p>
+                <p className="text-xs text-muted-foreground">Média Compatibilidade</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <Users className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{topQuadrantCount}</p>
+                <p className="text-xs text-muted-foreground">Estrelas</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome..."
+                value={searchName}
+                onChange={e => setSearchName(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={filterPerformance} onValueChange={setFilterPerformance}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Desempenho" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os desempenhos</SelectItem>
+                <SelectItem value="alto">Alto (67-100)</SelectItem>
+                <SelectItem value="médio">Médio (34-66)</SelectItem>
+                <SelectItem value="baixo">Baixo (0-33)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterFit} onValueChange={setFilterFit}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Compatibilidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as compatibilidades</SelectItem>
+                <SelectItem value="alto">Alto (67-100)</SelectItem>
+                <SelectItem value="médio">Médio (34-66)</SelectItem>
+                <SelectItem value="baixo">Baixo (0-33)</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={() => { setSearchName(''); setFilterPerformance('all'); setFilterFit('all'); }}>
+                Limpar filtros
+              </Button>
+            )}
+          </div>
+          {hasFilters && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Mostrando {filteredEmployees.length} de {employees.length} colaboradores
+            </p>
+          )}
+        </div>
+
         {/* Legend */}
         <div className="rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-bold text-foreground mb-3">Legenda das Categorias</h2>
@@ -267,7 +389,6 @@ const Matriz9Box = () => {
 
         {/* 9Box Grid */}
         <div className="flex">
-          {/* Y axis */}
           <div className="flex flex-col items-center justify-center mr-2 shrink-0">
             <span className="text-[11px] font-bold tracking-widest text-muted-foreground [writing-mode:vertical-lr] rotate-180">
               DESEMPENHO
@@ -275,7 +396,6 @@ const Matriz9Box = () => {
           </div>
 
           <div className="flex-1">
-            {/* X axis labels (top) */}
             <div className="flex mb-1.5">
               <div className="w-14 shrink-0" />
               {X_LABELS.map(label => (
@@ -285,11 +405,9 @@ const Matriz9Box = () => {
               ))}
             </div>
 
-            {/* Grid rows */}
             <div className="space-y-1.5">
               {[0, 1, 2].map(row => (
                 <div key={row} className="flex gap-1.5 items-stretch">
-                  {/* Y tier label */}
                   <div className="w-14 shrink-0 flex items-center justify-end pr-2">
                     <span className="text-[11px] font-bold text-muted-foreground">{Y_LABELS[row]}</span>
                   </div>
@@ -326,12 +444,69 @@ const Matriz9Box = () => {
               ))}
             </div>
 
-            {/* X axis label (bottom) */}
             <p className="text-center text-[11px] font-bold tracking-widest text-muted-foreground mt-3">
               COMPATIBILIDADE COM O CARGO
             </p>
           </div>
         </div>
+
+        {/* Full employee list */}
+        {employees.length > 0 && (
+          <div className="rounded-xl border border-border bg-card">
+            <div className="p-4 border-b border-border">
+              <h2 className="text-sm font-bold text-foreground">Todos os Colaboradores ({filteredEmployees.length})</h2>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Colaborador</TableHead>
+                  <TableHead className="w-24">Desempenho</TableHead>
+                  <TableHead className="w-24">Fit</TableHead>
+                  <TableHead className="w-32">Quadrante</TableHead>
+                  <TableHead className="w-20">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map(emp => (
+                  <TableRow key={emp.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${getAvatarColor(emp.employee_name)}`}>
+                          {getInitials(emp.employee_name)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{emp.employee_name}</p>
+                          {emp.notes && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{emp.notes}</p>}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{emp.performance}</span>
+                      <span className="text-xs text-muted-foreground ml-1">({getTierLabel(emp.performance)})</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{emp.potential}%</span>
+                      <span className="text-xs text-muted-foreground ml-1">({getTierLabel(emp.potential)})</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs font-medium">{getQuadrantLabel(emp.performance, emp.potential)}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" onClick={() => openEdit(emp)}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => { setDeletingEmployee(emp); setDeleteDialogOpen(true); }}>
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
