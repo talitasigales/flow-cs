@@ -208,6 +208,45 @@ export default function AdminPrograms() {
     return cls ? cls.name : '—';
   };
 
+  const handleSaveMaterial = async () => {
+    if (!materialTitle.trim() || !selectedProgram) {
+      toast.error('Título é obrigatório');
+      return;
+    }
+    setSavingMaterial(true);
+    try {
+      const { error } = await supabase.from('program_materials').insert({
+        program_id: selectedProgram,
+        title: materialTitle.trim(),
+        description: materialDescription.trim() || null,
+        file_url: materialFileUrl.trim() || null,
+        file_type: materialFileType,
+        order_number: materials.length,
+      });
+      if (error) throw error;
+      toast.success('Material adicionado');
+      setMaterialTitle('');
+      setMaterialDescription('');
+      setMaterialFileUrl('');
+      setMaterialFileType('link');
+      refetchMaterials();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar material');
+    } finally {
+      setSavingMaterial(false);
+    }
+  };
+
+  const handleDeleteMaterial = async (id: string) => {
+    const { error } = await supabase.from('program_materials').delete().eq('id', id);
+    if (error) {
+      toast.error('Erro ao remover material');
+    } else {
+      toast.success('Material removido');
+      refetchMaterials();
+    }
+  };
+
   if (authLoading || adminLoading) {
     return (
       <AppLayout>
