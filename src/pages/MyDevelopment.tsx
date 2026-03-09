@@ -1,18 +1,39 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { BookOpen, CalendarDays, GraduationCap } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText, ExternalLink, FileIcon } from 'lucide-react';
+import { toast } from 'sonner';
+
+const QUESTIONS = [
+  { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
+  { id: 'q2', label: '2. O que você acredita que faz muito bem como líder?' },
+  { id: 'q3', label: '3. Em que situações você sente que sua liderança é mais forte?' },
+  { id: 'q4', label: '4. Em que contextos você percebe que perde desempenho ou clareza?' },
+  { id: 'q5', label: '5. Se seu time pudesse descrevê-lo com sinceridade absoluta, o que diria?' },
+  { id: 'q6', label: '6. O que você tem feito intencionalmente para evoluir como líder?' },
+];
+
+const PDA_AXES = ['Risco', 'Extroversão', 'Paciência', 'Norma', 'Autocontrole'];
 
 export default function MyDevelopment() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [pdaAxes, setPdaAxes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
@@ -31,6 +52,90 @@ export default function MyDevelopment() {
     },
   });
 
+  // Get all program IDs from enrollments
+  const programIds = enrollments.map((e: any) => e.programs?.id).filter(Boolean);
+
+  // Fetch materials for all enrolled programs
+  const { data: allMaterials = [] } = useQuery({
+    queryKey: ['my-program-materials', programIds],
+    enabled: programIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_materials')
+        .select('*')
+        .in('program_id', programIds)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
+  // Find the Líder 360 program
+  const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
+  const lider360ProgramId = lider360Enrollment?.programs?.id;
+
+  // Fetch existing workshop response for Líder 360
+  const { data: existingResponse } = useQuery({
+    queryKey: ['workshop-response', lider360ProgramId, user?.id],
+    enabled: !!lider360ProgramId && !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('workshop_responses')
+        .select('*')
+        .eq('program_id', lider360ProgramId!)
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Load existing answers
+  useEffect(() => {
+    if (existingResponse?.answers) {
+      const saved = existingResponse.answers as Record<string, any>;
+      const textAnswers: Record<string, string> = {};
+      QUESTIONS.forEach(q => { textAnswers[q.id] = saved[q.id] || ''; });
+      textAnswers['q7_strength'] = saved['q7_strength'] || '';
+      textAnswers['q8_development'] = saved['q8_development'] || '';
+      setAnswers(textAnswers);
+      setPdaAxes(saved['q9_pda_axes'] || {});
+    }
+  }, [existingResponse]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!lider360ProgramId || !user?.id) throw new Error('Dados insuficientes');
+      const payload = { ...answers, q9_pda_axes: pdaAxes };
+      if (existingResponse) {
+        const { error } = await supabase
+          .from('workshop_responses')
+          .update({ answers: payload, updated_at: new Date().toISOString() })
+          .eq('id', existingResponse.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('workshop_responses')
+          .insert({ program_id: lider360ProgramId, user_id: user.id, answers: payload });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success('Respostas salvas com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['workshop-response'] });
+    },
+    onError: () => toast.error('Erro ao salvar respostas'),
+  });
+
+  const handlePdaChange = (axis: string, level: string) => {
+    setPdaAxes(prev => {
+      if (prev[axis] === level) {
+        const next = { ...prev };
+        delete next[axis];
+        return next;
+      }
+      return { ...prev, [axis]: level };
+    });
+  };
+
   if (loading || isLoading) {
     return (
       <AppLayout>
@@ -40,6 +145,15 @@ export default function MyDevelopment() {
       </AppLayout>
     );
   }
+
+  const getMaterialsForProgram = (programId: string) =>
+    allMaterials.filter((m: any) => m.program_id === programId);
+
+  const getFileIcon = (fileType: string | null) => {
+    if (fileType === 'link') return <ExternalLink className="w-4 h-4" />;
+    if (fileType === 'pdf') return <FileText className="w-4 h-4" />;
+    return <FileIcon className="w-4 h-4" />;
+  };
 
   return (
     <AppLayout>
@@ -58,50 +172,176 @@ export default function MyDevelopment() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <Accordion type="multiple" defaultValue={enrollments.map((e: any) => e.id)} className="space-y-4">
             {enrollments.map((e: any) => {
               const program = e.programs;
               const cls = e.program_classes;
+              const isLider360 = program?.slug === 'lider-360';
+              const materials = program ? getMaterialsForProgram(program.id) : [];
+
               return (
-                <Card key={e.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => program?.slug && navigate(`/programas/${program.slug}`)}>
-                  <CardContent className="p-5 flex flex-col sm:flex-row gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="bg-primary/10 rounded-lg p-4 flex items-center justify-center">
-                        <BookOpen className="w-8 h-8 text-primary" />
+                <AccordionItem key={e.id} value={e.id} className="border rounded-lg bg-card shadow-sm">
+                  <AccordionTrigger className="px-5 py-4 hover:no-underline">
+                    <div className="flex items-center gap-3 text-left flex-1">
+                      <div className="bg-primary/10 rounded-lg p-3 flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-base">{program?.name || 'Programa'}</h3>
+                          <Badge variant="outline" className="text-xs">Matriculado</Badge>
+                          {isLider360 && existingResponse && (
+                            <Badge variant="secondary" className="text-xs gap-1">
+                              <CheckCircle className="w-3 h-3" /> Respondido
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-1">
+                          {cls && (
+                            <span className="flex items-center gap-1">
+                              <GraduationCap className="w-3.5 h-3.5" />
+                              {cls.name}
+                            </span>
+                          )}
+                          {cls?.start_date && (
+                            <span className="flex items-center gap-1">
+                              <CalendarDays className="w-3.5 h-3.5" />
+                              {format(new Date(cls.start_date + 'T12:00:00'), "dd/MM/yyyy")}
+                              {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-base">{program?.name || 'Programa'}</h3>
-                        <Badge variant="outline" className="text-xs shrink-0">Matriculado</Badge>
+                  </AccordionTrigger>
+
+                  <AccordionContent className="px-5 pb-5">
+                    {program?.description && (
+                      <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
+                    )}
+
+                    {/* Líder 360 Questionnaire */}
+                    {isLider360 && (
+                      <Card className="mb-4">
+                        <CardHeader>
+                          <CardTitle className="text-base">Questionário de Autoconhecimento</CardTitle>
+                          <CardDescription>Responda com honestidade e profundidade. O objetivo é ampliar sua consciência sobre como você lidera.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-5">
+                          {QUESTIONS.map(q => (
+                            <div key={q.id} className="space-y-2">
+                              <Label className="text-sm font-medium">{q.label}</Label>
+                              <Textarea
+                                value={answers[q.id] || ''}
+                                onChange={ev => setAnswers(prev => ({ ...prev, [q.id]: ev.target.value }))}
+                                placeholder="Escreva sua resposta..."
+                                className="min-h-[90px]"
+                              />
+                            </div>
+                          ))}
+
+                          <div className="pt-4 border-t space-y-4">
+                            <p className="text-sm text-muted-foreground font-medium">Com base no seu relatório PDA, responda:</p>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Ponto forte para liderança:</Label>
+                              <Textarea
+                                value={answers['q7_strength'] || ''}
+                                onChange={ev => setAnswers(prev => ({ ...prev, q7_strength: ev.target.value }))}
+                                placeholder="Escreva sua resposta..."
+                                className="min-h-[70px]"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium">Oportunidade de desenvolvimento:</Label>
+                              <Textarea
+                                value={answers['q8_development'] || ''}
+                                onChange={ev => setAnswers(prev => ({ ...prev, q8_development: ev.target.value }))}
+                                placeholder="Escreva sua resposta..."
+                                className="min-h-[70px]"
+                              />
+                            </div>
+                            <div className="space-y-3">
+                              <Label className="text-sm font-medium">Eixo do PDA relacionado:</Label>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-lg bg-muted/30 border">
+                                <div className="space-y-3">
+                                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Baixo</p>
+                                  {PDA_AXES.map(axis => (
+                                    <div key={`${axis}-baixo`} className="flex items-center gap-2">
+                                      <Checkbox
+                                        id={`dev-${axis}-baixo`}
+                                        checked={pdaAxes[axis] === 'baixo'}
+                                        onCheckedChange={() => handlePdaChange(axis, 'baixo')}
+                                      />
+                                      <label htmlFor={`dev-${axis}-baixo`} className="text-sm cursor-pointer">{axis} baixo</label>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="space-y-3">
+                                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alto</p>
+                                  {PDA_AXES.map(axis => (
+                                    <div key={`${axis}-alto`} className="flex items-center gap-2">
+                                      <Checkbox
+                                        id={`dev-${axis}-alto`}
+                                        checked={pdaAxes[axis] === 'alto'}
+                                        onCheckedChange={() => handlePdaChange(axis, 'alto')}
+                                      />
+                                      <label htmlFor={`dev-${axis}-alto`} className="text-sm cursor-pointer">{axis} alto</label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pt-4 flex justify-end">
+                            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                              {saveMutation.isPending ? 'Salvando...' : existingResponse ? 'Atualizar Respostas' : 'Enviar Respostas'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Program Materials */}
+                    {materials.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-primary" />
+                          Materiais e Exercícios
+                        </h4>
+                        <div className="space-y-2">
+                          {materials.map((m: any) => (
+                            <div key={m.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+                              <div className="mt-0.5 text-muted-foreground">
+                                {getFileIcon(m.file_type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium">{m.title}</p>
+                                {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+                              </div>
+                              {m.file_url && (
+                                <Button variant="ghost" size="sm" asChild className="shrink-0">
+                                  <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      {program?.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{program.description}</p>
-                      )}
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                        {cls && (
-                          <span className="flex items-center gap-1">
-                            <GraduationCap className="w-3.5 h-3.5" />
-                            {cls.name}
-                          </span>
-                        )}
-                        {cls?.start_date && (
-                          <span className="flex items-center gap-1">
-                            <CalendarDays className="w-3.5 h-3.5" />
-                            {format(new Date(cls.start_date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                            {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR })}`}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1">
-                          Matriculado em {format(new Date(e.enrolled_at), 'dd/MM/yyyy')}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    )}
+
+                    {!isLider360 && materials.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nenhum material disponível para este programa ainda.
+                      </p>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
               );
             })}
-          </div>
+          </Accordion>
         )}
       </div>
     </AppLayout>

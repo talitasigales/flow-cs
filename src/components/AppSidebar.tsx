@@ -100,14 +100,17 @@ export function AppSidebar() {
   const isInPrograms = location.pathname.startsWith('/programas');
   const isInAcademy = isInPrograms;
 
-  // Build academy sub-items: static items + enrolled program pages
+  // Build academy sub-items: always show calendar; show Meu Desenvolvimento + program links only if enrolled
   const allAcademySubItems = [
-    ...academySubItems,
-    ...enrollments.map((p: any) => ({
-      title: p.name,
-      icon: BookOpen,
-      path: `/programas/${p.slug}`,
-    })),
+    ...academyBaseItems,
+    ...(isEnrolled ? [
+      ...academyEnrolledItems,
+      ...enrollments.map((p: any) => ({
+        title: p.name,
+        icon: BookOpen,
+        path: `/programas/${p.slug}`,
+      })),
+    ] : []),
   ];
 
   const [openTools, setOpenTools] = useState(isInTools);
