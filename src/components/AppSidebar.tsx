@@ -245,7 +245,6 @@ export function AppSidebar() {
               {renderCollapsible('Trilhas de Sucesso', GraduationCap, openTrilhas, setOpenTrilhas, isInTrilhas, trilhasSubItems, 0)}
               {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
               {renderCollapsible(
-              {renderCollapsible(
                 'Comunidade',
                 Users2,
                 openCommunity,
