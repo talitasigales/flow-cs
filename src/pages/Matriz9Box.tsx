@@ -32,23 +32,23 @@ interface QuadrantDef {
 }
 
 const QUADRANTS: QuadrantDef[][] = [
-  // Row 0 = Desempenho ALTO (top)
+  // Row 0 = Compatibilidade ALTA (top)
   [
-    { label: 'Enigma', description: 'Desempenho alto + Compatibilidade baixa', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
-    { label: 'Forte Desempenho', description: 'Desempenho alto + Compatibilidade média', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
-    { label: 'Alto Potencial', description: 'Desempenho alto + Compatibilidade alta', bg: 'bg-[#1565c0]', border: 'border-[#0d47a1]', text: 'text-white' },
+    { label: 'Enigma', description: 'Compatibilidade alta + Desempenho baixo', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Compatibilidade alta + Desempenho médio', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
+    { label: 'Alto Potencial', description: 'Compatibilidade alta + Desempenho alto', bg: 'bg-[#1565c0]', border: 'border-[#0d47a1]', text: 'text-white' },
   ],
-  // Row 1 = Desempenho MÉDIO (middle)
+  // Row 1 = Compatibilidade MÉDIA (middle)
   [
-    { label: 'Questionável', description: 'Desempenho médio + Compatibilidade baixa', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
-    { label: 'Mantenedor', description: 'Desempenho médio + Compatibilidade média', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
-    { label: 'Forte Desempenho', description: 'Desempenho médio + Compatibilidade alta', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
+    { label: 'Questionável', description: 'Compatibilidade média + Desempenho baixo', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Mantenedor', description: 'Compatibilidade média + Desempenho médio', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Compatibilidade média + Desempenho alto', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
   ],
-  // Row 2 = Desempenho BAIXO (bottom)
+  // Row 2 = Compatibilidade BAIXA (bottom)
   [
-    { label: 'Insuficiente', description: 'Desempenho baixo + Compatibilidade baixa', bg: 'bg-[#d32f2f]', border: 'border-[#b71c1c]', text: 'text-white' },
-    { label: 'Eficaz', description: 'Desempenho baixo + Compatibilidade média', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
-    { label: 'Comprometido', description: 'Desempenho baixo + Compatibilidade alta', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Insuficiente', description: 'Compatibilidade baixa + Desempenho baixo', bg: 'bg-[#d32f2f]', border: 'border-[#b71c1c]', text: 'text-white' },
+    { label: 'Eficaz', description: 'Compatibilidade baixa + Desempenho médio', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Comprometido', description: 'Compatibilidade baixa + Desempenho alto', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
   ],
 ];
 
