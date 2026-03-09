@@ -355,6 +355,7 @@ const AdminUsers = () => {
                     <TableCell className="font-medium">
                       {userData.full_name || 'Sem nome'}
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{userData.email || '-'}</TableCell>
                     <TableCell>{userData.company || '-'}</TableCell>
                     <TableCell>
                       {userData.role === 'admin' ? (
