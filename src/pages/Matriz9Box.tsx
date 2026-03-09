@@ -32,20 +32,23 @@ interface QuadrantDef {
 }
 
 const QUADRANTS: QuadrantDef[][] = [
+  // Row 0 = Potencial MUITO BOM (top)
   [
-    { label: 'Especialista', description: 'Alto desempenho + Baixo fit', bg: 'bg-indigo-900/60', border: 'border-indigo-500/60', text: 'text-indigo-300' },
-    { label: 'Destaque', description: 'Alto desempenho + Médio fit', bg: 'bg-teal-900/50', border: 'border-teal-500/60', text: 'text-teal-300' },
-    { label: 'Estrela', description: 'Alto desempenho + Alto fit', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
+    { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
+    { label: 'Forte Desempenho', description: 'Potencial muito bom + Desempenho mediano', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
+    { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional', bg: 'bg-emerald-900/60', border: 'border-emerald-500/70', text: 'text-emerald-300' },
   ],
+  // Row 1 = Potencial ACEITÁVEL (middle)
   [
-    { label: 'Confiável', description: 'Médio desempenho + Baixo fit', bg: 'bg-slate-800/60', border: 'border-slate-500/40', text: 'text-slate-300' },
-    { label: 'Sólido', description: 'Médio desempenho + Médio fit', bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-300' },
-    { label: 'Alto Potencial', description: 'Médio desempenho + Alto fit', bg: 'bg-emerald-900/40', border: 'border-emerald-500/50', text: 'text-emerald-300' },
+    { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
+    { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
+    { label: 'Forte Desempenho', description: 'Potencial aceitável + Desempenho excepcional', bg: 'bg-emerald-900/40', border: 'border-emerald-500/50', text: 'text-emerald-300' },
   ],
+  // Row 2 = Potencial BAIXO (bottom)
   [
-    { label: 'Atenção', description: 'Baixo desempenho + Baixo fit', bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-300' },
-    { label: 'Desenvolvimento', description: 'Baixo desempenho + Médio fit', bg: 'bg-amber-900/30', border: 'border-amber-500/40', text: 'text-amber-300' },
-    { label: 'Enigma', description: 'Baixo desempenho + Alto fit', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
+    { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente', bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-300' },
+    { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano', bg: 'bg-red-900/30', border: 'border-red-500/40', text: 'text-red-300' },
+    { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional', bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-300' },
   ],
 ];
 
