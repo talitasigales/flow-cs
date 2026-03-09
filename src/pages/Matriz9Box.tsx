@@ -53,15 +53,14 @@ const QUADRANTS: QuadrantDef[][] = [
 ];
 
 const LEGEND = [
-  { label: 'Estrela', description: 'Alto desempenho + Alto fit - Talentos-chave', color: 'bg-emerald-500' },
-  { label: 'Destaque', description: 'Alto desempenho + Médio fit - Considerar novas posições', color: 'bg-teal-500' },
-  { label: 'Especialista', description: 'Alto desempenho + Baixo fit - Revisar posicionamento', color: 'bg-indigo-500' },
-  { label: 'Alto Potencial', description: 'Médio desempenho + Alto fit - Investir em desenvolvimento', color: 'bg-emerald-400' },
-  { label: 'Sólido', description: 'Médio desempenho + Médio fit - Colaboradores consistentes', color: 'bg-blue-500' },
-  { label: 'Confiável', description: 'Médio desempenho + Baixo fit - Desenvolver ou realocar', color: 'bg-slate-500' },
-  { label: 'Enigma', description: 'Baixo desempenho + Alto fit - Entender barreiras', color: 'bg-amber-500' },
-  { label: 'Desenvolvimento', description: 'Baixo desempenho + Médio fit - Plano de desenvolvimento', color: 'bg-amber-600' },
-  { label: 'Atenção', description: 'Baixo desempenho + Baixo fit - Ação urgente necessária', color: 'bg-red-500' },
+  { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional — Talentos-chave', color: 'bg-emerald-500' },
+  { label: 'Forte Desempenho', description: 'Potencial muito bom/aceitável + Desempenho mediano/excepcional', color: 'bg-emerald-400' },
+  { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente — Entender barreiras', color: 'bg-emerald-600' },
+  { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano — Colaboradores consistentes', color: 'bg-amber-500' },
+  { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente — Desenvolver ou realocar', color: 'bg-amber-600' },
+  { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional — Reconhecer entrega', color: 'bg-blue-500' },
+  { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano — Plano de desenvolvimento', color: 'bg-red-400' },
+  { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente — Ação urgente necessária', color: 'bg-red-500' },
 ];
 
 const Y_LABELS = ['ALTO', 'MÉDIO', 'BAIXO'];
