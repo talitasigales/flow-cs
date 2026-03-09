@@ -32,39 +32,39 @@ interface QuadrantDef {
 }
 
 const QUADRANTS: QuadrantDef[][] = [
-  // Row 0 = Potencial MUITO BOM (top) — Verde
+  // Row 0 = Desempenho ALTO (top)
   [
-    { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente', bg: 'bg-[#3a9a3a]', border: 'border-[#2d7a2d]', text: 'text-white' },
-    { label: 'Forte Desempenho', description: 'Potencial muito bom + Desempenho mediano', bg: 'bg-[#3a9a3a]', border: 'border-[#2d7a2d]', text: 'text-white' },
-    { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional', bg: 'bg-[#2d8a2d]', border: 'border-[#237523]', text: 'text-white' },
+    { label: 'Enigma', description: 'Desempenho alto + Compatibilidade baixa', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Desempenho alto + Compatibilidade média', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
+    { label: 'Alto Potencial', description: 'Desempenho alto + Compatibilidade alta', bg: 'bg-[#1565c0]', border: 'border-[#0d47a1]', text: 'text-white' },
   ],
-  // Row 1 = Potencial ACEITÁVEL (middle) — Laranja + Verde (direita)
+  // Row 1 = Desempenho MÉDIO (middle)
   [
-    { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
-    { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
-    { label: 'Forte Desempenho', description: 'Potencial aceitável + Desempenho excepcional', bg: 'bg-[#3a9a3a]', border: 'border-[#2d7a2d]', text: 'text-white' },
+    { label: 'Questionável', description: 'Desempenho médio + Compatibilidade baixa', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Mantenedor', description: 'Desempenho médio + Compatibilidade média', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Desempenho médio + Compatibilidade alta', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
   ],
-  // Row 2 = Potencial BAIXO (bottom) — Vermelho + Azul (direita)
+  // Row 2 = Desempenho BAIXO (bottom)
   [
-    { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente', bg: 'bg-[#e03030]', border: 'border-[#c22828]', text: 'text-white' },
-    { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano', bg: 'bg-[#e03030]', border: 'border-[#c22828]', text: 'text-white' },
-    { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional', bg: 'bg-[#2878c0]', border: 'border-[#1e65a5]', text: 'text-white' },
+    { label: 'Insuficiente', description: 'Desempenho baixo + Compatibilidade baixa', bg: 'bg-[#d32f2f]', border: 'border-[#b71c1c]', text: 'text-white' },
+    { label: 'Eficaz', description: 'Desempenho baixo + Compatibilidade média', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Comprometido', description: 'Desempenho baixo + Compatibilidade alta', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
   ],
 ];
 
 const LEGEND = [
-  { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional — Talentos-chave', color: 'bg-[#2d8a2d]' },
-  { label: 'Forte Desempenho', description: 'Potencial muito bom/aceitável + Desempenho mediano/excepcional', color: 'bg-[#3a9a3a]' },
-  { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente — Entender barreiras', color: 'bg-[#3a9a3a]' },
-  { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano — Colaboradores consistentes', color: 'bg-[#e67a20]' },
-  { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente — Desenvolver ou realocar', color: 'bg-[#e67a20]' },
-  { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional — Reconhecer entrega', color: 'bg-[#2878c0]' },
-  { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano — Plano de desenvolvimento', color: 'bg-[#e03030]' },
-  { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente — Ação urgente necessária', color: 'bg-[#e03030]' },
+  { label: 'Alto Potencial', description: 'Desempenho alto + Compatibilidade alta — Talentos-chave', color: 'bg-[#1565c0]' },
+  { label: 'Forte Desempenho', description: 'Desempenho alto/médio + Compatibilidade média/alta', color: 'bg-[#2e7d32]' },
+  { label: 'Enigma', description: 'Desempenho alto + Compatibilidade baixa — Entender barreiras', color: 'bg-[#d4a017]' },
+  { label: 'Mantenedor', description: 'Desempenho médio + Compatibilidade média — Colaboradores consistentes', color: 'bg-[#d4a017]' },
+  { label: 'Comprometido', description: 'Desempenho baixo + Compatibilidade alta — Reconhecer entrega', color: 'bg-[#d4a017]' },
+  { label: 'Questionável', description: 'Desempenho médio + Compatibilidade baixa — Desenvolver ou realocar', color: 'bg-[#e67a20]' },
+  { label: 'Eficaz', description: 'Desempenho baixo + Compatibilidade média — Plano de desenvolvimento', color: 'bg-[#e67a20]' },
+  { label: 'Insuficiente', description: 'Desempenho baixo + Compatibilidade baixa — Ação urgente necessária', color: 'bg-[#d32f2f]' },
 ];
 
-const Y_LABELS = ['MUITO BOM', 'ACEITÁVEL', 'BAIXO'];
-const X_LABELS = ['INSUFICIENTE', 'MEDIANO', 'EXCEPCIONAL'];
+const Y_LABELS = ['ALTO', 'MÉDIO', 'BAIXO'];
+const X_LABELS = ['BAIXA', 'MÉDIA', 'ALTA'];
 
 function getTier(value: number): number {
   if (value <= 33) return 0;
@@ -79,9 +79,10 @@ function getTierLabel(value: number): string {
 }
 
 function getQuadrant(performance: number, potential: number): { row: number; col: number } {
-  // X-axis = Desempenho (performance), Y-axis = Potencial (potential)
-  const col = getTier(performance);
-  const row = 2 - getTier(potential);
+  // Y-axis = Desempenho (performance): Alto=topo, Baixo=base
+  // X-axis = Compatibilidade com o Cargo PDA (potential): Baixa=esquerda, Alta=direita
+  const row = 2 - getTier(performance);
+  const col = getTier(potential);
   return { row, col };
 }
 
@@ -310,7 +311,7 @@ const Matriz9Box = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{avgFit}%</p>
-                <p className="text-xs text-muted-foreground">Média Potencial</p>
+                <p className="text-xs text-muted-foreground">Média Compatibilidade</p>
               </div>
             </CardContent>
           </Card>
@@ -351,14 +352,14 @@ const Matriz9Box = () => {
               </SelectContent>
             </Select>
             <Select value={filterFit} onValueChange={setFilterFit}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Potencial" />
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Compatibilidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os potenciais</SelectItem>
-                <SelectItem value="alto">Muito bom (67-100)</SelectItem>
-                <SelectItem value="médio">Aceitável (34-66)</SelectItem>
-                <SelectItem value="baixo">Baixo (0-33)</SelectItem>
+                <SelectItem value="all">Todas compatibilidades</SelectItem>
+                <SelectItem value="alto">Alta (67-100)</SelectItem>
+                <SelectItem value="médio">Média (34-66)</SelectItem>
+                <SelectItem value="baixo">Baixa (0-33)</SelectItem>
               </SelectContent>
             </Select>
             {hasFilters && (
@@ -394,7 +395,7 @@ const Matriz9Box = () => {
         <div className="flex">
           <div className="flex flex-col items-center justify-center mr-2 shrink-0">
             <span className="text-[11px] font-bold tracking-widest text-muted-foreground [writing-mode:vertical-lr] rotate-180">
-              POTENCIAL (LIDERANÇA)
+              DESEMPENHO
             </span>
           </div>
 
@@ -432,7 +433,7 @@ const Matriz9Box = () => {
                               </div>
                               <div className="text-left min-w-0">
                                 <p className="text-xs font-medium text-foreground truncate">{emp.employee_name}</p>
-                                <p className="text-[10px] text-muted-foreground">D: {emp.performance}  P: {emp.potential}</p>
+                                <p className="text-[10px] text-muted-foreground">D: {emp.performance}  C: {emp.potential}</p>
                               </div>
                             </div>
                           ))}
@@ -448,7 +449,7 @@ const Matriz9Box = () => {
             </div>
 
             <p className="text-center text-[11px] font-bold tracking-widest text-muted-foreground mt-3">
-              DESEMPENHO (ENTREGA TÉCNICA)
+              COMPATIBILIDADE COM O CARGO PDA
             </p>
           </div>
         </div>
@@ -464,7 +465,7 @@ const Matriz9Box = () => {
                 <TableRow>
                   <TableHead>Colaborador</TableHead>
                   <TableHead className="w-24">Desempenho</TableHead>
-                  <TableHead className="w-24">Potencial</TableHead>
+                  <TableHead className="w-24">Compatibilidade</TableHead>
                   <TableHead className="w-32">Quadrante</TableHead>
                   <TableHead className="w-20">Ações</TableHead>
                 </TableRow>
@@ -530,10 +531,10 @@ const Matriz9Box = () => {
                 <input type="range" min={0} max={100} value={formData.performance} onChange={e => setFormData(p => ({ ...p, performance: +e.target.value }))} className="flex-1 accent-primary" />
                 <Input type="number" min={0} max={100} value={formData.performance} onChange={e => setFormData(p => ({ ...p, performance: Math.min(100, Math.max(0, +e.target.value)) }))} className="w-20" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">0-33 Baixo · 34-66 Médio · 67-100 Alto</p>
+                <p className="text-xs text-muted-foreground mt-1">0-33 Baixo · 34-66 Médio · 67-100 Alto</p>
             </div>
             <div>
-              <Label>Potencial / Liderança (0–100)</Label>
+              <Label>Compatibilidade com o Cargo PDA (0–100)</Label>
               <div className="flex items-center gap-3">
                 <input type="range" min={0} max={100} value={formData.potential} onChange={e => setFormData(p => ({ ...p, potential: +e.target.value }))} className="flex-1 accent-primary" />
                 <Input type="number" min={0} max={100} value={formData.potential} onChange={e => setFormData(p => ({ ...p, potential: Math.min(100, Math.max(0, +e.target.value)) }))} className="w-20" />
@@ -581,7 +582,7 @@ const Matriz9Box = () => {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead className="w-20">Desemp.</TableHead>
-                  <TableHead className="w-20">Potencial</TableHead>
+                  <TableHead className="w-20">Compat.</TableHead>
                   <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
