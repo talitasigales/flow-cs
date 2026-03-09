@@ -488,7 +488,7 @@ const Matriz9Box = () => {
                       <span className="text-xs text-muted-foreground ml-1">({getTierLabel(emp.performance)})</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{emp.potential}%</span>
+                      <span className="text-sm">{emp.potential}</span>
                       <span className="text-xs text-muted-foreground ml-1">({getTierLabel(emp.potential)})</span>
                     </TableCell>
                     <TableCell>
