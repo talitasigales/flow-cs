@@ -251,11 +251,11 @@ export function AppSidebar() {
                 setOpenCommunity,
                 isInCommunity,
                 communitySubItems,
-                3,
+                2,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 4)}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
+              {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 3)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
