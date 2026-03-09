@@ -95,6 +95,7 @@ export function AppSidebar() {
   const isInTools = toolsPaths.some(p => isActive(p));
   const isInCommunity = communityPaths.some(p => isActive(p));
   const isInPrograms = location.pathname.startsWith('/programas');
+  const isInAcademy = isInPrograms;
 
   const programSubItems = enrollments.map((p: any) => ({
     title: p.name,
