@@ -319,12 +319,13 @@ export async function export9BoxPdf(
     doc.text(`${e.performance_score} (${getLevel(e.performance_score)})`, 80, y);
     doc.text(`${e.role_fit_score} (${getLevel(e.role_fit_score)})`, 115, y);
 
+    // perfLevel = Desempenho (Y), fitLevel = Compatibilidade (X)
     const perfLevel = e.performance_score <= 33 ? 1 : e.performance_score <= 66 ? 2 : 3;
     const fitLevel = e.role_fit_score <= 33 ? 1 : e.role_fit_score <= 66 ? 2 : 3;
     const categories: Record<string, string> = {
-      '3-3': 'Alto Potencial', '3-2': 'Forte Desempenho', '3-1': 'Enigma',
-      '2-3': 'Forte Desempenho', '2-2': 'Mantenedor', '2-1': 'Questionável',
-      '1-3': 'Comprometido', '1-2': 'Eficaz', '1-1': 'Insuficiente',
+      '3-1': 'Enigma', '3-2': 'Forte Desempenho', '3-3': 'Alto Potencial',
+      '2-1': 'Questionável', '2-2': 'Mantenedor', '2-3': 'Forte Desempenho',
+      '1-1': 'Insuficiente', '1-2': 'Eficaz', '1-3': 'Comprometido',
     };
     doc.text(categories[`${perfLevel}-${fitLevel}`] || '-', 140, y);
     y += 7;
