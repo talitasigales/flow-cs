@@ -321,7 +321,7 @@ const Matriz9Box = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{topQuadrantCount}</p>
-                <p className="text-xs text-muted-foreground">Estrelas</p>
+                <p className="text-xs text-muted-foreground">Alto Potencial</p>
               </div>
             </CardContent>
           </Card>
