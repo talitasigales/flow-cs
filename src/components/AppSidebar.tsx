@@ -118,6 +118,7 @@ export function AppSidebar() {
     ] : []),
   ];
 
+  const [openTrilhas, setOpenTrilhas] = useState(isInTrilhas);
   const [openTools, setOpenTools] = useState(isInTools);
   const [openCommunity, setOpenCommunity] = useState(isInCommunity);
   const [openPrograms, setOpenPrograms] = useState(isInPrograms);
