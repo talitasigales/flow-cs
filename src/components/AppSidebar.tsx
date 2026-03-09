@@ -44,6 +44,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
 
+const trilhasSubItems = [
+  { title: 'Trilhas de Sucesso', icon: GraduationCap, path: '/dashboard' },
+  { title: 'Webinars', icon: Video, path: '/webinars' },
+];
+
 const toolsSubItems = [
   { title: 'Fale com a Nanda', icon: MessageSquare, path: '/chat-nanda' },
   { title: 'Matriz 9Box', icon: Grid3x3, path: '/matriz-9box' },
@@ -66,6 +71,7 @@ const academyEnrolledItems = [
   { title: 'Meu Desenvolvimento', icon: TrendingUp, path: '/programas/meu-desenvolvimento' },
 ];
 
+const trilhasPaths = trilhasSubItems.map(i => i.path);
 const toolsPaths = toolsSubItems.map(i => i.path);
 const communityPaths = ['/community', '/members', '/messages'];
 
@@ -95,6 +101,7 @@ export function AppSidebar() {
   }, [user]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
+  const isInTrilhas = trilhasPaths.some(p => isActive(p));
   const isInTools = toolsPaths.some(p => isActive(p));
   const isInCommunity = communityPaths.some(p => isActive(p));
   const isInPrograms = location.pathname.startsWith('/programas');
@@ -113,6 +120,7 @@ export function AppSidebar() {
     ] : []),
   ];
 
+  const [openTrilhas, setOpenTrilhas] = useState(isInTrilhas);
   const [openTools, setOpenTools] = useState(isInTools);
   const [openCommunity, setOpenCommunity] = useState(isInCommunity);
   const [openPrograms, setOpenPrograms] = useState(isInPrograms);
@@ -235,9 +243,8 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {renderTopLevelItem('Trilhas de Sucesso', GraduationCap, '/dashboard', 0)}
-              {renderTopLevelItem('Webinars', Video, '/webinars', 1)}
-              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 2)}
+              {renderCollapsible('Trilhas de Sucesso', GraduationCap, openTrilhas, setOpenTrilhas, isInTrilhas, trilhasSubItems, 0)}
+              {renderCollapsible('Ferramentas', Wrench, openTools, setOpenTools, isInTools, toolsSubItems, 1)}
               {renderCollapsible(
                 'Comunidade',
                 Users2,
@@ -245,11 +252,11 @@ export function AppSidebar() {
                 setOpenCommunity,
                 isInCommunity,
                 communitySubItems,
-                3,
+                2,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 4)}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
+              {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 3)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
