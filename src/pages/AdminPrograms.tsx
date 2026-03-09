@@ -56,6 +56,13 @@ export default function AdminPrograms() {
   // Import class selector
   const [importClassId, setImportClassId] = useState('');
 
+  // Materials state
+  const [materialTitle, setMaterialTitle] = useState('');
+  const [materialDescription, setMaterialDescription] = useState('');
+  const [materialFileUrl, setMaterialFileUrl] = useState('');
+  const [materialFileType, setMaterialFileType] = useState('link');
+  const [savingMaterial, setSavingMaterial] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
   }, [authLoading, adminLoading, user, isAdmin, navigate]);
