@@ -71,8 +71,8 @@ const academyEnrolledItems = [
   { title: 'Meu Desenvolvimento', icon: TrendingUp, path: '/programas/meu-desenvolvimento' },
 ];
 
+const trilhasPaths = trilhasSubItems.map(i => i.path);
 const toolsPaths = toolsSubItems.map(i => i.path);
-const communityPaths = ['/community', '/members', '/messages'];
 
 export function AppSidebar() {
   const navigate = useNavigate();
