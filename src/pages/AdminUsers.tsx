@@ -19,6 +19,7 @@ interface UserData {
   id: string;
   user_id: string;
   full_name: string | null;
+  email: string | null;
   company: string | null;
   created_at: string;
   role: 'admin' | 'user' | null;
@@ -63,7 +64,7 @@ const AdminUsers = () => {
       // Fetch all profiles with their roles
       const { data: profiles, error: profilesError } = await (supabase as any)
         .from('profiles')
-        .select('id, user_id, full_name, company, created_at')
+        .select('id, user_id, full_name, email, company, created_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -341,6 +342,7 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Permissão</TableHead>
                   <TableHead>Cadastrado em</TableHead>
@@ -353,6 +355,7 @@ const AdminUsers = () => {
                     <TableCell className="font-medium">
                       {userData.full_name || 'Sem nome'}
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{userData.email || '-'}</TableCell>
                     <TableCell>{userData.company || '-'}</TableCell>
                     <TableCell>
                       {userData.role === 'admin' ? (
