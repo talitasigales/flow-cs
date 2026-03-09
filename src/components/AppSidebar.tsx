@@ -100,6 +100,7 @@ export function AppSidebar() {
   }, [user]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
+  const isInTrilhas = trilhasPaths.some(p => isActive(p));
   const isInTools = toolsPaths.some(p => isActive(p));
   const isInCommunity = communityPaths.some(p => isActive(p));
   const isInPrograms = location.pathname.startsWith('/programas');
