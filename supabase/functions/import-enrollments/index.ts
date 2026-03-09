@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Acesso negado' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { emails, program_id } = await req.json();
+    const { emails, program_id, class_id } = await req.json();
     if (!emails || !program_id) {
       return new Response(JSON.stringify({ error: 'emails e program_id são obrigatórios' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -51,7 +51,11 @@ Deno.serve(async (req) => {
         notFound.push(email);
         continue;
       }
-      const { error } = await supabase.from('program_enrollments').insert({ program_id, user_id: profile.user_id });
+      const insertData: any = { program_id, user_id: profile.user_id };
+      if (class_id && class_id !== 'none') {
+        insertData.class_id = class_id;
+      }
+      const { error } = await supabase.from('program_enrollments').insert(insertData);
       if (error) {
         if (error.code === '23505') {
           alreadyEnrolled.push(email);
