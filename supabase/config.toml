@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.import-knowledge-url]
 verify_jwt = false
+
+[functions.import-enrollments]
+verify_jwt = false

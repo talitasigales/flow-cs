@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useEnrolledPrograms } from '@/hooks/useEnrolledPrograms';
 import {
   MessageSquare,
   Mail,
@@ -20,6 +21,7 @@ import {
   Wrench,
   Sparkles,
   Video,
+  Award,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -65,6 +67,7 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { unreadCount } = useUnreadMessages();
   const { unreadCount: notifCount } = useNotifications();
+  const { enrollments, isEnrolled } = useEnrolledPrograms();
   const [communityNotActivated, setCommunityNotActivated] = useState(false);
   const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
 
@@ -85,14 +88,23 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   const isInTools = toolsPaths.some(p => isActive(p));
   const isInCommunity = communityPaths.some(p => isActive(p));
+  const isInPrograms = location.pathname.startsWith('/programas');
+
+  const programSubItems = enrollments.map((p: any) => ({
+    title: p.name,
+    icon: BookOpen,
+    path: `/programas/${p.slug}`,
+  }));
 
   const [openTools, setOpenTools] = useState(isInTools);
   const [openCommunity, setOpenCommunity] = useState(isInCommunity);
+  const [openPrograms, setOpenPrograms] = useState(isInPrograms);
 
   const adminMenuItems = [
     { title: 'Gerenciar Usuários', icon: Users, path: '/admin/users' },
     { title: 'Logs', icon: FileText, path: '/admin/logs' },
     { title: 'Base de Conhecimento', icon: BookOpen, path: '/admin/knowledge-base' },
+    { title: 'Programas', icon: Award, path: '/admin/programs' },
   ];
 
   const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {
@@ -219,7 +231,8 @@ export function AppSidebar() {
                 3,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
+              {isEnrolled && renderCollapsible('Programas e Workshops', Award, openPrograms, setOpenPrograms, isInPrograms, programSubItems, 4)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
