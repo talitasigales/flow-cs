@@ -44,6 +44,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
 
+const trilhasSubItems = [
+  { title: 'Trilhas de Sucesso', icon: GraduationCap, path: '/dashboard' },
+  { title: 'Webinars', icon: Video, path: '/webinars' },
+];
+
 const toolsSubItems = [
   { title: 'Fale com a Nanda', icon: MessageSquare, path: '/chat-nanda' },
   { title: 'Matriz 9Box', icon: Grid3x3, path: '/matriz-9box' },
