@@ -427,13 +427,13 @@ const Matriz9Box = () => {
                         <p className={`text-sm font-bold mb-2 ${def.text}`}>{def.label}</p>
                         <div className="space-y-1.5">
                           {emps.slice(0, 4).map(emp => (
-                            <div key={emp.id} className="flex items-center gap-2 bg-black/20 rounded-lg px-2 py-1.5">
+                            <div key={emp.id} className="flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
                               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 ${getAvatarColor(emp.employee_name)}`}>
                                 {getInitials(emp.employee_name)}
                               </div>
                               <div className="text-left min-w-0">
-                                <p className="text-xs font-medium text-foreground truncate">{emp.employee_name}</p>
-                                <p className="text-[10px] text-muted-foreground">D: {emp.performance}  C: {emp.potential}</p>
+                                <p className="text-xs font-semibold text-white truncate drop-shadow-sm">{emp.employee_name}</p>
+                                <p className="text-[10px] font-medium text-white/70">D: {emp.performance}  C: {emp.potential}</p>
                               </div>
                             </div>
                           ))}
