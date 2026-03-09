@@ -464,7 +464,7 @@ const Matriz9Box = () => {
                 <TableRow>
                   <TableHead>Colaborador</TableHead>
                   <TableHead className="w-24">Desempenho</TableHead>
-                  <TableHead className="w-24">Fit</TableHead>
+                  <TableHead className="w-24">Potencial</TableHead>
                   <TableHead className="w-32">Quadrante</TableHead>
                   <TableHead className="w-20">Ações</TableHead>
                 </TableRow>
