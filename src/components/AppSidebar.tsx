@@ -104,6 +104,7 @@ export function AppSidebar() {
     { title: 'Gerenciar Usuários', icon: Users, path: '/admin/users' },
     { title: 'Logs', icon: FileText, path: '/admin/logs' },
     { title: 'Base de Conhecimento', icon: BookOpen, path: '/admin/knowledge-base' },
+    { title: 'Programas', icon: Award, path: '/admin/programs' },
   ];
 
   const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {
