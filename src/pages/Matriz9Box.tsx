@@ -53,14 +53,14 @@ const QUADRANTS: QuadrantDef[][] = [
 ];
 
 const LEGEND = [
-  { label: 'Alto Potencial', description: 'Desempenho alto + Compatibilidade alta — Talentos-chave', color: 'bg-[#1565c0]' },
-  { label: 'Forte Desempenho', description: 'Desempenho alto/médio + Compatibilidade média/alta', color: 'bg-[#2e7d32]' },
-  { label: 'Enigma', description: 'Desempenho alto + Compatibilidade baixa — Entender barreiras', color: 'bg-[#d4a017]' },
-  { label: 'Mantenedor', description: 'Desempenho médio + Compatibilidade média — Colaboradores consistentes', color: 'bg-[#d4a017]' },
-  { label: 'Comprometido', description: 'Desempenho baixo + Compatibilidade alta — Reconhecer entrega', color: 'bg-[#d4a017]' },
-  { label: 'Questionável', description: 'Desempenho médio + Compatibilidade baixa — Desenvolver ou realocar', color: 'bg-[#e67a20]' },
-  { label: 'Eficaz', description: 'Desempenho baixo + Compatibilidade média — Plano de desenvolvimento', color: 'bg-[#e67a20]' },
-  { label: 'Insuficiente', description: 'Desempenho baixo + Compatibilidade baixa — Ação urgente necessária', color: 'bg-[#d32f2f]' },
+  { label: 'Alto Potencial', description: 'Compatibilidade alta + Desempenho alto — Talentos-chave', color: 'bg-[#1565c0]' },
+  { label: 'Forte Desempenho', description: 'Compatibilidade alta/média + Desempenho médio/alto', color: 'bg-[#2e7d32]' },
+  { label: 'Enigma', description: 'Compatibilidade alta + Desempenho baixo — Entender barreiras', color: 'bg-[#d4a017]' },
+  { label: 'Mantenedor', description: 'Compatibilidade média + Desempenho médio — Colaboradores consistentes', color: 'bg-[#d4a017]' },
+  { label: 'Comprometido', description: 'Compatibilidade baixa + Desempenho alto — Reconhecer entrega', color: 'bg-[#d4a017]' },
+  { label: 'Questionável', description: 'Compatibilidade média + Desempenho baixo — Desenvolver ou realocar', color: 'bg-[#e67a20]' },
+  { label: 'Eficaz', description: 'Compatibilidade baixa + Desempenho médio — Plano de desenvolvimento', color: 'bg-[#e67a20]' },
+  { label: 'Insuficiente', description: 'Compatibilidade baixa + Desempenho baixo — Ação urgente necessária', color: 'bg-[#d32f2f]' },
 ];
 
 const Y_LABELS = ['ALTO', 'MÉDIO', 'BAIXO'];
