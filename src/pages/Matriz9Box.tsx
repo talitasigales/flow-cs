@@ -32,39 +32,39 @@ interface QuadrantDef {
 }
 
 const QUADRANTS: QuadrantDef[][] = [
-  // Row 0 = Desempenho ALTO (top)
+  // Row 0 = Compatibilidade ALTA (top)
   [
-    { label: 'Enigma', description: 'Desempenho alto + Compatibilidade baixa', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
-    { label: 'Forte Desempenho', description: 'Desempenho alto + Compatibilidade média', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
-    { label: 'Alto Potencial', description: 'Desempenho alto + Compatibilidade alta', bg: 'bg-[#1565c0]', border: 'border-[#0d47a1]', text: 'text-white' },
+    { label: 'Enigma', description: 'Compatibilidade alta + Desempenho baixo', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Compatibilidade alta + Desempenho médio', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
+    { label: 'Alto Potencial', description: 'Compatibilidade alta + Desempenho alto', bg: 'bg-[#1565c0]', border: 'border-[#0d47a1]', text: 'text-white' },
   ],
-  // Row 1 = Desempenho MÉDIO (middle)
+  // Row 1 = Compatibilidade MÉDIA (middle)
   [
-    { label: 'Questionável', description: 'Desempenho médio + Compatibilidade baixa', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
-    { label: 'Mantenedor', description: 'Desempenho médio + Compatibilidade média', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
-    { label: 'Forte Desempenho', description: 'Desempenho médio + Compatibilidade alta', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
+    { label: 'Questionável', description: 'Compatibilidade média + Desempenho baixo', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Mantenedor', description: 'Compatibilidade média + Desempenho médio', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Compatibilidade média + Desempenho alto', bg: 'bg-[#2e7d32]', border: 'border-[#1b5e20]', text: 'text-white' },
   ],
-  // Row 2 = Desempenho BAIXO (bottom)
+  // Row 2 = Compatibilidade BAIXA (bottom)
   [
-    { label: 'Insuficiente', description: 'Desempenho baixo + Compatibilidade baixa', bg: 'bg-[#d32f2f]', border: 'border-[#b71c1c]', text: 'text-white' },
-    { label: 'Eficaz', description: 'Desempenho baixo + Compatibilidade média', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
-    { label: 'Comprometido', description: 'Desempenho baixo + Compatibilidade alta', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
+    { label: 'Insuficiente', description: 'Compatibilidade baixa + Desempenho baixo', bg: 'bg-[#d32f2f]', border: 'border-[#b71c1c]', text: 'text-white' },
+    { label: 'Eficaz', description: 'Compatibilidade baixa + Desempenho médio', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Comprometido', description: 'Compatibilidade baixa + Desempenho alto', bg: 'bg-[#d4a017]', border: 'border-[#b8890f]', text: 'text-white' },
   ],
 ];
 
 const LEGEND = [
-  { label: 'Alto Potencial', description: 'Desempenho alto + Compatibilidade alta — Talentos-chave', color: 'bg-[#1565c0]' },
-  { label: 'Forte Desempenho', description: 'Desempenho alto/médio + Compatibilidade média/alta', color: 'bg-[#2e7d32]' },
-  { label: 'Enigma', description: 'Desempenho alto + Compatibilidade baixa — Entender barreiras', color: 'bg-[#d4a017]' },
-  { label: 'Mantenedor', description: 'Desempenho médio + Compatibilidade média — Colaboradores consistentes', color: 'bg-[#d4a017]' },
-  { label: 'Comprometido', description: 'Desempenho baixo + Compatibilidade alta — Reconhecer entrega', color: 'bg-[#d4a017]' },
-  { label: 'Questionável', description: 'Desempenho médio + Compatibilidade baixa — Desenvolver ou realocar', color: 'bg-[#e67a20]' },
-  { label: 'Eficaz', description: 'Desempenho baixo + Compatibilidade média — Plano de desenvolvimento', color: 'bg-[#e67a20]' },
-  { label: 'Insuficiente', description: 'Desempenho baixo + Compatibilidade baixa — Ação urgente necessária', color: 'bg-[#d32f2f]' },
+  { label: 'Alto Potencial', description: 'Compatibilidade alta + Desempenho alto — Talentos-chave', color: 'bg-[#1565c0]' },
+  { label: 'Forte Desempenho', description: 'Compatibilidade alta/média + Desempenho médio/alto', color: 'bg-[#2e7d32]' },
+  { label: 'Enigma', description: 'Compatibilidade alta + Desempenho baixo — Entender barreiras', color: 'bg-[#d4a017]' },
+  { label: 'Mantenedor', description: 'Compatibilidade média + Desempenho médio — Colaboradores consistentes', color: 'bg-[#d4a017]' },
+  { label: 'Comprometido', description: 'Compatibilidade baixa + Desempenho alto — Reconhecer entrega', color: 'bg-[#d4a017]' },
+  { label: 'Questionável', description: 'Compatibilidade média + Desempenho baixo — Desenvolver ou realocar', color: 'bg-[#e67a20]' },
+  { label: 'Eficaz', description: 'Compatibilidade baixa + Desempenho médio — Plano de desenvolvimento', color: 'bg-[#e67a20]' },
+  { label: 'Insuficiente', description: 'Compatibilidade baixa + Desempenho baixo — Ação urgente necessária', color: 'bg-[#d32f2f]' },
 ];
 
-const Y_LABELS = ['ALTO', 'MÉDIO', 'BAIXO'];
-const X_LABELS = ['BAIXA', 'MÉDIA', 'ALTA'];
+const Y_LABELS = ['ALTA', 'MÉDIA', 'BAIXA'];
+const X_LABELS = ['BAIXO', 'MÉDIO', 'ALTO'];
 
 function getTier(value: number): number {
   if (value <= 33) return 0;
@@ -79,10 +79,10 @@ function getTierLabel(value: number): string {
 }
 
 function getQuadrant(performance: number, potential: number): { row: number; col: number } {
-  // Y-axis = Desempenho (performance): Alto=topo, Baixo=base
-  // X-axis = Compatibilidade com o Cargo PDA (potential): Baixa=esquerda, Alta=direita
-  const row = 2 - getTier(performance);
-  const col = getTier(potential);
+  // Y-axis = Compatibilidade com o Cargo PDA (potential): Alta=topo, Baixa=base
+  // X-axis = Desempenho (performance): Baixo=esquerda, Alto=direita
+  const row = 2 - getTier(potential);
+  const col = getTier(performance);
   return { row, col };
 }
 
@@ -395,7 +395,7 @@ const Matriz9Box = () => {
         <div className="flex">
           <div className="flex flex-col items-center justify-center mr-2 shrink-0">
             <span className="text-[11px] font-bold tracking-widest text-muted-foreground [writing-mode:vertical-lr] rotate-180">
-              DESEMPENHO
+              COMPATIBILIDADE COM O CARGO PDA
             </span>
           </div>
 
@@ -449,7 +449,7 @@ const Matriz9Box = () => {
             </div>
 
             <p className="text-center text-[11px] font-bold tracking-widest text-muted-foreground mt-3">
-              COMPATIBILIDADE COM O CARGO PDA
+              DESEMPENHO
             </p>
           </div>
         </div>
