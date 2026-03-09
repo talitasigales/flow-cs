@@ -433,7 +433,7 @@ const Matriz9Box = () => {
                               </div>
                               <div className="text-left min-w-0">
                                 <p className="text-xs font-medium text-foreground truncate">{emp.employee_name}</p>
-                                <p className="text-[10px] text-muted-foreground">D: {emp.performance}  P: {emp.potential}</p>
+                                <p className="text-[10px] text-muted-foreground">D: {emp.performance}  C: {emp.potential}</p>
                               </div>
                             </div>
                           ))}
