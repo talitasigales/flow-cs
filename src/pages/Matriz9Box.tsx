@@ -35,34 +35,34 @@ interface QuadrantDef {
 const QUADRANTS: QuadrantDef[][] = [
   // Row 0 — ALTO desempenho
   [
-    { label: 'Especialista', description: 'Alto desempenho, baixo fit', bg: 'bg-indigo-900/60', border: 'border-indigo-500/60', text: 'text-indigo-300' },
-    { label: 'Destaque', description: 'Alto desempenho, médio fit', bg: 'bg-teal-900/50', border: 'border-teal-500/60', text: 'text-teal-300' },
-    { label: 'Estrela', description: 'Alto desempenho e alto fit', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
+    { label: 'Especialista', description: 'Alto desempenho + Baixo fit', bg: 'bg-indigo-900/60', border: 'border-indigo-500/60', text: 'text-indigo-300' },
+    { label: 'Destaque', description: 'Alto desempenho + Médio fit', bg: 'bg-teal-900/50', border: 'border-teal-500/60', text: 'text-teal-300' },
+    { label: 'Estrela', description: 'Alto desempenho + Alto fit', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
   ],
   // Row 1 — MÉDIO desempenho
   [
-    { label: 'Confiável', description: 'Baixo desempenho, médio fit', bg: 'bg-slate-800/60', border: 'border-slate-500/40', text: 'text-slate-300' },
-    { label: 'Sólido', description: 'Desempenho e fit médios', bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-300' },
-    { label: 'Alto Potencial', description: 'Médio desempenho, alto fit', bg: 'bg-emerald-900/40', border: 'border-emerald-500/50', text: 'text-emerald-300' },
+    { label: 'Confiável', description: 'Médio desempenho + Baixo fit', bg: 'bg-slate-800/60', border: 'border-slate-500/40', text: 'text-slate-300' },
+    { label: 'Sólido', description: 'Médio desempenho + Médio fit', bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-300' },
+    { label: 'Alto Potencial', description: 'Médio desempenho + Alto fit', bg: 'bg-emerald-900/40', border: 'border-emerald-500/50', text: 'text-emerald-300' },
   ],
   // Row 2 — BAIXO desempenho
   [
-    { label: 'Atenção', description: 'Baixo em ambos', bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-300' },
-    { label: 'Desenvolvimento', description: 'Médio desempenho, baixo fit', bg: 'bg-amber-900/30', border: 'border-amber-500/40', text: 'text-amber-300' },
-    { label: 'Enigma', description: 'Baixo desempenho, alto fit', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
+    { label: 'Atenção', description: 'Baixo desempenho + Baixo fit', bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-300' },
+    { label: 'Desenvolvimento', description: 'Baixo desempenho + Médio fit', bg: 'bg-amber-900/30', border: 'border-amber-500/40', text: 'text-amber-300' },
+    { label: 'Enigma', description: 'Baixo desempenho + Alto fit', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
   ],
 ];
 
 const LEGEND = [
-  { label: 'Estrela', description: 'Alto desempenho e alto fit - Talentos-chave', color: 'bg-emerald-500' },
-  { label: 'Destaque', description: 'Alto desempenho, médio fit - Considerar novas posições', color: 'bg-teal-500' },
-  { label: 'Especialista', description: 'Alto desempenho, baixo fit - Revisar posicionamento', color: 'bg-indigo-500' },
-  { label: 'Alto Potencial', description: 'Médio desempenho, alto fit - Investir em desenvolvimento', color: 'bg-emerald-400' },
-  { label: 'Sólido', description: 'Desempenho e fit médios - Colaboradores consistentes', color: 'bg-blue-500' },
-  { label: 'Confiável', description: 'Baixo desempenho, médio fit - Desenvolver ou realocar', color: 'bg-slate-500' },
-  { label: 'Enigma', description: 'Baixo desempenho, alto fit - Entender barreiras', color: 'bg-amber-500' },
-  { label: 'Desenvolvimento', description: 'Médio desempenho, baixo fit - Plano de desenvolvimento', color: 'bg-amber-600' },
-  { label: 'Atenção', description: 'Baixo em ambos - Ação urgente necessária', color: 'bg-red-500' },
+  { label: 'Estrela', description: 'Alto desempenho + Alto fit - Talentos-chave', color: 'bg-emerald-500' },
+  { label: 'Destaque', description: 'Alto desempenho + Médio fit - Considerar novas posições', color: 'bg-teal-500' },
+  { label: 'Especialista', description: 'Alto desempenho + Baixo fit - Revisar posicionamento', color: 'bg-indigo-500' },
+  { label: 'Alto Potencial', description: 'Médio desempenho + Alto fit - Investir em desenvolvimento', color: 'bg-emerald-400' },
+  { label: 'Sólido', description: 'Médio desempenho + Médio fit - Colaboradores consistentes', color: 'bg-blue-500' },
+  { label: 'Confiável', description: 'Médio desempenho + Baixo fit - Desenvolver ou realocar', color: 'bg-slate-500' },
+  { label: 'Enigma', description: 'Baixo desempenho + Alto fit - Entender barreiras', color: 'bg-amber-500' },
+  { label: 'Desenvolvimento', description: 'Baixo desempenho + Médio fit - Plano de desenvolvimento', color: 'bg-amber-600' },
+  { label: 'Atenção', description: 'Baixo desempenho + Baixo fit - Ação urgente necessária', color: 'bg-red-500' },
 ];
 
 const Y_LABELS = ['ALTO', 'MÉDIO', 'BAIXO'];
