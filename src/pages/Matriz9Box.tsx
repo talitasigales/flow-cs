@@ -79,8 +79,9 @@ function getTierLabel(value: number): string {
 }
 
 function getQuadrant(performance: number, potential: number): { row: number; col: number } {
-  const col = getTier(potential);
-  const row = 2 - getTier(performance);
+  // X-axis = Desempenho (performance), Y-axis = Potencial (potential)
+  const col = getTier(performance);
+  const row = 2 - getTier(potential);
   return { row, col };
 }
 
