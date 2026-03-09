@@ -58,6 +58,11 @@ const communitySubItems = [
   { title: 'Mensagens', icon: Mail, path: '/messages' },
 ];
 
+const academySubItems = [
+  { title: 'Calendário de Turmas', icon: CalendarDays, path: '/programas/calendario' },
+  { title: 'Meu Desenvolvimento', icon: TrendingUp, path: '/programas/meu-desenvolvimento' },
+];
+
 const toolsPaths = toolsSubItems.map(i => i.path);
 const communityPaths = ['/community', '/members', '/messages'];
 
@@ -90,12 +95,17 @@ export function AppSidebar() {
   const isInTools = toolsPaths.some(p => isActive(p));
   const isInCommunity = communityPaths.some(p => isActive(p));
   const isInPrograms = location.pathname.startsWith('/programas');
+  const isInAcademy = isInPrograms;
 
-  const programSubItems = enrollments.map((p: any) => ({
-    title: p.name,
-    icon: BookOpen,
-    path: `/programas/${p.slug}`,
-  }));
+  // Build academy sub-items: static items + enrolled program pages
+  const allAcademySubItems = [
+    ...academySubItems,
+    ...enrollments.map((p: any) => ({
+      title: p.name,
+      icon: BookOpen,
+      path: `/programas/${p.slug}`,
+    })),
+  ];
 
   const [openTools, setOpenTools] = useState(isInTools);
   const [openCommunity, setOpenCommunity] = useState(isInCommunity);
@@ -232,9 +242,8 @@ export function AppSidebar() {
                 3,
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
-              {isEnrolled && renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInPrograms, programSubItems, 4)}
-              {renderTopLevelItem('Calendário de Programas', CalendarDays, '/programas/calendario', 5)}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 6)}
+              {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 4)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
