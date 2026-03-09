@@ -63,8 +63,8 @@ const LEGEND = [
   { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente — Ação urgente necessária', color: 'bg-red-500' },
 ];
 
-const Y_LABELS = ['ALTO', 'MÉDIO', 'BAIXO'];
-const X_LABELS = ['BAIXO', 'MÉDIO', 'ALTO'];
+const Y_LABELS = ['MUITO BOM', 'ACEITÁVEL', 'BAIXO'];
+const X_LABELS = ['INSUFICIENTE', 'MEDIANO', 'EXCEPCIONAL'];
 
 function getTier(value: number): number {
   if (value <= 33) return 0;
