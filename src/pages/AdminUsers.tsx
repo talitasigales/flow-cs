@@ -19,6 +19,7 @@ interface UserData {
   id: string;
   user_id: string;
   full_name: string | null;
+  email: string | null;
   company: string | null;
   created_at: string;
   role: 'admin' | 'user' | null;
