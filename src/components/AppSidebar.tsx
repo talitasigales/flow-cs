@@ -67,6 +67,7 @@ export function AppSidebar() {
   const { user } = useAuth();
   const { unreadCount } = useUnreadMessages();
   const { unreadCount: notifCount } = useNotifications();
+  const { enrollments, isEnrolled } = useEnrolledPrograms();
   const [communityNotActivated, setCommunityNotActivated] = useState(false);
   const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
 
@@ -87,9 +88,17 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
   const isInTools = toolsPaths.some(p => isActive(p));
   const isInCommunity = communityPaths.some(p => isActive(p));
+  const isInPrograms = location.pathname.startsWith('/programas');
+
+  const programSubItems = enrollments.map((p: any) => ({
+    title: p.name,
+    icon: BookOpen,
+    path: `/programas/${p.slug}`,
+  }));
 
   const [openTools, setOpenTools] = useState(isInTools);
   const [openCommunity, setOpenCommunity] = useState(isInCommunity);
+  const [openPrograms, setOpenPrograms] = useState(isInPrograms);
 
   const adminMenuItems = [
     { title: 'Gerenciar Usuários', icon: Users, path: '/admin/users' },
