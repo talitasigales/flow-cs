@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus } from 'lucide-react';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
@@ -55,6 +55,13 @@ export default function AdminPrograms() {
 
   // Import class selector
   const [importClassId, setImportClassId] = useState('');
+
+  // Materials state
+  const [materialTitle, setMaterialTitle] = useState('');
+  const [materialDescription, setMaterialDescription] = useState('');
+  const [materialFileUrl, setMaterialFileUrl] = useState('');
+  const [materialFileType, setMaterialFileType] = useState('link');
+  const [savingMaterial, setSavingMaterial] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
@@ -107,6 +114,19 @@ export default function AdminPrograms() {
         .select('id, user_id, answers, submitted_at, profiles(full_name, email)')
         .eq('program_id', selectedProgram)
         .order('submitted_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const { data: materials = [], refetch: refetchMaterials } = useQuery({
+    queryKey: ['program-materials-admin', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_materials')
+        .select('*')
+        .eq('program_id', selectedProgram)
+        .order('order_number');
       return data || [];
     },
   });
@@ -188,6 +208,45 @@ export default function AdminPrograms() {
     return cls ? cls.name : '—';
   };
 
+  const handleSaveMaterial = async () => {
+    if (!materialTitle.trim() || !selectedProgram) {
+      toast.error('Título é obrigatório');
+      return;
+    }
+    setSavingMaterial(true);
+    try {
+      const { error } = await supabase.from('program_materials').insert({
+        program_id: selectedProgram,
+        title: materialTitle.trim(),
+        description: materialDescription.trim() || null,
+        file_url: materialFileUrl.trim() || null,
+        file_type: materialFileType,
+        order_number: materials.length,
+      });
+      if (error) throw error;
+      toast.success('Material adicionado');
+      setMaterialTitle('');
+      setMaterialDescription('');
+      setMaterialFileUrl('');
+      setMaterialFileType('link');
+      refetchMaterials();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar material');
+    } finally {
+      setSavingMaterial(false);
+    }
+  };
+
+  const handleDeleteMaterial = async (id: string) => {
+    const { error } = await supabase.from('program_materials').delete().eq('id', id);
+    if (error) {
+      toast.error('Erro ao remover material');
+    } else {
+      toast.success('Material removido');
+      refetchMaterials();
+    }
+  };
+
   if (authLoading || adminLoading) {
     return (
       <AppLayout>
@@ -227,6 +286,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
               <TabsTrigger value="import" className="gap-1.5"><Upload className="w-4 h-4" /> Importar</TabsTrigger>
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length})</TabsTrigger>
+              <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
             </TabsList>
 
             {/* TURMAS TAB */}
@@ -462,6 +522,81 @@ export default function AdminPrograms() {
                                 </div>
                               </DialogContent>
                             </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* MATERIAIS TAB */}
+            <TabsContent value="materials" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Adicionar Material</CardTitle>
+                  <CardDescription>Adicione links, PDFs ou documentos para os alunos deste programa</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Título</Label>
+                      <Input value={materialTitle} onChange={e => setMaterialTitle(e.target.value)} placeholder="Ex: Apostila do Módulo 1" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tipo</Label>
+                      <Select value={materialFileType} onValueChange={setMaterialFileType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="doc">Documento</SelectItem>
+                          <SelectItem value="video">Vídeo</SelectItem>
+                          <SelectItem value="other">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>URL do arquivo / link</Label>
+                    <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descrição (opcional)</Label>
+                    <Textarea value={materialDescription} onChange={e => setMaterialDescription(e.target.value)} placeholder="Breve descrição do material..." className="min-h-[80px]" />
+                  </div>
+                  <Button onClick={handleSaveMaterial} disabled={savingMaterial}>
+                    {savingMaterial ? 'Salvando...' : 'Adicionar Material'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>URL</TableHead>
+                        <TableHead className="w-[80px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {materials.length === 0 ? (
+                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum material cadastrado</TableCell></TableRow>
+                      ) : materials.map((m: any) => (
+                        <TableRow key={m.id}>
+                          <TableCell className="font-medium">{m.title}</TableCell>
+                          <TableCell><Badge variant="secondary">{m.file_type || '—'}</Badge></TableCell>
+                          <TableCell className="max-w-[200px] truncate text-xs">{m.file_url || '—'}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
