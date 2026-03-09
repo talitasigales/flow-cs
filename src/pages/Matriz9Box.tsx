@@ -310,7 +310,7 @@ const Matriz9Box = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{avgFit}%</p>
-                <p className="text-xs text-muted-foreground">Média Compatibilidade</p>
+                <p className="text-xs text-muted-foreground">Média Potencial</p>
               </div>
             </CardContent>
           </Card>
