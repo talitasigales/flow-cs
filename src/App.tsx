@@ -27,6 +27,8 @@ import Messages from "./pages/Messages";
 import ChatConversation from "./pages/ChatConversation";
 import Members from "./pages/Members";
 import PublicProfile from "./pages/PublicProfile";
+import ProgramLider360 from "./pages/ProgramLider360";
+import AdminPrograms from "./pages/AdminPrograms";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
