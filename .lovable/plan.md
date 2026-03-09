@@ -1,36 +1,66 @@
 
 
-## Problem
+## Plan: Programas com Turmas, Matrícula em Massa e Calendário
 
-The `reset-password` edge function fails with "Token inválido" because on line 49:
-```typescript
-await supabaseAuth.auth.getUser(token)
-```
-When you pass the token directly to `getUser()`, it bypasses the Authorization header and attempts to resolve a local session, which doesn't exist in edge functions — hence `AuthSessionMissingError`.
+### 1. Database Changes
 
-## Fix
+**Inserir os 5 novos programas** na tabela `programs`:
+- NR1 Aplicada à Liderança (`nr1-lideranca`)
+- Certificação Analista PDA (`certificacao-pda`)
+- Master Líder (`master-lider`)
+- Entrevista por Competências (`entrevista-competencias`)
+- Inteligência Comportamental para Vendas (`inteligencia-vendas`)
 
-One-line change in `supabase/functions/reset-password/index.ts`:
+**Nova tabela `program_classes`** (turmas):
+- `id`, `program_id` (FK programs), `name` (ex: "Turma 10-12 Mar/2026"), `start_date`, `end_date`, `created_at`
+- RLS: admins manage, authenticated can view
 
-1. **Remove the `token` variable** (line 42) — it's no longer needed.
-2. **Call `getUser()` without arguments** (line 49) — this makes the client use the `Authorization` header from the global config to validate the user.
+**Alterar `program_enrollments`**: adicionar coluna `class_id` (uuid, nullable, FK program_classes) para vincular aluno a uma turma específica.
 
-```typescript
-// Before (broken):
-const token = authHeader.replace('Bearer ', '');
-const supabaseAuth = createClient(supabaseUrl, anonKey, {
-  global: { headers: { Authorization: authHeader } },
-  auth: { autoRefreshToken: false, persistSession: false }
-});
-const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+### 2. Admin: Gerenciar Turmas e Matrículas (`src/pages/AdminPrograms.tsx`)
 
-// After (fixed):
-const supabaseAuth = createClient(supabaseUrl, anonKey, {
-  global: { headers: { Authorization: authHeader } },
-  auth: { autoRefreshToken: false, persistSession: false }
-});
-const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
-```
+Reescrever com 4 abas por programa:
+- **Turmas**: CRUD de turmas (nome + datas) por programa selecionado
+- **Matrículas**: listar alunos, filtrar por turma, adicionar individual (buscar por e-mail) + em massa (textarea de e-mails), sempre vinculado a programa + turma
+- **Importar Turma**: manter funcionalidade existente, mas agora selecionar turma antes de importar
+- **Respostas**: manter como está (para Líder 360)
 
-3. **Deploy and test** by calling the function from the admin page.
+Atualizar edge function `import-enrollments` para aceitar `class_id` opcional.
+
+### 3. Páginas de Programa Genéricas
+
+Criar `src/pages/ProgramGeneric.tsx` — página genérica para programas que não são Líder 360. Exibe:
+- Nome e descrição do programa
+- Calendário de turmas do programa
+- Informações básicas
+
+Atualizar `App.tsx`: rota `/programas/:slug` renderiza `ProgramLider360` se slug=lider-360, senão `ProgramGeneric`.
+
+### 4. Calendário Público de Turmas (`src/pages/ProgramCalendar.tsx`)
+
+Nova página acessível a todos os autenticados, listando:
+- Todas as turmas futuras de todos os programas, agrupadas por mês
+- Cards com: nome do programa, nome da turma, datas, link de inscrição (se houver)
+
+Adicionar no sidebar como item "Calendário de Programas" (ícone CalendarDays) no menu principal, visível para todos.
+
+### 5. Sidebar (`src/components/AppSidebar.tsx`)
+
+- Manter "Programas e Workshops" collapsible com sub-itens dos programas matriculados
+- Adicionar "Calendário de Programas" como item top-level visível a todos (antes de "Meu Perfil")
+
+### 6. Rotas (`src/App.tsx`)
+
+Novas rotas:
+- `/programas/calendario` → ProgramCalendar
+- `/programas/:slug` → dinâmico (Líder 360 ou genérico)
+
+### Arquivos Modificados/Criados
+- **Migration SQL**: criar `program_classes`, alterar `program_enrollments`, inserir 5 programas
+- `src/pages/AdminPrograms.tsx` — reescrever com gestão de turmas
+- `src/pages/ProgramGeneric.tsx` — novo
+- `src/pages/ProgramCalendar.tsx` — novo
+- `src/components/AppSidebar.tsx` — adicionar calendário
+- `src/App.tsx` — novas rotas
+- `supabase/functions/import-enrollments/index.ts` — aceitar class_id
 
