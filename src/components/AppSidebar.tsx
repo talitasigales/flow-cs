@@ -58,8 +58,11 @@ const communitySubItems = [
   { title: 'Mensagens', icon: Mail, path: '/messages' },
 ];
 
-const academySubItems = [
+const academyBaseItems = [
   { title: 'Calendário de Turmas', icon: CalendarDays, path: '/programas/calendario' },
+];
+
+const academyEnrolledItems = [
   { title: 'Meu Desenvolvimento', icon: TrendingUp, path: '/programas/meu-desenvolvimento' },
 ];
 
