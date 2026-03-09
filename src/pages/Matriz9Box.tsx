@@ -79,10 +79,10 @@ function getTierLabel(value: number): string {
 }
 
 function getQuadrant(performance: number, potential: number): { row: number; col: number } {
-  // Y-axis = Desempenho (performance): Alto=topo, Baixo=base
-  // X-axis = Compatibilidade com o Cargo PDA (potential): Baixa=esquerda, Alta=direita
-  const row = 2 - getTier(performance);
-  const col = getTier(potential);
+  // Y-axis = Compatibilidade com o Cargo PDA (potential): Alta=topo, Baixa=base
+  // X-axis = Desempenho (performance): Baixo=esquerda, Alto=direita
+  const row = 2 - getTier(potential);
+  const col = getTier(performance);
   return { row, col };
 }
 
