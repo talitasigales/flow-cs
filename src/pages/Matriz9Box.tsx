@@ -34,21 +34,21 @@ interface QuadrantDef {
 const QUADRANTS: QuadrantDef[][] = [
   // Row 0 = Potencial MUITO BOM (top) — Verde
   [
-    { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente', bg: 'bg-green-800/70', border: 'border-green-500/80', text: 'text-green-200' },
-    { label: 'Forte Desempenho', description: 'Potencial muito bom + Desempenho mediano', bg: 'bg-green-800/70', border: 'border-green-500/80', text: 'text-green-200' },
-    { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional', bg: 'bg-green-700/80', border: 'border-green-400/90', text: 'text-green-100' },
+    { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente', bg: 'bg-[#3a9a3a]', border: 'border-[#2d7a2d]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Potencial muito bom + Desempenho mediano', bg: 'bg-[#3a9a3a]', border: 'border-[#2d7a2d]', text: 'text-white' },
+    { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional', bg: 'bg-[#2d8a2d]', border: 'border-[#237523]', text: 'text-white' },
   ],
   // Row 1 = Potencial ACEITÁVEL (middle) — Laranja + Verde (direita)
   [
-    { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente', bg: 'bg-orange-800/60', border: 'border-orange-500/70', text: 'text-orange-200' },
-    { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano', bg: 'bg-orange-800/60', border: 'border-orange-500/70', text: 'text-orange-200' },
-    { label: 'Forte Desempenho', description: 'Potencial aceitável + Desempenho excepcional', bg: 'bg-green-800/60', border: 'border-green-500/70', text: 'text-green-200' },
+    { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano', bg: 'bg-[#e67a20]', border: 'border-[#cc6a18]', text: 'text-white' },
+    { label: 'Forte Desempenho', description: 'Potencial aceitável + Desempenho excepcional', bg: 'bg-[#3a9a3a]', border: 'border-[#2d7a2d]', text: 'text-white' },
   ],
   // Row 2 = Potencial BAIXO (bottom) — Vermelho + Azul (direita)
   [
-    { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente', bg: 'bg-red-800/60', border: 'border-red-500/70', text: 'text-red-200' },
-    { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano', bg: 'bg-red-800/50', border: 'border-red-500/60', text: 'text-red-200' },
-    { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional', bg: 'bg-blue-800/60', border: 'border-blue-500/70', text: 'text-blue-200' },
+    { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente', bg: 'bg-[#e03030]', border: 'border-[#c22828]', text: 'text-white' },
+    { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano', bg: 'bg-[#e03030]', border: 'border-[#c22828]', text: 'text-white' },
+    { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional', bg: 'bg-[#2878c0]', border: 'border-[#1e65a5]', text: 'text-white' },
   ],
 ];
 
