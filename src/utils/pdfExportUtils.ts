@@ -301,8 +301,8 @@ export async function export9BoxPdf(
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text('Colaborador', 17, y + 6);
-  doc.text('Performance', 80, y + 6);
-  doc.text('Fit', 115, y + 6);
+  doc.text('Desempenho', 80, y + 6);
+  doc.text('Potencial', 115, y + 6);
   doc.text('Quadrante', 140, y + 6);
   y += 10;
 
