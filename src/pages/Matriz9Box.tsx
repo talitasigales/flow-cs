@@ -395,7 +395,7 @@ const Matriz9Box = () => {
         <div className="flex">
           <div className="flex flex-col items-center justify-center mr-2 shrink-0">
             <span className="text-[11px] font-bold tracking-widest text-muted-foreground [writing-mode:vertical-lr] rotate-180">
-              POTENCIAL (LIDERANÇA)
+              DESEMPENHO
             </span>
           </div>
 
