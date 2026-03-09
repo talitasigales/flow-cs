@@ -32,32 +32,32 @@ interface QuadrantDef {
 }
 
 const QUADRANTS: QuadrantDef[][] = [
-  // Row 0 = Potencial MUITO BOM (top)
+  // Row 0 = Potencial MUITO BOM (top) — Verde
   [
-    { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
-    { label: 'Forte Desempenho', description: 'Potencial muito bom + Desempenho mediano', bg: 'bg-emerald-900/50', border: 'border-emerald-500/60', text: 'text-emerald-300' },
-    { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional', bg: 'bg-emerald-900/60', border: 'border-emerald-500/70', text: 'text-emerald-300' },
+    { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente', bg: 'bg-green-800/70', border: 'border-green-500/80', text: 'text-green-200' },
+    { label: 'Forte Desempenho', description: 'Potencial muito bom + Desempenho mediano', bg: 'bg-green-800/70', border: 'border-green-500/80', text: 'text-green-200' },
+    { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional', bg: 'bg-green-700/80', border: 'border-green-400/90', text: 'text-green-100' },
   ],
-  // Row 1 = Potencial ACEITÁVEL (middle)
+  // Row 1 = Potencial ACEITÁVEL (middle) — Laranja + Verde (direita)
   [
-    { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
-    { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano', bg: 'bg-amber-900/40', border: 'border-amber-500/50', text: 'text-amber-300' },
-    { label: 'Forte Desempenho', description: 'Potencial aceitável + Desempenho excepcional', bg: 'bg-emerald-900/40', border: 'border-emerald-500/50', text: 'text-emerald-300' },
+    { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente', bg: 'bg-orange-800/60', border: 'border-orange-500/70', text: 'text-orange-200' },
+    { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano', bg: 'bg-orange-800/60', border: 'border-orange-500/70', text: 'text-orange-200' },
+    { label: 'Forte Desempenho', description: 'Potencial aceitável + Desempenho excepcional', bg: 'bg-green-800/60', border: 'border-green-500/70', text: 'text-green-200' },
   ],
-  // Row 2 = Potencial BAIXO (bottom)
+  // Row 2 = Potencial BAIXO (bottom) — Vermelho + Azul (direita)
   [
-    { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente', bg: 'bg-red-900/40', border: 'border-red-500/50', text: 'text-red-300' },
-    { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano', bg: 'bg-red-900/30', border: 'border-red-500/40', text: 'text-red-300' },
-    { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional', bg: 'bg-blue-900/40', border: 'border-blue-500/50', text: 'text-blue-300' },
+    { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente', bg: 'bg-red-800/60', border: 'border-red-500/70', text: 'text-red-200' },
+    { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano', bg: 'bg-red-800/50', border: 'border-red-500/60', text: 'text-red-200' },
+    { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional', bg: 'bg-blue-800/60', border: 'border-blue-500/70', text: 'text-blue-200' },
   ],
 ];
 
 const LEGEND = [
-  { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional — Talentos-chave', color: 'bg-emerald-500' },
-  { label: 'Forte Desempenho', description: 'Potencial muito bom/aceitável + Desempenho mediano/excepcional', color: 'bg-emerald-400' },
-  { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente — Entender barreiras', color: 'bg-emerald-600' },
-  { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano — Colaboradores consistentes', color: 'bg-amber-500' },
-  { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente — Desenvolver ou realocar', color: 'bg-amber-600' },
+  { label: 'Alto Potencial', description: 'Potencial muito bom + Desempenho excepcional — Talentos-chave', color: 'bg-green-600' },
+  { label: 'Forte Desempenho', description: 'Potencial muito bom/aceitável + Desempenho mediano/excepcional', color: 'bg-green-500' },
+  { label: 'Enigma', description: 'Potencial muito bom + Desempenho insuficiente — Entender barreiras', color: 'bg-green-700' },
+  { label: 'Mantenedor', description: 'Potencial aceitável + Desempenho mediano — Colaboradores consistentes', color: 'bg-orange-500' },
+  { label: 'Questionável', description: 'Potencial aceitável + Desempenho insuficiente — Desenvolver ou realocar', color: 'bg-orange-600' },
   { label: 'Comprometido', description: 'Potencial baixo + Desempenho excepcional — Reconhecer entrega', color: 'bg-blue-500' },
   { label: 'Eficaz', description: 'Potencial baixo + Desempenho mediano — Plano de desenvolvimento', color: 'bg-red-400' },
   { label: 'Insuficiente', description: 'Potencial baixo + Desempenho insuficiente — Ação urgente necessária', color: 'bg-red-500' },
