@@ -24,14 +24,6 @@ import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const QUESTIONS = [
-  { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
-  { id: 'q2', label: '2. O que você acredita que faz muito bem como líder?' },
-  { id: 'q3', label: '3. Em que situações você sente que sua liderança é mais forte?' },
-  { id: 'q4', label: '4. Em que contextos você percebe que perde desempenho ou clareza?' },
-  { id: 'q5', label: '5. Se seu time pudesse descrevê-lo com sinceridade absoluta, o que diria?' },
-  { id: 'q6', label: '6. O que você tem feito intencionalmente para evoluir como líder?' },
-];
 
 function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
   const { data: exercises = [] } = useQuery({
