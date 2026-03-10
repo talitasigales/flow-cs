@@ -74,6 +74,12 @@ export default function AdminPrograms() {
   // Import class selector
   const [importClassId, setImportClassId] = useState('');
 
+  // Individual enrollment state
+  const [individualName, setIndividualName] = useState('');
+  const [individualEmail, setIndividualEmail] = useState('');
+  const [individualClassId, setIndividualClassId] = useState('');
+  const [enrollingIndividual, setEnrollingIndividual] = useState(false);
+
   // Materials state
   const [materialTitle, setMaterialTitle] = useState('');
   const [materialDescription, setMaterialDescription] = useState('');
@@ -331,6 +337,58 @@ export default function AdminPrograms() {
     } else {
       toast.success('Turma removida');
       refetchClasses();
+    }
+  };
+
+  const handleIndividualEnrollment = async () => {
+    if (!individualEmail.trim() || !individualName.trim() || !selectedProgram) {
+      toast.error('Preencha nome, e-mail e selecione um programa');
+      return;
+    }
+    setEnrollingIndividual(true);
+    try {
+      // 1. Ensure user exists (invite-user creates if not exists)
+      const { data: inviteData, error: inviteError } = await supabase.functions.invoke('invite-user', {
+        body: { email: individualEmail.trim().toLowerCase(), role: 'user' },
+      });
+      if (inviteError) throw inviteError;
+
+      // 2. Update profile name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('email', individualEmail.trim().toLowerCase())
+        .maybeSingle();
+      if (profile) {
+        await supabase.from('profiles').update({ full_name: individualName.trim() }).eq('user_id', profile.user_id);
+      }
+
+      // 3. Enroll
+      const { data, error } = await supabase.functions.invoke('import-enrollments', {
+        body: { emails: individualEmail.trim(), program_id: selectedProgram, class_id: individualClassId || null },
+      });
+      if (error) throw error;
+
+      if (data.enrolled > 0) {
+        let msg = `${individualName} matriculado(a) com sucesso!`;
+        if (inviteData?.tempPassword) {
+          msg += ` Senha temporária: ${inviteData.tempPassword}`;
+        }
+        toast.success(msg, { duration: 15000 });
+      } else if (data.alreadyEnrolled > 0) {
+        toast.info('Aluno já está matriculado neste programa.');
+      } else {
+        toast.warning('Não foi possível matricular o aluno.');
+      }
+
+      setIndividualName('');
+      setIndividualEmail('');
+      setIndividualClassId('');
+      refetchEnrollments();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao matricular aluno');
+    } finally {
+      setEnrollingIndividual(false);
     }
   };
 
@@ -1160,6 +1218,42 @@ export default function AdminPrograms() {
 
             {/* MATRÍCULAS TAB */}
             <TabsContent value="enrollments" className="mt-4 space-y-4">
+              {/* Individual enrollment form */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Cadastrar Aluno Individual</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nome completo</Label>
+                      <Input placeholder="Nome do aluno" value={individualName} onChange={e => setIndividualName(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">E-mail</Label>
+                      <Input type="email" placeholder="aluno@empresa.com" value={individualEmail} onChange={e => setIndividualEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Turma</Label>
+                      <Select value={individualClassId} onValueChange={setIndividualClassId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a turma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {classes.map((c: any) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleIndividualEnrollment} disabled={enrollingIndividual || !individualName.trim() || !individualEmail.trim()} className="gap-1.5">
+                      <Plus className="w-4 h-4" />
+                      {enrollingIndividual ? 'Matriculando...' : 'Matricular'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="flex items-center gap-3">
                 <Label className="text-sm">Filtrar por turma:</Label>
                 <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
