@@ -191,7 +191,7 @@ export default function AdminPrograms() {
         .in('exercise_id', exerciseIds)
         .order('submitted_at', { ascending: false });
       // Attach exercise title and fetch profiles
-      const userIds = [...new Set((respData || []).map((r: any) => r.user_id))];
+      const userIds = [...new Set((respData || []).map((r: any) => r.user_id))] as string[];
       const { data: profiles } = userIds.length > 0
         ? await supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds)
         : { data: [] };
