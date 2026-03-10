@@ -1005,10 +1005,62 @@ export type Database = {
       }
       program_materials: {
         Row: {
+          category: string | null
           created_at: string | null
           description: string | null
           file_type: string | null
           file_url: string | null
+          id: string
+          module_id: string | null
+          order_number: number | null
+          program_id: string
+          title: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          module_id?: string | null
+          order_number?: number | null
+          program_id: string
+          title: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          module_id?: string | null
+          order_number?: number | null
+          program_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_materials_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "program_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_materials_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_modules: {
+        Row: {
+          created_at: string | null
+          description: string | null
           id: string
           order_number: number | null
           program_id: string
@@ -1017,8 +1069,6 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
-          file_type?: string | null
-          file_url?: string | null
           id?: string
           order_number?: number | null
           program_id: string
@@ -1027,8 +1077,6 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
-          file_type?: string | null
-          file_url?: string | null
           id?: string
           order_number?: number | null
           program_id?: string
@@ -1036,7 +1084,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "program_materials_program_id_fkey"
+            foreignKeyName: "program_modules_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"

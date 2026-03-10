@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CheckCircle, CalendarDays, ExternalLink, MapPin, Clock, BookOpen } from 'lucide-react';
+import { CheckCircle, CalendarDays, ExternalLink, MapPin, Clock, BookOpen, Layers, FileText, FileIcon, ClipboardList, FolderOpen } from 'lucide-react';
 
 const QUESTIONS = [
   { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
@@ -27,6 +27,12 @@ const QUESTIONS = [
 
 const PDA_AXES = ['Risco', 'Extroversão', 'Paciência', 'Norma', 'Autocontrole'];
 
+const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
+  prework: { label: 'Pre-work', icon: ClipboardList },
+  material: { label: 'Materiais', icon: FolderOpen },
+  exercise: { label: 'Exercícios', icon: FileText },
+};
+
 export default function ProgramLider360() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +41,6 @@ export default function ProgramLider360() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [pdaAxes, setPdaAxes] = useState<Record<string, string>>({});
 
-  // Fetch program id
   const { data: program } = useQuery({
     queryKey: ['program-lider-360'],
     queryFn: async () => {
@@ -44,7 +49,6 @@ export default function ProgramLider360() {
     },
   });
 
-  // Fetch existing response
   const { data: existingResponse, isLoading: loadingResponse } = useQuery({
     queryKey: ['workshop-response', program?.id, user?.id],
     enabled: !!program?.id && !!user?.id,
@@ -59,7 +63,6 @@ export default function ProgramLider360() {
     },
   });
 
-  // Fetch events
   const { data: events = [] } = useQuery({
     queryKey: ['program-events'],
     queryFn: async () => {
@@ -68,6 +71,32 @@ export default function ProgramLider360() {
         .select('*')
         .gte('event_date', new Date().toISOString().split('T')[0])
         .order('event_date', { ascending: true });
+      return data || [];
+    },
+  });
+
+  const { data: modules = [] } = useQuery({
+    queryKey: ['program-modules-lider360', program?.id],
+    enabled: !!program?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_modules')
+        .select('*')
+        .eq('program_id', program!.id)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
+  const { data: materials = [] } = useQuery({
+    queryKey: ['program-materials-lider360', program?.id],
+    enabled: !!program?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_materials')
+        .select('*')
+        .eq('program_id', program!.id)
+        .order('order_number');
       return data || [];
     },
   });
@@ -88,7 +117,6 @@ export default function ProgramLider360() {
     mutationFn: async () => {
       if (!program?.id || !user?.id) throw new Error('Dados insuficientes');
       const payload = { ...answers, q9_pda_axes: pdaAxes };
-
       if (existingResponse) {
         const { error } = await supabase
           .from('workshop_responses')
@@ -134,6 +162,61 @@ export default function ProgramLider360() {
     });
   };
 
+  const getFileIcon = (fileType: string | null) => {
+    if (fileType === 'link') return <ExternalLink className="w-4 h-4" />;
+    if (fileType === 'pdf') return <FileText className="w-4 h-4" />;
+    return <FileIcon className="w-4 h-4" />;
+  };
+
+  const renderMaterialItem = (m: any) => (
+    <div key={m.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+      <div className="mt-0.5 text-muted-foreground">{getFileIcon(m.file_type)}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{m.title}</p>
+        {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+      </div>
+      {m.file_url && (
+        <Button variant="ghost" size="sm" asChild className="shrink-0">
+          <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </Button>
+      )}
+    </div>
+  );
+
+  const renderMaterialsByCategory = (mats: any[]) => {
+    const categories = ['prework', 'material', 'exercise'];
+    const grouped = categories.map(cat => ({
+      cat,
+      items: mats.filter(m => (m.category || 'material') === cat),
+    })).filter(g => g.items.length > 0);
+
+    if (grouped.length === 0) return null;
+    return (
+      <div className="space-y-4">
+        {grouped.map(({ cat, items }) => {
+          const config = CATEGORY_LABELS[cat] || CATEGORY_LABELS.material;
+          const Icon = config.icon;
+          return (
+            <div key={cat} className="space-y-2">
+              <h5 className="text-sm font-semibold flex items-center gap-2">
+                <Icon className="w-4 h-4 text-primary" />
+                {config.label}
+              </h5>
+              <div className="space-y-2">{items.map(renderMaterialItem)}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const getMaterialsForModule = (moduleId: string) =>
+    materials.filter((m: any) => m.module_id === moduleId);
+
+  const hasModules = modules.length > 0;
+
   return (
     <AppLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
@@ -149,11 +232,43 @@ export default function ProgramLider360() {
           )}
         </div>
 
-        <Tabs defaultValue="exercicios">
+        <Tabs defaultValue={hasModules ? 'modulos' : 'exercicios'}>
           <TabsList className="w-full sm:w-auto">
+            {hasModules && (
+              <TabsTrigger value="modulos" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos</TabsTrigger>
+            )}
             <TabsTrigger value="exercicios" className="gap-1.5"><BookOpen className="w-4 h-4" /> Exercícios</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-1.5"><CalendarDays className="w-4 h-4" /> Calendário</TabsTrigger>
           </TabsList>
+
+          {/* MÓDULOS TAB */}
+          {hasModules && (
+            <TabsContent value="modulos" className="mt-4">
+              <Tabs defaultValue={modules[0]?.id}>
+                <TabsList className="flex-wrap h-auto gap-1">
+                  {modules.map((mod: any) => (
+                    <TabsTrigger key={mod.id} value={mod.id} className="gap-1.5 text-xs">
+                      {mod.title}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {modules.map((mod: any) => {
+                  const moduleMaterials = getMaterialsForModule(mod.id);
+                  return (
+                    <TabsContent key={mod.id} value={mod.id} className="space-y-4 mt-4">
+                      {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
+                      {renderMaterialsByCategory(moduleMaterials)}
+                      {moduleMaterials.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhum material disponível neste módulo ainda.
+                        </p>
+                      )}
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            </TabsContent>
+          )}
 
           <TabsContent value="exercicios" className="space-y-6 mt-4">
             <Card>

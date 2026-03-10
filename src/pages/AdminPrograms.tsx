@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil } from 'lucide-react';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
@@ -34,6 +34,12 @@ const QUESTION_LABELS: Record<string, string> = {
   q8_development: 'Oportunidade de desenvolvimento',
   q9_pda_axes: 'Eixos PDA selecionados',
 };
+
+const MATERIAL_CATEGORIES = [
+  { value: 'prework', label: 'Pre-work' },
+  { value: 'material', label: 'Material' },
+  { value: 'exercise', label: 'Exercício' },
+];
 
 export default function AdminPrograms() {
   const { user, loading: authLoading } = useAuth();
@@ -61,7 +67,17 @@ export default function AdminPrograms() {
   const [materialDescription, setMaterialDescription] = useState('');
   const [materialFileUrl, setMaterialFileUrl] = useState('');
   const [materialFileType, setMaterialFileType] = useState('link');
+  const [materialModuleId, setMaterialModuleId] = useState('');
+  const [materialCategory, setMaterialCategory] = useState('material');
   const [savingMaterial, setSavingMaterial] = useState(false);
+
+  // Modules state
+  const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
+  const [editingModule, setEditingModule] = useState<any>(null);
+  const [moduleTitle, setModuleTitle] = useState('');
+  const [moduleDescription, setModuleDescription] = useState('');
+  const [moduleOrder, setModuleOrder] = useState(0);
+  const [savingModule, setSavingModule] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
@@ -84,6 +100,19 @@ export default function AdminPrograms() {
         .select('*')
         .eq('program_id', selectedProgram)
         .order('start_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const { data: modules = [], refetch: refetchModules } = useQuery({
+    queryKey: ['program-modules-admin', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_modules')
+        .select('*')
+        .eq('program_id', selectedProgram)
+        .order('order_number');
       return data || [];
     },
   });
@@ -130,6 +159,8 @@ export default function AdminPrograms() {
       return data || [];
     },
   });
+
+  // --- Handlers ---
 
   const handleSaveClass = async () => {
     if (!className.trim() || !selectedProgram) {
@@ -208,6 +239,72 @@ export default function AdminPrograms() {
     return cls ? cls.name : '—';
   };
 
+  const getModuleName = (moduleId: string | null) => {
+    if (!moduleId) return '—';
+    const mod = modules.find((m: any) => m.id === moduleId);
+    return mod ? mod.title : '—';
+  };
+
+  // Module handlers
+  const openModuleDialog = (mod?: any) => {
+    if (mod) {
+      setEditingModule(mod);
+      setModuleTitle(mod.title);
+      setModuleDescription(mod.description || '');
+      setModuleOrder(mod.order_number || 0);
+    } else {
+      setEditingModule(null);
+      setModuleTitle('');
+      setModuleDescription('');
+      setModuleOrder(modules.length);
+    }
+    setModuleDialogOpen(true);
+  };
+
+  const handleSaveModule = async () => {
+    if (!moduleTitle.trim() || !selectedProgram) {
+      toast.error('Título é obrigatório');
+      return;
+    }
+    setSavingModule(true);
+    try {
+      if (editingModule) {
+        const { error } = await supabase.from('program_modules').update({
+          title: moduleTitle.trim(),
+          description: moduleDescription.trim() || null,
+          order_number: moduleOrder,
+        }).eq('id', editingModule.id);
+        if (error) throw error;
+        toast.success('Módulo atualizado');
+      } else {
+        const { error } = await supabase.from('program_modules').insert({
+          program_id: selectedProgram,
+          title: moduleTitle.trim(),
+          description: moduleDescription.trim() || null,
+          order_number: moduleOrder,
+        });
+        if (error) throw error;
+        toast.success('Módulo criado');
+      }
+      setModuleDialogOpen(false);
+      refetchModules();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar módulo');
+    } finally {
+      setSavingModule(false);
+    }
+  };
+
+  const handleDeleteModule = async (id: string) => {
+    const { error } = await supabase.from('program_modules').delete().eq('id', id);
+    if (error) {
+      toast.error('Erro ao remover módulo. Verifique se não há materiais vinculados.');
+    } else {
+      toast.success('Módulo removido');
+      refetchModules();
+    }
+  };
+
   const handleSaveMaterial = async () => {
     if (!materialTitle.trim() || !selectedProgram) {
       toast.error('Título é obrigatório');
@@ -222,6 +319,8 @@ export default function AdminPrograms() {
         file_url: materialFileUrl.trim() || null,
         file_type: materialFileType,
         order_number: materials.length,
+        module_id: materialModuleId || null,
+        category: materialCategory,
       });
       if (error) throw error;
       toast.success('Material adicionado');
@@ -229,6 +328,8 @@ export default function AdminPrograms() {
       setMaterialDescription('');
       setMaterialFileUrl('');
       setMaterialFileType('link');
+      setMaterialModuleId('');
+      setMaterialCategory('material');
       refetchMaterials();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar material');
@@ -262,7 +363,7 @@ export default function AdminPrograms() {
       <div className="space-y-6 max-w-5xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold gradient-text">Gerenciar Programas</h1>
-          <p className="text-muted-foreground text-sm">Turmas, matrículas, importação e respostas dos alunos</p>
+          <p className="text-muted-foreground text-sm">Turmas, módulos, matrículas, materiais e respostas dos alunos</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -283,6 +384,7 @@ export default function AdminPrograms() {
           <Tabs defaultValue="classes">
             <TabsList className="flex-wrap">
               <TabsTrigger value="classes" className="gap-1.5"><GraduationCap className="w-4 h-4" /> Turmas ({classes.length})</TabsTrigger>
+              <TabsTrigger value="modules" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos ({modules.length})</TabsTrigger>
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
               <TabsTrigger value="import" className="gap-1.5"><Upload className="w-4 h-4" /> Importar</TabsTrigger>
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length})</TabsTrigger>
@@ -378,6 +480,81 @@ export default function AdminPrograms() {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* MÓDULOS TAB */}
+            <TabsContent value="modules" className="mt-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Módulos</CardTitle>
+                    <CardDescription>Organize o conteúdo do programa em módulos sequenciais</CardDescription>
+                  </div>
+                  <Button size="sm" className="gap-1.5" onClick={() => openModuleDialog()}>
+                    <Plus className="w-4 h-4" /> Novo Módulo
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[60px]">Ordem</TableHead>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead className="w-[120px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {modules.length === 0 ? (
+                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum módulo cadastrado</TableCell></TableRow>
+                      ) : modules.map((m: any) => (
+                        <TableRow key={m.id}>
+                          <TableCell className="text-center font-mono">{m.order_number}</TableCell>
+                          <TableCell className="font-medium">{m.title}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">{m.description || '—'}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => openModuleDialog(m)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteModule(m.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingModule ? 'Editar Módulo' : 'Criar Módulo'}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Título</Label>
+                      <Input value={moduleTitle} onChange={e => setModuleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Descrição (opcional)</Label>
+                      <Textarea value={moduleDescription} onChange={e => setModuleDescription(e.target.value)} placeholder="Breve descrição do módulo..." className="min-h-[80px]" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ordem</Label>
+                      <Input type="number" value={moduleOrder} onChange={e => setModuleOrder(Number(e.target.value))} min={0} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleSaveModule} disabled={savingModule}>
+                      {savingModule ? 'Salvando...' : editingModule ? 'Atualizar' : 'Criar Módulo'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* MATRÍCULAS TAB */}
@@ -536,7 +713,7 @@ export default function AdminPrograms() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Adicionar Material</CardTitle>
-                  <CardDescription>Adicione links, PDFs ou documentos para os alunos deste programa</CardDescription>
+                  <CardDescription>Adicione links, PDFs ou documentos para os alunos. Vincule a um módulo e categorize como Pre-work, Material ou Exercício.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -545,7 +722,7 @@ export default function AdminPrograms() {
                       <Input value={materialTitle} onChange={e => setMaterialTitle(e.target.value)} placeholder="Ex: Apostila do Módulo 1" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Tipo</Label>
+                      <Label>Tipo de Arquivo</Label>
                       <Select value={materialFileType} onValueChange={setMaterialFileType}>
                         <SelectTrigger>
                           <SelectValue />
@@ -556,6 +733,35 @@ export default function AdminPrograms() {
                           <SelectItem value="doc">Documento</SelectItem>
                           <SelectItem value="video">Vídeo</SelectItem>
                           <SelectItem value="other">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Módulo {modules.length > 0 ? '' : '(nenhum cadastrado)'}</Label>
+                      <Select value={materialModuleId} onValueChange={setMaterialModuleId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sem módulo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem módulo</SelectItem>
+                          {modules.map((m: any) => (
+                            <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Categoria</Label>
+                      <Select value={materialCategory} onValueChange={setMaterialCategory}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MATERIAL_CATEGORIES.map(c => (
+                            <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -580,19 +786,25 @@ export default function AdminPrograms() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Título</TableHead>
+                        <TableHead>Módulo</TableHead>
+                        <TableHead>Categoria</TableHead>
                         <TableHead>Tipo</TableHead>
-                        <TableHead>URL</TableHead>
                         <TableHead className="w-[80px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {materials.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum material cadastrado</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum material cadastrado</TableCell></TableRow>
                       ) : materials.map((m: any) => (
                         <TableRow key={m.id}>
                           <TableCell className="font-medium">{m.title}</TableCell>
+                          <TableCell>{getModuleName(m.module_id)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {MATERIAL_CATEGORIES.find(c => c.value === m.category)?.label || m.category || 'Material'}
+                            </Badge>
+                          </TableCell>
                           <TableCell><Badge variant="secondary">{m.file_type || '—'}</Badge></TableCell>
-                          <TableCell className="max-w-[200px] truncate text-xs">{m.file_url || '—'}</TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
                               <Trash2 className="w-4 h-4" />
