@@ -259,7 +259,7 @@ const AdminLogs = () => {
                     <TableHead>Usuário</TableHead>
                     <TableHead>Ação</TableHead>
                     <TableHead>Recurso</TableHead>
-                    <TableHead>ID do Recurso</TableHead>
+                    <TableHead>Detalhes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
