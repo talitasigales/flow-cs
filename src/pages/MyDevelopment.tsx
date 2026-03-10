@@ -154,7 +154,7 @@ export default function MyDevelopment() {
   });
 
   const getSpecialist = (name: string | null) =>
-    name ? specialists.find((s: any) => s.name === name) : null;
+    name ? specialists.find((s: any) => s.name.toLowerCase().trim() === name.toLowerCase().trim()) : null;
 
   const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
   const lider360ProgramId = lider360Enrollment?.programs?.id;
