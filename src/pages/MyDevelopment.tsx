@@ -451,19 +451,27 @@ export default function MyDevelopment() {
               </Card>
             )}
 
-            {/* General materials */}
+            {/* General materials - collapsible */}
             {unassignedMaterials.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-primary" />
-                    Materiais Gerais
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProgramMaterials materials={unassignedMaterials} />
-                </CardContent>
-              </Card>
+              <Collapsible>
+                <Card>
+                  <CollapsibleTrigger className="w-full">
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FolderOpen className="w-4 h-4 text-primary" />
+                        Materiais Gerais
+                        <Badge variant="secondary" className="text-[10px]">{unassignedMaterials.length}</Badge>
+                      </CardTitle>
+                      <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <ProgramMaterials materials={unassignedMaterials} />
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
             )}
 
             {/* Líder 360 Questionnaire */}

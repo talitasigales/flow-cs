@@ -1322,17 +1322,20 @@ export default function AdminPrograms() {
                         )}
 
                         {unassignedMats.length > 0 && (
-                          <Card>
-                            <CardHeader className="pb-3">
-                              <CardTitle className="text-sm flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-primary" />
-                                Materiais Gerais
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <ProgramMaterials materials={unassignedMats} />
-                            </CardContent>
-                          </Card>
+                          <Accordion type="single" collapsible>
+                            <AccordionItem value="general-materials" className="border rounded-lg bg-card">
+                              <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                                <span className="text-sm font-semibold flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-primary" />
+                                  Materiais Gerais
+                                  <Badge variant="secondary" className="text-[10px]">{unassignedMats.length}</Badge>
+                                </span>
+                              </AccordionTrigger>
+                              <AccordionContent className="px-4 pb-4">
+                                <ProgramMaterials materials={unassignedMats} />
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
                         )}
 
                         {modules.length === 0 && unassignedMats.length === 0 && (
