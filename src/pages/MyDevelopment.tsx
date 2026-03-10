@@ -160,62 +160,6 @@ export default function MyDevelopment() {
   const getSpecialist = (name: string | null) =>
     name ? specialists.find((s: any) => s.name.toLowerCase().trim() === name.toLowerCase().trim()) : null;
 
-  const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
-  const lider360ProgramId = lider360Enrollment?.programs?.id;
-
-  const { data: existingResponse } = useQuery({
-    queryKey: ['workshop-response', lider360ProgramId, user?.id],
-    enabled: !!lider360ProgramId && !!user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('workshop_responses')
-        .select('*')
-        .eq('program_id', lider360ProgramId!)
-        .eq('user_id', user!.id)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  useEffect(() => {
-    if (existingResponse?.answers) {
-      const saved = existingResponse.answers as Record<string, any>;
-      const textAnswers: Record<string, string> = {};
-      QUESTIONS.forEach(q => { textAnswers[q.id] = saved[q.id] || ''; });
-      textAnswers['q7_strength'] = saved['q7_strength'] || '';
-      textAnswers['q8_development'] = saved['q8_development'] || '';
-      setAnswers(textAnswers);
-      setPdaAxes(saved['q9_pda_axes'] || {});
-    }
-  }, [existingResponse]);
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!lider360ProgramId || !user?.id) throw new Error('Dados insuficientes');
-      const payload = { ...answers, q9_pda_axes: pdaAxes };
-      if (existingResponse) {
-        const { error } = await supabase
-          .from('workshop_responses')
-          .update({ answers: payload, updated_at: new Date().toISOString() })
-          .eq('id', existingResponse.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('workshop_responses')
-          .insert({ program_id: lider360ProgramId, user_id: user.id, answers: payload });
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success('Respostas salvas com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['workshop-response'] });
-    },
-    onError: () => toast.error('Erro ao salvar respostas'),
-  });
-
-  const handlePdaChange = (axis: string, level: string) => {
-    setPdaAxes(prev => prev[axis] === level ? (() => { const n = { ...prev }; delete n[axis]; return n; })() : { ...prev, [axis]: level });
-  };
 
   if (loading || isLoading) {
     return (
