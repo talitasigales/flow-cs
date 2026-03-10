@@ -28,6 +28,9 @@ import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
 import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
+import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
+import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
+import * as XLSX from 'xlsx';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
@@ -60,6 +63,7 @@ export default function AdminPrograms() {
 
   // New class dialog state
   const [classDialogOpen, setClassDialogOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<any>(null);
   const [className, setClassName] = useState('');
   const [classStartDate, setClassStartDate] = useState<Date>();
   const [classEndDate, setClassEndDate] = useState<Date>();
@@ -91,6 +95,7 @@ export default function AdminPrograms() {
 
   // Schedule state
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<any>(null);
   const [scheduleClassId, setScheduleClassId] = useState('');
   const [scheduleTitle, setScheduleTitle] = useState('');
   const [scheduleDate, setScheduleDate] = useState<Date>();
@@ -167,6 +172,39 @@ export default function AdminPrograms() {
     },
   });
 
+  // Fetch exercise responses for all modules of this program
+  const moduleIds = modules.map((m: any) => m.id);
+  const { data: exerciseResponses = [] } = useQuery({
+    queryKey: ['all-exercise-responses', selectedProgram, moduleIds],
+    enabled: moduleIds.length > 0,
+    queryFn: async () => {
+      // First get exercises for these modules
+      const { data: exercises } = await (supabase as any)
+        .from('module_exercises')
+        .select('id, title, module_id')
+        .in('module_id', moduleIds);
+      if (!exercises || exercises.length === 0) return [];
+      const exerciseIds = exercises.map((e: any) => e.id);
+      const { data: respData } = await (supabase as any)
+        .from('exercise_responses')
+        .select('id, exercise_id, user_id, answers, submitted_at, updated_at')
+        .in('exercise_id', exerciseIds)
+        .order('submitted_at', { ascending: false });
+      // Attach exercise title and fetch profiles
+      const userIds = [...new Set((respData || []).map((r: any) => r.user_id))];
+      const { data: profiles } = userIds.length > 0
+        ? await supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds)
+        : { data: [] };
+      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.user_id, p]));
+      const exerciseMap = Object.fromEntries(exercises.map((e: any) => [e.id, e]));
+      return (respData || []).map((r: any) => ({
+        ...r,
+        exercise: exerciseMap[r.exercise_id],
+        profile: profileMap[r.user_id],
+      }));
+    },
+  });
+
   const { data: materials = [], refetch: refetchMaterials } = useQuery({
     queryKey: ['program-materials-admin', selectedProgram],
     enabled: !!selectedProgram,
@@ -198,6 +236,25 @@ export default function AdminPrograms() {
 
   // --- Handlers ---
 
+  const openClassDialog = (cls?: any) => {
+    if (cls) {
+      setEditingClass(cls);
+      setClassName(cls.name);
+      setClassStartDate(cls.start_date ? new Date(cls.start_date + 'T12:00:00') : undefined);
+      setClassEndDate(cls.end_date ? new Date(cls.end_date + 'T12:00:00') : undefined);
+      setClassVideoUrl(cls.video_conference_url || '');
+      setClassSpecialist(cls.specialist || '');
+    } else {
+      setEditingClass(null);
+      setClassName('');
+      setClassStartDate(undefined);
+      setClassEndDate(undefined);
+      setClassVideoUrl('');
+      setClassSpecialist('');
+    }
+    setClassDialogOpen(true);
+  };
+
   const handleSaveClass = async () => {
     if (!className.trim() || !selectedProgram) {
       toast.error('Nome da turma é obrigatório');
@@ -205,25 +262,33 @@ export default function AdminPrograms() {
     }
     setSavingClass(true);
     try {
-      const { error } = await supabase.from('program_classes').insert({
-        program_id: selectedProgram,
+      const payload: any = {
         name: className.trim(),
         start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
         end_date: classEndDate ? format(classEndDate, 'yyyy-MM-dd') : null,
         video_conference_url: classVideoUrl.trim() || null,
         specialist: classSpecialist || null,
-      });
-      if (error) throw error;
-      toast.success('Turma criada com sucesso');
+      };
+      if (editingClass) {
+        const { error } = await supabase.from('program_classes').update(payload).eq('id', editingClass.id);
+        if (error) throw error;
+        toast.success('Turma atualizada com sucesso');
+      } else {
+        payload.program_id = selectedProgram;
+        const { error } = await supabase.from('program_classes').insert(payload);
+        if (error) throw error;
+        toast.success('Turma criada com sucesso');
+      }
       setClassName('');
       setClassStartDate(undefined);
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      setEditingClass(null);
       setClassDialogOpen(false);
       refetchClasses();
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao criar turma');
+      toast.error(err.message || 'Erro ao salvar turma');
     } finally {
       setSavingClass(false);
     }
@@ -261,6 +326,38 @@ export default function AdminPrograms() {
     } finally {
       setImporting(false);
     }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+      
+      // Extract emails from all cells
+      const emails: string[] = [];
+      for (const row of rows) {
+        for (const cell of row) {
+          if (typeof cell === 'string' && cell.includes('@')) {
+            emails.push(cell.trim().toLowerCase());
+          }
+        }
+      }
+      
+      if (emails.length === 0) {
+        toast.error('Nenhum e-mail encontrado na planilha');
+        return;
+      }
+      
+      setCsvText(emails.join('\n'));
+      toast.success(`${emails.length} e-mails encontrados na planilha`);
+    } catch (err) {
+      toast.error('Erro ao ler arquivo. Verifique se é um .xlsx, .xls ou .csv válido.');
+    }
+    e.target.value = '';
   };
 
   const handleRemoveEnrollment = async (id: string) => {
@@ -420,6 +517,27 @@ export default function AdminPrograms() {
     }
   };
 
+  const openScheduleDialog = (schedule?: any) => {
+    if (schedule) {
+      setEditingSchedule(schedule);
+      setScheduleClassId(schedule.class_id);
+      setScheduleTitle(schedule.title);
+      setScheduleDate(schedule.schedule_date ? new Date(schedule.schedule_date + 'T12:00:00') : undefined);
+      setScheduleStartTime(schedule.start_time?.slice(0, 5) || '');
+      setScheduleEndTime(schedule.end_time?.slice(0, 5) || '');
+      setScheduleModuleId(schedule.module_id || 'none');
+    } else {
+      setEditingSchedule(null);
+      setScheduleClassId('');
+      setScheduleTitle('');
+      setScheduleDate(undefined);
+      setScheduleStartTime('');
+      setScheduleEndTime('');
+      setScheduleModuleId('');
+    }
+    setScheduleDialogOpen(true);
+  };
+
   const handleSaveSchedule = async () => {
     if (!scheduleTitle.trim() || !scheduleClassId || !scheduleDate) {
       toast.error('Título, turma e data são obrigatórios');
@@ -427,22 +545,30 @@ export default function AdminPrograms() {
     }
     setSavingSchedule(true);
     try {
-      const { error } = await supabase.from('class_schedules').insert({
+      const payload: any = {
         class_id: scheduleClassId,
         module_id: scheduleModuleId && scheduleModuleId !== 'none' ? scheduleModuleId : null,
         title: scheduleTitle.trim(),
         schedule_date: format(scheduleDate, 'yyyy-MM-dd'),
         start_time: scheduleStartTime || null,
         end_time: scheduleEndTime || null,
-        order_number: schedules.filter((s: any) => s.class_id === scheduleClassId).length,
-      });
-      if (error) throw error;
-      toast.success('Etapa adicionada ao cronograma');
+      };
+      if (editingSchedule) {
+        const { error } = await supabase.from('class_schedules').update(payload).eq('id', editingSchedule.id);
+        if (error) throw error;
+        toast.success('Etapa atualizada');
+      } else {
+        payload.order_number = schedules.filter((s: any) => s.class_id === scheduleClassId).length;
+        const { error } = await supabase.from('class_schedules').insert(payload);
+        if (error) throw error;
+        toast.success('Etapa adicionada ao cronograma');
+      }
       setScheduleTitle('');
       setScheduleDate(undefined);
       setScheduleStartTime('');
       setScheduleEndTime('');
       setScheduleModuleId('');
+      setEditingSchedule(null);
       setScheduleDialogOpen(false);
       refetchSchedules();
     } catch (err: any) {
@@ -471,6 +597,146 @@ export default function AdminPrograms() {
       </AppLayout>
     );
   }
+
+  const renderClassDialog = () => (
+    <Dialog open={classDialogOpen} onOpenChange={(v) => { setClassDialogOpen(v); if (!v) setEditingClass(null); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{editingClass ? 'Editar Turma' : 'Criar Turma'}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Nome da Turma</Label>
+            <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="Ex: Turma 10-12 Mar/2026" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Data Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !classStartDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {classStartDate ? format(classStartDate, "dd/MM/yyyy") : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={classStartDate} onSelect={setClassStartDate} className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label>Data Fim</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !classEndDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {classEndDate ? format(classEndDate, "dd/MM/yyyy") : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={classEndDate} onSelect={setClassEndDate} className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Especialista Responsável</Label>
+            <Select value={classSpecialist} onValueChange={setClassSpecialist}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a especialista" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Júlia">Júlia</SelectItem>
+                <SelectItem value="Luciana">Luciana</SelectItem>
+                <SelectItem value="Silvia">Silvia</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Link da Videoconferência (Zoom/Meet)</Label>
+            <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleSaveClass} disabled={savingClass}>
+            {savingClass ? 'Salvando...' : editingClass ? 'Atualizar Turma' : 'Criar Turma'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const renderScheduleDialog = () => (
+    <Dialog open={scheduleDialogOpen} onOpenChange={(v) => { setScheduleDialogOpen(v); if (!v) setEditingSchedule(null); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{editingSchedule ? 'Editar Etapa' : 'Adicionar Etapa ao Cronograma'}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Turma</Label>
+            <Select value={scheduleClassId} onValueChange={setScheduleClassId} disabled={!!editingSchedule}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a turma" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Título da Etapa</Label>
+            <Input value={scheduleTitle} onChange={e => setScheduleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
+          </div>
+          <div className="space-y-2">
+            <Label>Módulo vinculado (opcional)</Label>
+            <Select value={scheduleModuleId} onValueChange={setScheduleModuleId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem módulo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem módulo</SelectItem>
+                {modules.map((m: any) => (
+                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Data</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !scheduleDate && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : "Selecionar"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} className={cn("p-3 pointer-events-auto")} />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Hora Início</Label>
+              <Input type="time" value={scheduleStartTime} onChange={e => setScheduleStartTime(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Hora Fim</Label>
+              <Input type="time" value={scheduleEndTime} onChange={e => setScheduleEndTime(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleSaveSchedule} disabled={savingSchedule}>
+            {savingSchedule ? 'Salvando...' : editingSchedule ? 'Atualizar Etapa' : 'Adicionar Etapa'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <AppLayout>
@@ -502,7 +768,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="modules" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos ({modules.length})</TabsTrigger>
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
               <TabsTrigger value="import" className="gap-1.5"><Upload className="w-4 h-4" /> Importar</TabsTrigger>
-              <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length})</TabsTrigger>
+              <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length + exerciseResponses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
               <TabsTrigger value="student-view" className="gap-1.5"><Eye className="w-4 h-4" /> Visão do Aluno</TabsTrigger>
             </TabsList>
@@ -515,74 +781,9 @@ export default function AdminPrograms() {
                     <CardTitle className="text-lg">Turmas</CardTitle>
                     <CardDescription>Gerencie as turmas deste programa</CardDescription>
                   </div>
-                  <Dialog open={classDialogOpen} onOpenChange={setClassDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" /> Nova Turma</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Criar Turma</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label>Nome da Turma</Label>
-                          <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="Ex: Turma 10-12 Mar/2026" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Data Início</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !classStartDate && "text-muted-foreground")}>
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {classStartDate ? format(classStartDate, "dd/MM/yyyy") : "Selecionar"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={classStartDate} onSelect={setClassStartDate} className={cn("p-3 pointer-events-auto")} />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Data Fim</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !classEndDate && "text-muted-foreground")}>
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {classEndDate ? format(classEndDate, "dd/MM/yyyy") : "Selecionar"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={classEndDate} onSelect={setClassEndDate} className={cn("p-3 pointer-events-auto")} />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Especialista Responsável</Label>
-                          <Select value={classSpecialist} onValueChange={setClassSpecialist}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a especialista" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Júlia">Júlia</SelectItem>
-                              <SelectItem value="Luciana">Luciana</SelectItem>
-                              <SelectItem value="Silvia">Silvia</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Link da Videoconferência (Zoom/Meet)</Label>
-                          <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button onClick={handleSaveClass} disabled={savingClass}>
-                          {savingClass ? 'Salvando...' : 'Criar Turma'}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                  <Button size="sm" className="gap-1.5" onClick={() => openClassDialog()}>
+                    <Plus className="w-4 h-4" /> Nova Turma
+                  </Button>
                 </CardHeader>
                 <CardContent className="p-0">
                   <Table>
@@ -593,7 +794,7 @@ export default function AdminPrograms() {
                         <TableHead>Data Início</TableHead>
                         <TableHead>Data Fim</TableHead>
                         <TableHead>Videoconferência</TableHead>
-                        <TableHead className="w-[80px]"></TableHead>
+                        <TableHead className="w-[100px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -613,9 +814,14 @@ export default function AdminPrograms() {
                             ) : '—'}
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClass(c.id)} className="text-destructive hover:text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => openClassDialog(c)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteClass(c.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -623,6 +829,7 @@ export default function AdminPrograms() {
                   </Table>
                 </CardContent>
               </Card>
+              {renderClassDialog()}
             </TabsContent>
 
             {/* CRONOGRAMA TAB */}
@@ -633,78 +840,9 @@ export default function AdminPrograms() {
                     <CardTitle className="text-lg">Cronograma da Turma</CardTitle>
                     <CardDescription>Defina as datas e horários de cada etapa/módulo por turma</CardDescription>
                   </div>
-                  <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" /> Nova Etapa</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Adicionar Etapa ao Cronograma</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label>Turma</Label>
-                          <Select value={scheduleClassId} onValueChange={setScheduleClassId}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione a turma" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {classes.map((c: any) => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Título da Etapa</Label>
-                          <Input value={scheduleTitle} onChange={e => setScheduleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Módulo vinculado (opcional)</Label>
-                          <Select value={scheduleModuleId} onValueChange={setScheduleModuleId}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sem módulo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Sem módulo</SelectItem>
-                              {modules.map((m: any) => (
-                                <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Data</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !scheduleDate && "text-muted-foreground")}>
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : "Selecionar"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} className={cn("p-3 pointer-events-auto")} />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Hora Início</Label>
-                            <Input type="time" value={scheduleStartTime} onChange={e => setScheduleStartTime(e.target.value)} />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Hora Fim</Label>
-                            <Input type="time" value={scheduleEndTime} onChange={e => setScheduleEndTime(e.target.value)} />
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button onClick={handleSaveSchedule} disabled={savingSchedule}>
-                          {savingSchedule ? 'Salvando...' : 'Adicionar Etapa'}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                  <Button size="sm" className="gap-1.5" onClick={() => openScheduleDialog()}>
+                    <Plus className="w-4 h-4" /> Nova Etapa
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   {classes.length === 0 ? (
@@ -727,7 +865,7 @@ export default function AdminPrograms() {
                                   <TableHead>Data</TableHead>
                                   <TableHead>Horário</TableHead>
                                   <TableHead>Etapa</TableHead>
-                                  <TableHead className="w-[80px]"></TableHead>
+                                  <TableHead className="w-[100px]"></TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -741,9 +879,14 @@ export default function AdminPrograms() {
                                     </TableCell>
                                     <TableCell className="font-medium">{s.title}</TableCell>
                                     <TableCell>
-                                      <Button variant="ghost" size="icon" onClick={() => handleDeleteSchedule(s.id)} className="text-destructive hover:text-destructive">
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
+                                      <div className="flex gap-1">
+                                        <Button variant="ghost" size="icon" onClick={() => openScheduleDialog(s)}>
+                                          <Pencil className="w-4 h-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteSchedule(s.id)} className="text-destructive hover:text-destructive">
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </div>
                                     </TableCell>
                                   </TableRow>
                                 ))}
@@ -759,6 +902,7 @@ export default function AdminPrograms() {
                   )}
                 </CardContent>
               </Card>
+              {renderScheduleDialog()}
             </TabsContent>
 
             {/* MÓDULOS TAB */}
@@ -921,7 +1065,7 @@ export default function AdminPrograms() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Importar Matrículas em Massa</CardTitle>
-                  <CardDescription>Cole os e-mails dos alunos (um por linha, separados por vírgula ou ponto e vírgula)</CardDescription>
+                  <CardDescription>Importe alunos via planilha (Excel, Google Sheets exportado como .xlsx/.csv) ou cole os e-mails diretamente</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -938,13 +1082,30 @@ export default function AdminPrograms() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Textarea
-                    value={csvText}
-                    onChange={e => setCsvText(e.target.value)}
-                    placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com"
-                    className="min-h-[200px] font-mono text-sm"
-                  />
-                  <Button onClick={handleImport} disabled={importing}>
+                  
+                  <div className="space-y-2">
+                    <Label>Importar de planilha (.xlsx, .xls, .csv)</Label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="file"
+                        accept=".xlsx,.xls,.csv"
+                        onChange={handleFileUpload}
+                        className="max-w-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
+                    <Textarea
+                      value={csvText}
+                      onChange={e => setCsvText(e.target.value)}
+                      placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com"
+                      className="min-h-[200px] font-mono text-sm"
+                    />
+                  </div>
+                  <Button onClick={handleImport} disabled={importing || !csvText.trim()}>
                     {importing ? 'Importando...' : 'Importar Matrículas'}
                   </Button>
                 </CardContent>
@@ -952,59 +1113,127 @@ export default function AdminPrograms() {
             </TabsContent>
 
             {/* RESPOSTAS TAB */}
-            <TabsContent value="responses" className="mt-4">
+            <TabsContent value="responses" className="mt-4 space-y-4">
+              {/* Workshop responses */}
+              {responses.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Respostas do Questionário do Programa</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>E-mail</TableHead>
+                          <TableHead>Data de Envio</TableHead>
+                          <TableHead className="w-[80px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {responses.map((r: any) => (
+                          <TableRow key={r.id}>
+                            <TableCell className="font-medium">{r.profiles?.full_name || '—'}</TableCell>
+                            <TableCell>{r.profiles?.email || '—'}</TableCell>
+                            <TableCell>{format(new Date(r.submitted_at), 'dd/MM/yyyy HH:mm')}</TableCell>
+                            <TableCell>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" onClick={() => setViewingResponse(r)}>
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Respostas — {r.profiles?.full_name}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 mt-4">
+                                    {Object.entries(QUESTION_LABELS).map(([key, label]) => {
+                                      const val = (r.answers as Record<string, any>)?.[key];
+                                      if (key === 'q9_pda_axes' && val && typeof val === 'object') {
+                                        return (
+                                          <div key={key}>
+                                            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+                                            <div className="flex flex-wrap gap-2 mt-1">
+                                              {Object.entries(val).map(([axis, level]) => (
+                                                <Badge key={axis} variant="secondary">{axis} {level as string}</Badge>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <div key={key}>
+                                          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+                                          <p className="text-sm mt-0.5 whitespace-pre-wrap">{val || '—'}</p>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Exercise responses */}
               <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Respostas dos Exercícios dos Módulos</CardTitle>
+                  <CardDescription>Respostas dos alunos aos exercícios configurados em cada módulo</CardDescription>
+                </CardHeader>
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>E-mail</TableHead>
-                        <TableHead>Data de Envio</TableHead>
+                        <TableHead>Exercício</TableHead>
+                        <TableHead>Data</TableHead>
                         <TableHead className="w-[80px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {responses.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhuma resposta encontrada</TableCell></TableRow>
-                      ) : responses.map((r: any) => (
+                      {exerciseResponses.length === 0 ? (
+                        <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhuma resposta de exercício encontrada</TableCell></TableRow>
+                      ) : exerciseResponses.map((r: any) => (
                         <TableRow key={r.id}>
-                          <TableCell className="font-medium">{r.profiles?.full_name || '—'}</TableCell>
-                          <TableCell>{r.profiles?.email || '—'}</TableCell>
+                          <TableCell className="font-medium">{r.profile?.full_name || '—'}</TableCell>
+                          <TableCell>{r.profile?.email || '—'}</TableCell>
+                          <TableCell><Badge variant="outline">{r.exercise?.title || '—'}</Badge></TableCell>
                           <TableCell>{format(new Date(r.submitted_at), 'dd/MM/yyyy HH:mm')}</TableCell>
                           <TableCell>
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setViewingResponse(r)}>
+                                <Button variant="ghost" size="icon">
                                   <Eye className="w-4 h-4" />
                                 </Button>
                               </DialogTrigger>
                               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                                 <DialogHeader>
-                                  <DialogTitle>Respostas — {r.profiles?.full_name}</DialogTitle>
+                                  <DialogTitle>Respostas — {r.profile?.full_name}</DialogTitle>
                                 </DialogHeader>
+                                <div className="space-y-1 mt-2">
+                                  <p className="text-xs text-muted-foreground">Exercício: <span className="font-medium text-foreground">{r.exercise?.title}</span></p>
+                                </div>
                                 <div className="space-y-4 mt-4">
-                                  {Object.entries(QUESTION_LABELS).map(([key, label]) => {
-                                    const val = (r.answers as Record<string, any>)?.[key];
-                                    if (key === 'q9_pda_axes' && val && typeof val === 'object') {
-                                      return (
-                                        <div key={key}>
-                                          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-                                          <div className="flex flex-wrap gap-2 mt-1">
-                                            {Object.entries(val).map(([axis, level]) => (
-                                              <Badge key={axis} variant="secondary">{axis} {level as string}</Badge>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      );
-                                    }
-                                    return (
-                                      <div key={key}>
-                                        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-                                        <p className="text-sm mt-0.5 whitespace-pre-wrap">{val || '—'}</p>
+                                  {r.answers && typeof r.answers === 'object' ? (
+                                    Object.entries(r.answers).map(([qId, answer]) => (
+                                      <div key={qId}>
+                                        <p className="text-sm font-medium text-muted-foreground">Questão: {qId}</p>
+                                        <p className="text-sm mt-0.5 whitespace-pre-wrap">
+                                          {Array.isArray(answer) ? (answer as string[]).join(', ') : String(answer)}
+                                        </p>
                                       </div>
-                                    );
-                                  })}
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">Sem respostas</p>
+                                  )}
                                 </div>
                               </DialogContent>
                             </Dialog>
@@ -1015,6 +1244,14 @@ export default function AdminPrograms() {
                   </Table>
                 </CardContent>
               </Card>
+
+              {responses.length === 0 && exerciseResponses.length === 0 && (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    Nenhuma resposta encontrada para este programa.
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             {/* MATERIAIS TAB */}
@@ -1301,15 +1538,15 @@ export default function AdminPrograms() {
                                             <p className="text-sm font-semibold">{mod.title}</p>
                                             {mod.description && <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>}
                                           </div>
-                                          {moduleMats.length > 0 && (
-                                            <Badge variant="secondary" className="text-[10px] ml-auto mr-2">{moduleMats.length}</Badge>
-                                          )}
                                         </div>
                                       </AccordionTrigger>
-                                      <AccordionContent className="ml-11 pt-2">
-                                        {moduleMats.length > 0 ? (
+                                      <AccordionContent className="ml-11 pt-2 space-y-4">
+                                        {moduleMats.length > 0 && (
                                           <ProgramMaterials materials={moduleMats} />
-                                        ) : (
+                                        )}
+                                        <ExerciseRenderer moduleId={mod.id} />
+                                        <FeatureLinkCards moduleId={mod.id} />
+                                        {moduleMats.length === 0 && (
                                           <p className="text-xs text-muted-foreground py-2">Nenhum material neste módulo.</p>
                                         )}
                                       </AccordionContent>
