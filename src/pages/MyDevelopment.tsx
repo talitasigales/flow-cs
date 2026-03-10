@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText,
-  ExternalLink, Layers, Video, ChevronRight, ChevronDown, FolderOpen
+  ExternalLink, Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
