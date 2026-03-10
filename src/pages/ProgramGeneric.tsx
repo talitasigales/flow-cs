@@ -5,10 +5,18 @@ import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarDays, BookOpen } from 'lucide-react';
+import { CalendarDays, BookOpen, Layers, ExternalLink, FileText, FileIcon, ClipboardList, FolderOpen } from 'lucide-react';
 import { useEffect } from 'react';
+
+const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
+  prework: { label: 'Pre-work', icon: ClipboardList },
+  material: { label: 'Materiais', icon: FolderOpen },
+  exercise: { label: 'Exercícios', icon: FileText },
+};
 
 export default function ProgramGeneric() {
   const { slug } = useParams();
@@ -41,6 +49,32 @@ export default function ProgramGeneric() {
     },
   });
 
+  const { data: modules = [] } = useQuery({
+    queryKey: ['program-modules', program?.id],
+    enabled: !!program?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_modules')
+        .select('*')
+        .eq('program_id', program!.id)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
+  const { data: materials = [] } = useQuery({
+    queryKey: ['program-materials', program?.id],
+    enabled: !!program?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('program_materials')
+        .select('*')
+        .eq('program_id', program!.id)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
   if (loading || loadingProgram) {
     return (
       <AppLayout>
@@ -59,6 +93,62 @@ export default function ProgramGeneric() {
     );
   }
 
+  const getFileIcon = (fileType: string | null) => {
+    if (fileType === 'link') return <ExternalLink className="w-4 h-4" />;
+    if (fileType === 'pdf') return <FileText className="w-4 h-4" />;
+    return <FileIcon className="w-4 h-4" />;
+  };
+
+  const renderMaterialItem = (m: any) => (
+    <div key={m.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+      <div className="mt-0.5 text-muted-foreground">{getFileIcon(m.file_type)}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{m.title}</p>
+        {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+      </div>
+      {m.file_url && (
+        <Button variant="ghost" size="sm" asChild className="shrink-0">
+          <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </Button>
+      )}
+    </div>
+  );
+
+  const renderMaterialsByCategory = (mats: any[]) => {
+    const categories = ['prework', 'material', 'exercise'];
+    const grouped = categories.map(cat => ({
+      cat,
+      items: mats.filter(m => (m.category || 'material') === cat),
+    })).filter(g => g.items.length > 0);
+
+    if (grouped.length === 0) return null;
+
+    return (
+      <div className="space-y-4">
+        {grouped.map(({ cat, items }) => {
+          const config = CATEGORY_LABELS[cat] || CATEGORY_LABELS.material;
+          const Icon = config.icon;
+          return (
+            <div key={cat} className="space-y-2">
+              <h5 className="text-sm font-semibold flex items-center gap-2">
+                <Icon className="w-4 h-4 text-primary" />
+                {config.label}
+              </h5>
+              <div className="space-y-2">{items.map(renderMaterialItem)}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const getMaterialsForModule = (moduleId: string) =>
+    materials.filter((m: any) => m.module_id === moduleId);
+
+  const unassignedMaterials = materials.filter((m: any) => !m.module_id);
+
   return (
     <AppLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
@@ -67,6 +157,51 @@ export default function ProgramGeneric() {
           {program.description && <p className="text-muted-foreground text-sm mt-1">{program.description}</p>}
         </div>
 
+        {/* Module-based content */}
+        {modules.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Layers className="w-5 h-5 text-primary" /> Módulos
+            </h2>
+            <Tabs defaultValue={modules[0]?.id}>
+              <TabsList className="flex-wrap h-auto gap-1">
+                {modules.map((mod: any) => (
+                  <TabsTrigger key={mod.id} value={mod.id} className="gap-1.5 text-xs">
+                    {mod.title}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {modules.map((mod: any) => {
+                const moduleMaterials = getMaterialsForModule(mod.id);
+                return (
+                  <TabsContent key={mod.id} value={mod.id} className="space-y-4 mt-4">
+                    {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
+                    {renderMaterialsByCategory(moduleMaterials)}
+                    {moduleMaterials.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nenhum material disponível neste módulo ainda.
+                      </p>
+                    )}
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
+          </div>
+        )}
+
+        {/* Unassigned materials */}
+        {unassignedMaterials.length > 0 && (
+          <div className="space-y-4">
+            {modules.length === 0 && (
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" /> Materiais
+              </h2>
+            )}
+            {renderMaterialsByCategory(unassignedMaterials)}
+          </div>
+        )}
+
+        {/* Classes */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2"><CalendarDays className="w-5 h-5 text-primary" /> Próximas Turmas</h2>
           {classes.length === 0 ? (
