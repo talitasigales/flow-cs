@@ -346,16 +346,40 @@ export default function AdminPrograms() {
       toast.error('Título é obrigatório');
       return;
     }
+    if (materialFileType === 'link' && !materialFileUrl.trim()) {
+      toast.error('URL é obrigatória para links');
+      return;
+    }
+    if (['pdf', 'doc', 'other'].includes(materialFileType) && !materialFile && !materialFileUrl.trim()) {
+      toast.error('Selecione um arquivo ou informe uma URL');
+      return;
+    }
     setSavingMaterial(true);
     try {
+      let fileUrl = materialFileUrl.trim();
+
+      // Upload file if provided
+      if (materialFile) {
+        const fileExt = materialFile.name.split('.').pop();
+        const fileName = `${selectedProgram}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('program-materials')
+          .upload(fileName, materialFile);
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage
+          .from('program-materials')
+          .getPublicUrl(fileName);
+        fileUrl = publicUrl;
+      }
+
       const { error } = await supabase.from('program_materials').insert({
         program_id: selectedProgram,
         title: materialTitle.trim(),
         description: materialDescription.trim() || null,
-        file_url: materialFileUrl.trim() || null,
+        file_url: fileUrl || null,
         file_type: materialFileType,
         order_number: materials.length,
-        module_id: materialModuleId || null,
+        module_id: materialModuleId && materialModuleId !== 'none' ? materialModuleId : null,
         category: materialCategory,
       });
       if (error) throw error;
@@ -366,6 +390,7 @@ export default function AdminPrograms() {
       setMaterialFileType('link');
       setMaterialModuleId('');
       setMaterialCategory('material');
+      setMaterialFile(null);
       refetchMaterials();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar material');
