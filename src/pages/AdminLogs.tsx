@@ -145,6 +145,90 @@ const AdminLogs = () => {
     return mapping[tableName] || tableName;
   };
 
+  const fieldLabels: Record<string, string> = {
+    full_name: 'Nome', email: 'Email', company: 'Empresa', job_title: 'Cargo',
+    bio: 'Bio', phone: 'Telefone', avatar_url: 'Avatar', linkedin_url: 'LinkedIn',
+    password_changed: 'Senha alterada', lgpd_accepted: 'LGPD aceito',
+    pda_dominant_axis: 'Eixo PDA', pda_profile_name: 'Perfil PDA',
+    pda_p_value: 'PDA P', pda_e_value: 'PDA E', pda_a_value: 'PDA A',
+    pda_n_value: 'PDA N', pda_r_value: 'PDA R', community_visible: 'Visível comunidade',
+    pda_public: 'PDA público', analysis_result: 'Resultado análise',
+    role: 'Papel', title: 'Título', name: 'Nome', description: 'Descrição',
+    content: 'Conteúdo', status: 'Status', completed: 'Concluído',
+    employee_name: 'Colaborador', pda_axis: 'Eixo PDA', current_stage: 'Etapa',
+    performance: 'Desempenho', potential: 'Potencial', notes: 'Observações',
+    reaction_type: 'Reação', is_anonymous: 'Anônimo', category: 'Categoria',
+    video_url: 'URL vídeo', file_url: 'URL arquivo', file_type: 'Tipo arquivo',
+    presenter: 'Apresentador', specialist: 'Especialista',
+    behavior_assessments: 'Avaliações', reflective_answers: 'Respostas reflexivas',
+    satisfaction_score: 'Nota satisfação', final_status: 'Status final',
+    mentor_name: 'Mentor', mentor_role: 'Papel mentor',
+  };
+
+  const ignoredFields = ['id', 'user_id', 'created_at', 'updated_at', 'updated_at', 'last_password_change', 'lgpd_accepted_at'];
+
+  const getChangedFields = (oldData: any, newData: any): string[] => {
+    if (!oldData || !newData) return [];
+    const changes: string[] = [];
+    for (const key of Object.keys(newData)) {
+      if (ignoredFields.includes(key)) continue;
+      const oldVal = JSON.stringify(oldData[key] ?? null);
+      const newVal = JSON.stringify(newData[key] ?? null);
+      if (oldVal !== newVal) {
+        const label = fieldLabels[key] || key;
+        const nv = newData[key];
+        const ov = oldData[key];
+        if (typeof nv === 'string' && nv.length < 40 && typeof ov === 'string' && ov.length < 40) {
+          changes.push(`${label}: "${ov}" → "${nv}"`);
+        } else if (typeof nv === 'boolean' || typeof nv === 'number') {
+          changes.push(`${label}: ${ov} → ${nv}`);
+        } else {
+          changes.push(`${label} alterado`);
+        }
+      }
+    }
+    return changes;
+  };
+
+  const getRecordLabel = (log: AuditLog): string => {
+    const data = log.new_data || log.old_data;
+    if (!data) return '';
+    switch (log.table_name) {
+      case 'profiles': return data.full_name || data.email || '';
+      case 'user_roles': return `Papel: ${data.role || '-'}`;
+      case 'pdis': return `${data.employee_name || '-'} (${data.pda_axis || '-'})`;
+      case 'pdi_actions': return (data.description || '').substring(0, 50);
+      case 'pdi_checkins': return `Check-in #${data.checkin_number || '-'}`;
+      case 'pdi_closures': return `Status: ${data.final_status || '-'}`;
+      case 'pdi_mentors': return `Mentor: ${data.mentor_name || '-'}`;
+      case 'matriz_9box': return `${data.employee_name || '-'} (P:${data.performance ?? '-'}/P:${data.potential ?? '-'})`;
+      case 'profile_evolution': return `${data.employee_name || '-'} — ${data.assessment_date || '-'}`;
+      case 'community_posts': return (data.content || '').substring(0, 50);
+      case 'community_comments': return (data.content || '').substring(0, 50);
+      case 'community_likes': return `Reação: ${data.reaction_type || 'like'}`;
+      case 'user_progress': return data.completed ? 'Concluído' : 'Em andamento';
+      case 'modules': case 'program_modules': return data.title || '-';
+      case 'module_materials': case 'program_materials': return `${data.title || '-'}${data.file_type ? ` (${data.file_type})` : ''}`;
+      case 'programs': return data.name || '-';
+      case 'program_classes': return data.name || '-';
+      case 'program_enrollments': return 'Matrícula';
+      case 'program_events': return data.title || '-';
+      case 'class_schedules': return data.title || '-';
+      case 'webinars': return data.title || '-';
+      case 'knowledge_base': return data.title || '-';
+      case 'chat_messages': return (data.content || '').substring(0, 40);
+      case 'nanda_messages': return `[${data.role}] ${(data.content || '').substring(0, 40)}`;
+      case 'notifications': return (data.message || '').substring(0, 40);
+      case 'user_follows': return 'Seguiu usuário';
+      case 'user_invites': return `${data.email || '-'} (${data.status || '-'})`;
+      case 'workshop_responses': return 'Resposta workshop';
+      default: {
+        const fb = Object.entries(data).find(([k, v]) => typeof v === 'string' && !ignoredFields.includes(k) && (v as string).length > 0);
+        return fb ? (fb[1] as string).substring(0, 50) : '';
+      }
+    }
+  };
+
   const getLogDetails = (log: AuditLog) => {
     const data = log.new_data || log.old_data;
     if (!data) return log.record_id ? log.record_id.substring(0, 8) + '...' : '-';
@@ -158,70 +242,31 @@ const AdminLogs = () => {
       );
     }
 
-    switch (log.table_name) {
-      case 'profiles':
-        return data.full_name || data.email || '-';
-      case 'user_roles':
-        return `Papel: ${data.role || '-'}`;
-      case 'pdis':
-        return `${data.employee_name || '-'} — Eixo: ${data.pda_axis || '-'}`;
-      case 'pdi_actions':
-        return `${(data.description || '').substring(0, 60)}${data.status ? ` (${data.status})` : ''}`;
-      case 'pdi_checkins':
-        return `Check-in #${data.checkin_number || '-'}`;
-      case 'pdi_closures':
-        return `Status: ${data.final_status || '-'}${data.satisfaction_score ? ` — Nota: ${data.satisfaction_score}` : ''}`;
-      case 'pdi_mentors':
-        return `Mentor: ${data.mentor_name || '-'}`;
-      case 'matriz_9box':
-        return `${data.employee_name || '-'} — Perf: ${data.performance ?? '-'} / Pot: ${data.potential ?? '-'}`;
-      case 'profile_evolution':
-        return `${data.employee_name || '-'} — ${data.assessment_date || '-'}`;
-      case 'community_posts':
-        return (data.content || '').substring(0, 60) + ((data.content || '').length > 60 ? '...' : '');
-      case 'community_comments':
-        return (data.content || '').substring(0, 60) + ((data.content || '').length > 60 ? '...' : '');
-      case 'community_likes':
-        return `Reação: ${data.reaction_type || 'like'}`;
-      case 'user_progress':
-        return data.completed ? 'Concluído' : 'Em andamento';
-      case 'modules':
-      case 'program_modules':
-        return data.title || '-';
-      case 'module_materials':
-      case 'program_materials':
-        return `${data.title || '-'}${data.file_type ? ` (${data.file_type})` : ''}`;
-      case 'programs':
-        return data.name || '-';
-      case 'program_classes':
-        return `${data.name || '-'}${data.specialist ? ` — ${data.specialist}` : ''}`;
-      case 'program_enrollments':
-        return 'Matrícula em programa';
-      case 'program_events':
-        return `${data.title || '-'} — ${data.event_date || '-'}`;
-      case 'class_schedules':
-        return `${data.title || '-'} — ${data.schedule_date || '-'}`;
-      case 'webinars':
-        return `${data.title || '-'}${data.presenter ? ` — ${data.presenter}` : ''}`;
-      case 'knowledge_base':
-        return `${data.title || '-'} (${data.category || '-'})`;
-      case 'chat_messages':
-        return (data.content || '').substring(0, 50) + ((data.content || '').length > 50 ? '...' : '');
-      case 'nanda_messages':
-        return `[${data.role || '-'}] ${(data.content || '').substring(0, 50)}`;
-      case 'notifications':
-        return `${data.type || '-'}: ${(data.message || '').substring(0, 50)}`;
-      case 'user_follows':
-        return 'Seguiu usuário';
-      case 'user_invites':
-        return `${data.email || '-'} — ${data.status || '-'}`;
-      case 'workshop_responses':
-        return 'Resposta de workshop';
-      default: {
-        const fallback = Object.entries(data).find(([k, v]) => typeof v === 'string' && !['id','user_id','created_at','updated_at'].includes(k) && (v as string).length > 0);
-        return fallback ? (fallback[1] as string).substring(0, 60) : (log.record_id ? log.record_id.substring(0, 8) + '...' : '-');
+    const label = getRecordLabel(log);
+
+    if (log.action === 'UPDATE' && log.old_data && log.new_data) {
+      const changes = getChangedFields(log.old_data, log.new_data);
+      if (changes.length > 0) {
+        return (
+          <span className="space-y-0.5">
+            {label && <span className="font-medium">{label}</span>}
+            {label && ' — '}
+            <span className="text-muted-foreground">{changes.slice(0, 3).join('; ')}{changes.length > 3 ? ` (+${changes.length - 3})` : ''}</span>
+          </span>
+        );
       }
+      return label || '-';
     }
+
+    if (log.action === 'INSERT') {
+      return label ? <span><span className="text-muted-foreground">Criou: </span><span className="font-medium">{label}</span></span> : '-';
+    }
+
+    if (log.action === 'DELETE') {
+      return label ? <span><span className="text-muted-foreground">Removeu: </span><span className="font-medium">{label}</span></span> : '-';
+    }
+
+    return label || '-';
   };
 
   const filteredLogs = logs.filter(log => {
@@ -376,7 +421,7 @@ const AdminLogs = () => {
                         <TableCell>{log.user_name}</TableCell>
                         <TableCell>{getActionBadge(log.action)}</TableCell>
                         <TableCell>{getResourceName(log.table_name)}</TableCell>
-                        <TableCell className="text-sm max-w-xs truncate">
+                        <TableCell className="text-sm max-w-md">
                           {getLogDetails(log)}
                         </TableCell>
                       </TableRow>
