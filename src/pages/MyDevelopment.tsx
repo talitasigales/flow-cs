@@ -14,8 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText, ExternalLink, FileIcon, Layers, ClipboardList, FolderOpen } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText, ExternalLink, FileIcon, Layers, ClipboardList, FolderOpen, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const QUESTIONS = [
   { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
@@ -52,9 +53,25 @@ export default function MyDevelopment() {
     queryFn: async () => {
       const { data } = await supabase
         .from('program_enrollments')
-        .select('id, enrolled_at, class_id, programs(id, name, slug, description), program_classes(id, name, start_date, end_date)')
+        .select('id, enrolled_at, class_id, programs(id, name, slug, description), program_classes(id, name, start_date, end_date, video_conference_url, specialist)')
         .eq('user_id', user!.id)
         .order('enrolled_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const classIds = enrollments.map((e: any) => e.program_classes?.id).filter(Boolean);
+
+  const { data: allSchedules = [] } = useQuery({
+    queryKey: ['my-class-schedules', classIds],
+    enabled: classIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('class_schedules')
+        .select('*')
+        .in('class_id', classIds)
+        .order('schedule_date')
+        .order('order_number');
       return data || [];
     },
   });
@@ -371,6 +388,63 @@ export default function MyDevelopment() {
                     {program?.description && (
                       <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
                     )}
+
+                    {/* Journey Cards */}
+                    {(() => {
+                      const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
+                      if (classSchedules.length === 0) return null;
+                      const today = new Date().toISOString().split('T')[0];
+                      return (
+                        <div className="mb-6">
+                          <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
+                            <CalendarDays className="w-4 h-4 text-primary" />
+                            Sua Jornada
+                            {cls?.specialist && (
+                              <Badge variant="secondary" className="text-xs ml-1">Especialista: {cls.specialist}</Badge>
+                            )}
+                          </h4>
+                          <div className="flex gap-3 overflow-x-auto pb-2">
+                            {classSchedules.map((s: any, idx: number) => {
+                              const isPast = s.schedule_date < today;
+                              const isToday = s.schedule_date === today;
+                              return (
+                                <div
+                                  key={s.id}
+                                  className={cn(
+                                    "flex-shrink-0 w-44 rounded-xl border p-4 space-y-2 transition-all",
+                                    isToday && "ring-2 ring-primary border-primary bg-primary/5",
+                                    isPast && "opacity-60 bg-muted/30",
+                                    !isPast && !isToday && "bg-card hover:shadow-md"
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-mono text-muted-foreground">
+                                      {format(new Date(s.schedule_date + 'T12:00:00'), 'dd/MM')}
+                                    </span>
+                                    {isPast && <CheckCircle className="w-4 h-4 text-primary" />}
+                                    {isToday && <Badge variant="default" className="text-[10px] px-1.5 py-0">Hoje</Badge>}
+                                  </div>
+                                  <p className="text-sm font-semibold leading-tight">{s.title}</p>
+                                  {s.start_time && s.end_time && (
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {s.start_time.slice(0, 5)} às {s.end_time.slice(0, 5)}
+                                    </p>
+                                  )}
+                                  {isToday && cls?.video_conference_url && (
+                                    <Button variant="outline" size="sm" asChild className="w-full mt-1 text-xs">
+                                      <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="gap-1">
+                                        <ExternalLink className="w-3 h-3" /> Entrar na aula
+                                      </a>
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Module-based navigation */}
                     {programModules.length > 0 ? (

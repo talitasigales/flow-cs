@@ -141,6 +141,57 @@ export type Database = {
           },
         ]
       }
+      class_schedules: {
+        Row: {
+          class_id: string
+          created_at: string | null
+          end_time: string | null
+          id: string
+          module_id: string | null
+          order_number: number | null
+          schedule_date: string
+          start_time: string | null
+          title: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          module_id?: string | null
+          order_number?: number | null
+          schedule_date: string
+          start_time?: string | null
+          title: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          module_id?: string | null
+          order_number?: number | null
+          schedule_date?: string
+          start_time?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_schedules_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_schedules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "program_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_comments: {
         Row: {
           content: string

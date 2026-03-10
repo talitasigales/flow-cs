@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock } from 'lucide-react';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
@@ -80,6 +80,16 @@ export default function AdminPrograms() {
   const [moduleDescription, setModuleDescription] = useState('');
   const [moduleOrder, setModuleOrder] = useState(0);
   const [savingModule, setSavingModule] = useState(false);
+
+  // Schedule state
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleClassId, setScheduleClassId] = useState('');
+  const [scheduleTitle, setScheduleTitle] = useState('');
+  const [scheduleDate, setScheduleDate] = useState<Date>();
+  const [scheduleStartTime, setScheduleStartTime] = useState('');
+  const [scheduleEndTime, setScheduleEndTime] = useState('');
+  const [scheduleModuleId, setScheduleModuleId] = useState('');
+  const [savingSchedule, setSavingSchedule] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
@@ -157,6 +167,22 @@ export default function AdminPrograms() {
         .from('program_materials')
         .select('*')
         .eq('program_id', selectedProgram)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
+  const { data: schedules = [], refetch: refetchSchedules } = useQuery({
+    queryKey: ['class-schedules-admin', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const classIds = classes.map((c: any) => c.id);
+      if (classIds.length === 0) return [];
+      const { data } = await supabase
+        .from('class_schedules')
+        .select('*')
+        .in('class_id', classIds)
+        .order('schedule_date')
         .order('order_number');
       return data || [];
     },
@@ -354,6 +380,48 @@ export default function AdminPrograms() {
     }
   };
 
+  const handleSaveSchedule = async () => {
+    if (!scheduleTitle.trim() || !scheduleClassId || !scheduleDate) {
+      toast.error('Título, turma e data são obrigatórios');
+      return;
+    }
+    setSavingSchedule(true);
+    try {
+      const { error } = await supabase.from('class_schedules').insert({
+        class_id: scheduleClassId,
+        module_id: scheduleModuleId || null,
+        title: scheduleTitle.trim(),
+        schedule_date: format(scheduleDate, 'yyyy-MM-dd'),
+        start_time: scheduleStartTime || null,
+        end_time: scheduleEndTime || null,
+        order_number: schedules.filter((s: any) => s.class_id === scheduleClassId).length,
+      });
+      if (error) throw error;
+      toast.success('Etapa adicionada ao cronograma');
+      setScheduleTitle('');
+      setScheduleDate(undefined);
+      setScheduleStartTime('');
+      setScheduleEndTime('');
+      setScheduleModuleId('');
+      setScheduleDialogOpen(false);
+      refetchSchedules();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
+  const handleDeleteSchedule = async (id: string) => {
+    const { error } = await supabase.from('class_schedules').delete().eq('id', id);
+    if (error) {
+      toast.error('Erro ao remover etapa');
+    } else {
+      toast.success('Etapa removida');
+      refetchSchedules();
+    }
+  };
+
   if (authLoading || adminLoading) {
     return (
       <AppLayout>
@@ -390,6 +458,7 @@ export default function AdminPrograms() {
           <Tabs defaultValue="classes">
             <TabsList className="flex-wrap">
               <TabsTrigger value="classes" className="gap-1.5"><GraduationCap className="w-4 h-4" /> Turmas ({classes.length})</TabsTrigger>
+              <TabsTrigger value="schedule" className="gap-1.5"><Clock className="w-4 h-4" /> Cronograma</TabsTrigger>
               <TabsTrigger value="modules" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos ({modules.length})</TabsTrigger>
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
               <TabsTrigger value="import" className="gap-1.5"><Upload className="w-4 h-4" /> Importar</TabsTrigger>
@@ -511,6 +580,142 @@ export default function AdminPrograms() {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* CRONOGRAMA TAB */}
+            <TabsContent value="schedule" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Cronograma da Turma</CardTitle>
+                    <CardDescription>Defina as datas e horários de cada etapa/módulo por turma</CardDescription>
+                  </div>
+                  <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" /> Nova Etapa</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Adicionar Etapa ao Cronograma</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Turma</Label>
+                          <Select value={scheduleClassId} onValueChange={setScheduleClassId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a turma" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {classes.map((c: any) => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Título da Etapa</Label>
+                          <Input value={scheduleTitle} onChange={e => setScheduleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Módulo vinculado (opcional)</Label>
+                          <Select value={scheduleModuleId} onValueChange={setScheduleModuleId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sem módulo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Sem módulo</SelectItem>
+                              {modules.map((m: any) => (
+                                <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Data</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !scheduleDate && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : "Selecionar"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} className={cn("p-3 pointer-events-auto")} />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Hora Início</Label>
+                            <Input type="time" value={scheduleStartTime} onChange={e => setScheduleStartTime(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Hora Fim</Label>
+                            <Input type="time" value={scheduleEndTime} onChange={e => setScheduleEndTime(e.target.value)} />
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={handleSaveSchedule} disabled={savingSchedule}>
+                          {savingSchedule ? 'Salvando...' : 'Adicionar Etapa'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  {classes.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">Crie uma turma primeiro para definir o cronograma.</p>
+                  ) : (
+                    <div className="space-y-6">
+                      {classes.map((c: any) => {
+                        const classSchedules = schedules.filter((s: any) => s.class_id === c.id);
+                        if (classSchedules.length === 0) return null;
+                        return (
+                          <div key={c.id} className="space-y-3">
+                            <h3 className="font-semibold text-sm flex items-center gap-2">
+                              <GraduationCap className="w-4 h-4 text-primary" />
+                              {c.name}
+                              {c.specialist && <Badge variant="secondary" className="text-xs">{c.specialist}</Badge>}
+                            </h3>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Data</TableHead>
+                                  <TableHead>Horário</TableHead>
+                                  <TableHead>Etapa</TableHead>
+                                  <TableHead className="w-[80px]"></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {classSchedules.map((s: any) => (
+                                  <TableRow key={s.id}>
+                                    <TableCell>{format(new Date(s.schedule_date + 'T12:00:00'), 'dd/MM/yyyy')}</TableCell>
+                                    <TableCell>
+                                      {s.start_time && s.end_time
+                                        ? `${s.start_time.slice(0, 5)} às ${s.end_time.slice(0, 5)}`
+                                        : s.start_time ? s.start_time.slice(0, 5) : '—'}
+                                    </TableCell>
+                                    <TableCell className="font-medium">{s.title}</TableCell>
+                                    <TableCell>
+                                      <Button variant="ghost" size="icon" onClick={() => handleDeleteSchedule(s.id)} className="text-destructive hover:text-destructive">
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        );
+                      })}
+                      {schedules.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">Nenhuma etapa cadastrada. Clique em "Nova Etapa" para começar.</p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
