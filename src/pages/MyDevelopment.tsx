@@ -103,9 +103,10 @@ export default function MyDevelopment() {
   });
 
   const programIds = enrollments.map((e: any) => e.programs?.id).filter(Boolean);
+  const programIdsKey = programIds.sort().join(',');
 
   const { data: allMaterials = [] } = useQuery({
-    queryKey: ['my-program-materials', programIds],
+    queryKey: ['my-program-materials', programIdsKey],
     enabled: programIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
