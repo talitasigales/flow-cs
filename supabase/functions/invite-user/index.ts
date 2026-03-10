@@ -167,27 +167,8 @@ serve(async (req) => {
       );
     }
 
-    // Generate a temporary password
-    const tempPassword = crypto.randomUUID();
-
-    // Create the user
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        invited_by: user.email,
-      }
-    });
-
-    if (createError) {
-      console.error('Error creating user:', createError);
-      return new Response(
-        JSON.stringify({ error: `Erro ao criar usuário: ${createError.message}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // User was successfully created above (newUserAttempt)
+    const newUser = newUserAttempt!;
     console.log(`User created successfully: ${newUser.user.id}`);
 
     // Add role if admin
@@ -215,7 +196,8 @@ serve(async (req) => {
       console.error('Error recording invite:', inviteError);
     }
 
-    console.log(`Temporary password for ${email}: ${tempPassword}`);
+    const tempPassword = newUser.user.id ? crypto.randomUUID() : '';
+    console.log(`User ${email} created.`);
 
     return new Response(
       JSON.stringify({
