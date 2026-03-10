@@ -172,6 +172,22 @@ export default function AdminPrograms() {
     },
   });
 
+  const { data: schedules = [], refetch: refetchSchedules } = useQuery({
+    queryKey: ['class-schedules-admin', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const classIds = classes.map((c: any) => c.id);
+      if (classIds.length === 0) return [];
+      const { data } = await supabase
+        .from('class_schedules')
+        .select('*')
+        .in('class_id', classIds)
+        .order('schedule_date')
+        .order('order_number');
+      return data || [];
+    },
+  });
+
   // --- Handlers ---
 
   const handleSaveClass = async () => {
