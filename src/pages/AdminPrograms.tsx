@@ -1182,6 +1182,172 @@ export default function AdminPrograms() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* VISÃO DO ALUNO TAB */}
+            <TabsContent value="student-view" className="mt-4">
+              {(() => {
+                const selectedProgramData = programs.find((p: any) => p.id === selectedProgram);
+                const firstClass = classes[0];
+                const classSchedulesForPreview = firstClass ? schedules.filter((s: any) => s.class_id === firstClass.id) : [];
+                const unassignedMats = materials.filter((m: any) => !m.module_id);
+                const today = new Date().toISOString().split('T')[0];
+
+                return (
+                  <div className="space-y-6">
+                    <Card className="border-dashed border-primary/30 bg-primary/5">
+                      <CardContent className="py-3 px-4">
+                        <p className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Eye className="w-3.5 h-3.5" />
+                          Pré-visualização de como o aluno vê este programa em <strong>Meu Desenvolvimento</strong>.
+                          {firstClass && <span> Exibindo cronograma da turma <strong>{firstClass.name}</strong>.</span>}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Program Header */}
+                    <Card className="overflow-hidden border-primary/20">
+                      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h2 className="text-xl font-bold">{selectedProgramData?.name}</h2>
+                              <Badge variant="outline" className="text-xs border-primary/40 text-primary">Matriculado</Badge>
+                            </div>
+                            {selectedProgramData?.description && (
+                              <p className="text-sm text-muted-foreground max-w-xl">{selectedProgramData.description}</p>
+                            )}
+                            {firstClass && (
+                              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground pt-1">
+                                <span className="flex items-center gap-1">
+                                  <GraduationCap className="w-3.5 h-3.5" />
+                                  Turma: <span className="font-medium text-foreground">{firstClass.name}</span>
+                                </span>
+                                {firstClass.start_date && (
+                                  <span className="flex items-center gap-1">
+                                    <CalendarIcon className="w-3.5 h-3.5" />
+                                    {format(new Date(firstClass.start_date + 'T12:00:00'), "dd/MM/yyyy")}
+                                    {firstClass.end_date && ` — ${format(new Date(firstClass.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          {firstClass?.video_conference_url && (
+                            <Button size="sm" className="shrink-0 gap-2">
+                              <Video className="w-4 h-4" />
+                              Entrar na aula
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Journey Timeline */}
+                      {classSchedulesForPreview.length > 0 && (
+                        <div className="lg:col-span-1">
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <CalendarIcon className="w-4 h-4 text-primary" />
+                                Cronograma
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <JourneyTimeline
+                                schedules={classSchedulesForPreview}
+                                videoConferenceUrl={firstClass?.video_conference_url}
+                                specialist={firstClass?.specialist}
+                              />
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+
+                      {/* Modules & Materials */}
+                      <div className={cn(
+                        classSchedulesForPreview.length > 0 ? "lg:col-span-2" : "lg:col-span-3",
+                        "space-y-6"
+                      )}>
+                        {modules.length > 0 && (
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <Layers className="w-4 h-4 text-primary" />
+                                Módulos do Programa
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              {modules.map((mod: any, idx: number) => {
+                                const modSchedule = classSchedulesForPreview.find((s: any) => s.module_id === mod.id);
+                                const isCompleted = modSchedule && modSchedule.schedule_date < today;
+                                const isCurrent = modSchedule && modSchedule.schedule_date === today;
+                                const moduleMats = materials.filter((m: any) => m.module_id === mod.id);
+
+                                return (
+                                  <Accordion type="single" collapsible key={mod.id}>
+                                    <AccordionItem value={mod.id} className="border-0">
+                                      <AccordionTrigger className={cn(
+                                        "p-3 rounded-lg hover:no-underline hover:bg-muted/50",
+                                      )}>
+                                        <div className="flex items-center gap-3 text-left">
+                                          <div className={cn(
+                                            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
+                                            isCompleted ? "bg-primary/20 text-primary" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                          )}>
+                                            {idx + 1}
+                                          </div>
+                                          <div>
+                                            <p className="text-sm font-semibold">{mod.title}</p>
+                                            {mod.description && <p className="text-xs text-muted-foreground line-clamp-1">{mod.description}</p>}
+                                          </div>
+                                          {moduleMats.length > 0 && (
+                                            <Badge variant="secondary" className="text-[10px] ml-auto mr-2">{moduleMats.length}</Badge>
+                                          )}
+                                        </div>
+                                      </AccordionTrigger>
+                                      <AccordionContent className="ml-11 pt-2">
+                                        {moduleMats.length > 0 ? (
+                                          <ProgramMaterials materials={moduleMats} />
+                                        ) : (
+                                          <p className="text-xs text-muted-foreground py-2">Nenhum material neste módulo.</p>
+                                        )}
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  </Accordion>
+                                );
+                              })}
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {unassignedMats.length > 0 && (
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-primary" />
+                                Materiais Gerais
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ProgramMaterials materials={unassignedMats} />
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {modules.length === 0 && unassignedMats.length === 0 && (
+                          <Card>
+                            <CardContent className="py-8 text-center text-muted-foreground text-sm">
+                              Nenhum conteúdo cadastrado para este programa ainda.
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </TabsContent>
           </Tabs>
         )}
       </div>
