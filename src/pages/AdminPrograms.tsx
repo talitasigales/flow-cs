@@ -69,6 +69,7 @@ export default function AdminPrograms() {
   const [classEndDate, setClassEndDate] = useState<Date>();
   const [classVideoUrl, setClassVideoUrl] = useState('');
   const [classSpecialist, setClassSpecialist] = useState('');
+  const [classModuleIds, setClassModuleIds] = useState<string[]>([]);
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
