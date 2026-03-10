@@ -1,0 +1,1 @@
+UPDATE programs SET description = 'Workshop de Autogestão' WHERE slug = 'lider-360';
