@@ -676,6 +676,41 @@ export type Database = {
           },
         ]
       }
+      pda_reports: {
+        Row: {
+          file_name: string
+          file_url: string
+          id: string
+          program_id: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          file_name: string
+          file_url: string
+          id?: string
+          program_id: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          file_name?: string
+          file_url?: string
+          id?: string
+          program_id?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pda_reports_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdi_actions: {
         Row: {
           achievable: string | null
