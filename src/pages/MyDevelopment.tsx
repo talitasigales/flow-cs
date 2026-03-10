@@ -10,13 +10,17 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText, ExternalLink, FileIcon, Layers, ClipboardList, FolderOpen, Clock, Video, Download } from 'lucide-react';
+import {
+  BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText,
+  ExternalLink, Layers, Video, ChevronRight
+} from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
+import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
+import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -31,12 +35,6 @@ const QUESTIONS = [
 
 const PDA_AXES = ['Risco', 'Extroversão', 'Paciência', 'Norma', 'Autocontrole'];
 
-const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
-  prework: { label: 'Pre-work', icon: ClipboardList },
-  material: { label: 'Materiais', icon: FolderOpen },
-  exercise: { label: 'Exercícios', icon: FileText },
-};
-
 export default function MyDevelopment() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -44,6 +42,7 @@ export default function MyDevelopment() {
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [pdaAxes, setPdaAxes] = useState<Record<string, string>>({});
+  const [activeModule, setActiveModule] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
@@ -160,14 +159,7 @@ export default function MyDevelopment() {
   });
 
   const handlePdaChange = (axis: string, level: string) => {
-    setPdaAxes(prev => {
-      if (prev[axis] === level) {
-        const next = { ...prev };
-        delete next[axis];
-        return next;
-      }
-      return { ...prev, [axis]: level };
-    });
+    setPdaAxes(prev => prev[axis] === level ? (() => { const n = { ...prev }; delete n[axis]; return n; })() : { ...prev, [axis]: level });
   };
 
   if (loading || isLoading) {
@@ -180,123 +172,9 @@ export default function MyDevelopment() {
     );
   }
 
-  const getModulesForProgram = (programId: string) =>
-    allModules.filter((m: any) => m.program_id === programId);
-
-  const getMaterialsForModule = (moduleId: string) =>
-    allMaterials.filter((m: any) => m.module_id === moduleId);
-
-  const getMaterialsWithoutModule = (programId: string) =>
-    allMaterials.filter((m: any) => m.program_id === programId && !m.module_id);
-
-  const getFileIcon = (fileType: string | null) => {
-    if (fileType === 'link') return <ExternalLink className="w-4 h-4" />;
-    if (fileType === 'pdf') return <FileText className="w-4 h-4" />;
-    if (fileType === 'video') return <Video className="w-4 h-4" />;
-    return <FileIcon className="w-4 h-4" />;
-  };
-
-  const getYouTubeId = (url: string) => {
-    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
-    return match ? match[1] : null;
-  };
-
-  const renderMaterialItem = (m: any) => {
-    const isVideo = m.file_type === 'video';
-    const videoUrls: { url: string; title: string | null }[] = 
-      isVideo && m.video_urls && Array.isArray(m.video_urls) && m.video_urls.length > 0
-        ? m.video_urls
-        : isVideo && m.file_url ? [{ url: m.file_url, title: null }] : [];
-
-    return (
-      <div key={m.id} className="space-y-2">
-        <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
-          <div className="mt-0.5 text-muted-foreground">
-            {getFileIcon(m.file_type)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">
-              {m.title}
-              {videoUrls.length > 1 && (
-                <Badge variant="secondary" className="ml-2 text-xs">{videoUrls.length} vídeos</Badge>
-              )}
-            </p>
-            {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
-          </div>
-          {m.file_url && !isVideo && (
-            <Button variant="ghost" size="sm" asChild className="shrink-0">
-              <a href={m.file_url} target="_blank" rel="noopener noreferrer">
-                {m.file_type === 'pdf' || m.file_type === 'doc' || m.file_type === 'other' ? (
-                  <Download className="w-3.5 h-3.5" />
-                ) : (
-                  <ExternalLink className="w-3.5 h-3.5" />
-                )}
-              </a>
-            </Button>
-          )}
-        </div>
-        {videoUrls.length > 0 && (
-          <div className="space-y-3">
-            {videoUrls.map((vid: any, idx: number) => {
-              const ytId = getYouTubeId(vid.url);
-              if (!ytId) return null;
-              return (
-                <div key={idx} className="space-y-1">
-                  {vid.title && <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>}
-                  <div className="rounded-lg overflow-hidden border aspect-video">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${ytId}`}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={vid.title || m.title}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderMaterialsByCategory = (materials: any[]) => {
-    const categories = ['prework', 'material', 'exercise'];
-    const grouped = categories.map(cat => ({
-      cat,
-      items: materials.filter(m => (m.category || 'material') === cat),
-    })).filter(g => g.items.length > 0);
-
-    if (grouped.length === 0) return null;
-
-    return (
-      <div className="space-y-5">
-        {grouped.map(({ cat, items }) => {
-          const config = CATEGORY_LABELS[cat] || CATEGORY_LABELS.material;
-          const Icon = config.icon;
-          const isPrework = cat === 'prework';
-          return (
-            <div key={cat} className={cn(
-              "space-y-2",
-              isPrework && "bg-accent/30 border border-accent rounded-lg p-4"
-            )}>
-              <h5 className="text-sm font-semibold flex items-center gap-2">
-                <Icon className="w-4 h-4 text-primary" />
-                {config.label}
-                {isPrework && (
-                  <Badge variant="secondary" className="text-xs">Antes do início</Badge>
-                )}
-              </h5>
-              <div className="space-y-2">
-                {items.map(renderMaterialItem)}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  const getModulesForProgram = (programId: string) => allModules.filter((m: any) => m.program_id === programId);
+  const getMaterialsForModule = (moduleId: string) => allMaterials.filter((m: any) => m.module_id === moduleId);
+  const getMaterialsWithoutModule = (programId: string) => allMaterials.filter((m: any) => m.program_id === programId && !m.module_id);
 
   const renderLider360Questionnaire = () => (
     <Card>
@@ -308,34 +186,18 @@ export default function MyDevelopment() {
         {QUESTIONS.map(q => (
           <div key={q.id} className="space-y-2">
             <Label className="text-sm font-medium">{q.label}</Label>
-            <Textarea
-              value={answers[q.id] || ''}
-              onChange={ev => setAnswers(prev => ({ ...prev, [q.id]: ev.target.value }))}
-              placeholder="Escreva sua resposta..."
-              className="min-h-[90px]"
-            />
+            <Textarea value={answers[q.id] || ''} onChange={ev => setAnswers(prev => ({ ...prev, [q.id]: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[90px]" />
           </div>
         ))}
-
         <div className="pt-4 border-t space-y-4">
           <p className="text-sm text-muted-foreground font-medium">Com base no seu relatório PDA, responda:</p>
           <div className="space-y-2">
             <Label className="text-sm font-medium">Ponto forte para liderança:</Label>
-            <Textarea
-              value={answers['q7_strength'] || ''}
-              onChange={ev => setAnswers(prev => ({ ...prev, q7_strength: ev.target.value }))}
-              placeholder="Escreva sua resposta..."
-              className="min-h-[70px]"
-            />
+            <Textarea value={answers['q7_strength'] || ''} onChange={ev => setAnswers(prev => ({ ...prev, q7_strength: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[70px]" />
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-medium">Oportunidade de desenvolvimento:</Label>
-            <Textarea
-              value={answers['q8_development'] || ''}
-              onChange={ev => setAnswers(prev => ({ ...prev, q8_development: ev.target.value }))}
-              placeholder="Escreva sua resposta..."
-              className="min-h-[70px]"
-            />
+            <Textarea value={answers['q8_development'] || ''} onChange={ev => setAnswers(prev => ({ ...prev, q8_development: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[70px]" />
           </div>
           <div className="space-y-3">
             <Label className="text-sm font-medium">Eixo do PDA relacionado:</Label>
@@ -344,11 +206,7 @@ export default function MyDevelopment() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Baixo</p>
                 {PDA_AXES.map(axis => (
                   <div key={`${axis}-baixo`} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`dev-${axis}-baixo`}
-                      checked={pdaAxes[axis] === 'baixo'}
-                      onCheckedChange={() => handlePdaChange(axis, 'baixo')}
-                    />
+                    <Checkbox id={`dev-${axis}-baixo`} checked={pdaAxes[axis] === 'baixo'} onCheckedChange={() => handlePdaChange(axis, 'baixo')} />
                     <label htmlFor={`dev-${axis}-baixo`} className="text-sm cursor-pointer">{axis} baixo</label>
                   </div>
                 ))}
@@ -357,11 +215,7 @@ export default function MyDevelopment() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alto</p>
                 {PDA_AXES.map(axis => (
                   <div key={`${axis}-alto`} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`dev-${axis}-alto`}
-                      checked={pdaAxes[axis] === 'alto'}
-                      onCheckedChange={() => handlePdaChange(axis, 'alto')}
-                    />
+                    <Checkbox id={`dev-${axis}-alto`} checked={pdaAxes[axis] === 'alto'} onCheckedChange={() => handlePdaChange(axis, 'alto')} />
                     <label htmlFor={`dev-${axis}-alto`} className="text-sm cursor-pointer">{axis} alto</label>
                   </div>
                 ))}
@@ -369,7 +223,6 @@ export default function MyDevelopment() {
             </div>
           </div>
         </div>
-
         <div className="pt-4 flex justify-end">
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             {saveMutation.isPending ? 'Salvando...' : existingResponse ? 'Atualizar Respostas' : 'Enviar Respostas'}
@@ -379,12 +232,263 @@ export default function MyDevelopment() {
     </Card>
   );
 
+  const renderEnrollmentCard = (e: any) => {
+    const program = e.programs;
+    const cls = e.program_classes;
+    const isLider360 = program?.slug === 'lider-360';
+    const programModules = program ? getModulesForProgram(program.id) : [];
+    const unassignedMaterials = program ? getMaterialsWithoutModule(program.id) : [];
+    const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
+    const today = new Date().toISOString().split('T')[0];
+
+    // Find the current/next module based on schedule
+    const currentSchedule = classSchedules.find((s: any) => s.schedule_date >= today);
+
+    return (
+      <div key={e.id} className="space-y-6">
+        {/* Program Header Card */}
+        <Card className="overflow-hidden border-primary/20">
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xl font-bold">{program?.name || 'Programa'}</h2>
+                  <Badge variant="outline" className="text-xs border-primary/40 text-primary">Matriculado</Badge>
+                  {isLider360 && existingResponse && (
+                    <Badge variant="secondary" className="text-xs gap-1">
+                      <CheckCircle className="w-3 h-3" /> Respondido
+                    </Badge>
+                  )}
+                </div>
+                {program?.description && (
+                  <p className="text-sm text-muted-foreground max-w-xl">{program.description}</p>
+                )}
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground pt-1">
+                  {cls && (
+                    <span className="flex items-center gap-1">
+                      <GraduationCap className="w-3.5 h-3.5" />
+                      Turma: <span className="font-medium text-foreground">{cls.name}</span>
+                    </span>
+                  )}
+                  {cls?.start_date && (
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      {format(new Date(cls.start_date + 'T12:00:00'), "dd/MM/yyyy")}
+                      {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {cls?.video_conference_url && (
+                <Button size="sm" asChild className="shrink-0 gap-2">
+                  <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer">
+                    <Video className="w-4 h-4" />
+                    Entrar na aula
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Two-column layout: Journey + Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: Journey Timeline */}
+          {classSchedules.length > 0 && (
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-primary" />
+                    Cronograma
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <JourneyTimeline
+                    schedules={classSchedules}
+                    videoConferenceUrl={cls?.video_conference_url}
+                    specialist={cls?.specialist}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Right: Modules & Materials */}
+          <div className={cn(
+            classSchedules.length > 0 ? "lg:col-span-2" : "lg:col-span-3",
+            "space-y-6"
+          )}>
+            {/* Module navigation */}
+            {programModules.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-primary" />
+                    Módulos do Programa
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {programModules.map((mod: any, idx: number) => {
+                    const isActive = activeModule === mod.id;
+                    // Check if this module has a past schedule (completed)
+                    const modSchedule = classSchedules.find((s: any) => s.module_id === mod.id);
+                    const isCompleted = modSchedule && modSchedule.schedule_date < today;
+                    const isCurrent = modSchedule && modSchedule.schedule_date === today;
+                    const moduleMaterials = getMaterialsForModule(mod.id);
+
+                    return (
+                      <div key={mod.id}>
+                        <button
+                          onClick={() => {
+                            setActiveModule(isActive ? null : mod.id);
+                            if (!isActive) {
+                              supabase.rpc('log_user_action', {
+                                _action: 'MODULE_ACCESS',
+                                _table_name: 'program_modules',
+                                _record_id: mod.id,
+                                _new_data: { module_title: mod.title, program_name: program?.name },
+                              });
+                            }
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
+                            isActive ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-muted/50",
+                            isCompleted && !isActive && "opacity-70"
+                          )}
+                        >
+                          <div className={cn(
+                            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
+                            isCompleted ? "bg-primary/20 text-primary" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          )}>
+                            {isCompleted ? <CheckCircle className="w-4 h-4" /> : idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold leading-tight">{mod.title}</p>
+                            {mod.description && (
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{mod.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {moduleMaterials.length > 0 && (
+                              <Badge variant="secondary" className="text-[10px]">{moduleMaterials.length}</Badge>
+                            )}
+                            <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", isActive && "rotate-90")} />
+                          </div>
+                        </button>
+
+                        {/* Expanded module content */}
+                        {isActive && (
+                          <div className="mt-2 ml-11 space-y-4 pb-2">
+                            {mod.description && (
+                              <p className="text-sm text-muted-foreground">{mod.description}</p>
+                            )}
+
+                            {/* Module videos */}
+                            {(() => {
+                              const moduleVideos = moduleMaterials.filter((m: any) => m.file_type === 'video' && m.file_url);
+                              if (moduleVideos.length === 0) return null;
+                              return (
+                                <div className="space-y-4">
+                                  {moduleVideos.map((v: any) => {
+                                    const videoUrls: { url: string; title: string | null }[] =
+                                      (v.video_urls && Array.isArray(v.video_urls) && v.video_urls.length > 0)
+                                        ? v.video_urls : v.file_url ? [{ url: v.file_url, title: null }] : [];
+                                    if (videoUrls.length === 0) return null;
+                                    return (
+                                      <div key={v.id} className="space-y-2">
+                                        <p className="text-xs font-semibold flex items-center gap-1.5">
+                                          <Video className="w-3.5 h-3.5 text-primary" />
+                                          {v.title}
+                                        </p>
+                                        {videoUrls.map((vid: any, vidIdx: number) => {
+                                          const ytId = vid.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{11})/)?.[1];
+                                          if (!ytId) return null;
+                                          return (
+                                            <div key={vidIdx} className="space-y-1">
+                                              {vid.title && <p className="text-[11px] text-muted-foreground">{vid.title}</p>}
+                                              <div className="rounded-lg overflow-hidden border aspect-video">
+                                                <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={vid.title || v.title} />
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })()}
+
+                            <ProgramMaterials materials={moduleMaterials.filter((m: any) => m.file_type !== 'video')} />
+                            <ExerciseRenderer moduleId={mod.id} />
+                            <FeatureLinkCards moduleId={mod.id} />
+
+                            {moduleMaterials.length === 0 && (
+                              <p className="text-xs text-muted-foreground text-center py-3">Nenhum material disponível neste módulo ainda.</p>
+                            )}
+
+                            <div className="flex justify-end pt-1">
+                              <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={() => {
+                                supabase.rpc('log_user_action', {
+                                  _action: 'MODULE_COMPLETED',
+                                  _table_name: 'program_modules',
+                                  _record_id: mod.id,
+                                  _new_data: { module_title: mod.title, program_name: program?.name },
+                                }).then(() => toast.success(`Módulo "${mod.title}" marcado como concluído!`));
+                              }}>
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Marcar como concluído
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* General materials */}
+            {unassignedMaterials.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    Materiais Gerais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ProgramMaterials materials={unassignedMaterials} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Líder 360 Questionnaire */}
+            {isLider360 && renderLider360Questionnaire()}
+
+            {!isLider360 && programModules.length === 0 && unassignedMaterials.length === 0 && (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground text-sm">
+                  Nenhum material disponível para este programa ainda.
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {enrollments.length > 1 && <Separator />}
+      </div>
+    );
+  };
+
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="space-y-8 max-w-6xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold gradient-text">Meu Desenvolvimento</h1>
-          <p className="text-muted-foreground text-sm">Acompanhe sua evolução nos programas e turmas em que está matriculado</p>
+          <p className="text-muted-foreground text-sm">Acompanhe sua jornada de aprendizagem e acesse os materiais dos seus programas</p>
         </div>
 
         {enrollments.length === 0 ? (
@@ -396,285 +500,9 @@ export default function MyDevelopment() {
             </CardContent>
           </Card>
         ) : (
-          <Accordion type="multiple" defaultValue={enrollments.map((e: any) => e.id)} className="space-y-4">
-            {enrollments.map((e: any) => {
-              const program = e.programs;
-              const cls = e.program_classes;
-              const isLider360 = program?.slug === 'lider-360';
-              const programModules = program ? getModulesForProgram(program.id) : [];
-              const unassignedMaterials = program ? getMaterialsWithoutModule(program.id) : [];
-
-              return (
-                <AccordionItem key={e.id} value={e.id} className="border rounded-lg bg-card shadow-sm">
-                  <AccordionTrigger className="px-5 py-4 hover:no-underline">
-                    <div className="flex items-center gap-3 text-left flex-1">
-                      <div className="bg-primary/10 rounded-lg p-3 flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-base">{program?.name || 'Programa'}</h3>
-                          <Badge variant="outline" className="text-xs">Matriculado</Badge>
-                          {isLider360 && existingResponse && (
-                            <Badge variant="secondary" className="text-xs gap-1">
-                              <CheckCircle className="w-3 h-3" /> Respondido
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-1">
-                          {cls && (
-                            <span className="flex items-center gap-1">
-                              <GraduationCap className="w-3.5 h-3.5" />
-                              {cls.name}
-                            </span>
-                          )}
-                          {cls?.start_date && (
-                            <span className="flex items-center gap-1">
-                              <CalendarDays className="w-3.5 h-3.5" />
-                              {format(new Date(cls.start_date + 'T12:00:00'), "dd/MM/yyyy")}
-                              {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
-                            </span>
-                          )}
-                          {cls?.specialist && (
-                            <Badge variant="secondary" className="text-xs">Especialista: {cls.specialist}</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-
-                  <AccordionContent className="px-5 pb-5">
-                    {program?.description && (
-                      <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
-                    )}
-
-                    {cls?.video_conference_url && (
-                      <div className="mb-4">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="gap-2">
-                            <ExternalLink className="w-4 h-4" />
-                            Link da Videoconferência
-                          </a>
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Journey Cards */}
-                    {(() => {
-                      const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
-                      if (classSchedules.length === 0) return null;
-                      const today = new Date().toISOString().split('T')[0];
-                      return (
-                        <div className="mb-6">
-                          <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
-                            <CalendarDays className="w-4 h-4 text-primary" />
-                            Sua Jornada
-                            {cls?.specialist && (
-                              <Badge variant="secondary" className="text-xs ml-1">Especialista: {cls.specialist}</Badge>
-                            )}
-                          </h4>
-                          <div className="flex gap-3 overflow-x-auto pb-2">
-                            {classSchedules.map((s: any, idx: number) => {
-                              const isPast = s.schedule_date < today;
-                              const isToday = s.schedule_date === today;
-                              return (
-                                <div
-                                  key={s.id}
-                                  className={cn(
-                                    "flex-shrink-0 w-44 rounded-xl border p-4 space-y-2 transition-all",
-                                    isToday && "ring-2 ring-primary border-primary bg-primary/5",
-                                    isPast && "opacity-60 bg-muted/30",
-                                    !isPast && !isToday && "bg-card hover:shadow-md"
-                                  )}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs font-mono text-muted-foreground">
-                                      {format(new Date(s.schedule_date + 'T12:00:00'), 'dd/MM')}
-                                    </span>
-                                    {isPast && <CheckCircle className="w-4 h-4 text-primary" />}
-                                    {isToday && <Badge variant="default" className="text-[10px] px-1.5 py-0">Hoje</Badge>}
-                                  </div>
-                                  <p className="text-sm font-semibold leading-tight">{s.title}</p>
-                                  {s.start_time && s.end_time && (
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {s.start_time.slice(0, 5)} às {s.end_time.slice(0, 5)}
-                                    </p>
-                                  )}
-                                  {isToday && cls?.video_conference_url && (
-                                    <Button variant="outline" size="sm" asChild className="w-full mt-1 text-xs">
-                                      <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="gap-1">
-                                        <ExternalLink className="w-3 h-3" /> Entrar na aula
-                                      </a>
-                                    </Button>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* General materials (not linked to a specific module) */}
-                    {unassignedMaterials.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
-                          <FolderOpen className="w-4 h-4 text-primary" />
-                          Materiais Gerais do Programa
-                        </h4>
-                        {renderMaterialsByCategory(unassignedMaterials)}
-                      </div>
-                    )}
-
-                    {/* Module-based navigation */}
-                    {programModules.length > 0 ? (
-                      <Tabs
-                        defaultValue={programModules[0]?.id}
-                        className="space-y-4"
-                        onValueChange={(moduleId) => {
-                          const mod = programModules.find((m: any) => m.id === moduleId);
-                          if (mod) {
-                            supabase.rpc('log_user_action', {
-                              _action: 'MODULE_ACCESS',
-                              _table_name: 'program_modules',
-                              _record_id: mod.id,
-                              _new_data: { module_title: mod.title, program_name: program?.name },
-                            });
-                          }
-                        }}
-                      >
-                        <TabsList className="flex-wrap h-auto gap-1">
-                          {programModules.map((mod: any) => (
-                            <TabsTrigger key={mod.id} value={mod.id} className="gap-1.5 text-xs">
-                              <Layers className="w-3.5 h-3.5" />
-                              {mod.title}
-                            </TabsTrigger>
-                          ))}
-                        </TabsList>
-
-                        {programModules.map((mod: any) => {
-                          const moduleMaterials = getMaterialsForModule(mod.id);
-                          const moduleVideos = moduleMaterials.filter((m: any) => m.file_type === 'video' && m.file_url);
-                          const moduleSchedule = cls ? allSchedules.find((s: any) => s.class_id === cls.id && s.module_id === mod.id) : null;
-                          return (
-                            <TabsContent key={mod.id} value={mod.id} className="space-y-4">
-                              {mod.description && (
-                                <p className="text-sm text-muted-foreground">{mod.description}</p>
-                              )}
-
-                              {/* Video embeds for this module */}
-                              {moduleVideos.length > 0 && (
-                                <div className="space-y-4">
-                                  {moduleVideos.map((v: any) => {
-                                    // Support multiple videos via video_urls array
-                                    const videoUrls: { url: string; title: string | null }[] = 
-                                      (v.video_urls && Array.isArray(v.video_urls) && v.video_urls.length > 0)
-                                        ? v.video_urls
-                                        : v.file_url ? [{ url: v.file_url, title: null }] : [];
-                                    
-                                    if (videoUrls.length === 0) return null;
-
-                                    return (
-                                      <div key={v.id} className="space-y-3">
-                                        <h5 className="text-sm font-medium flex items-center gap-2">
-                                          <Video className="w-4 h-4 text-primary" />
-                                          {v.title}
-                                          {videoUrls.length > 1 && (
-                                            <Badge variant="secondary" className="text-xs">{videoUrls.length} vídeos</Badge>
-                                          )}
-                                        </h5>
-                                        {v.description && <p className="text-xs text-muted-foreground">{v.description}</p>}
-                                        <div className="space-y-3">
-                                          {videoUrls.map((vid: any, idx: number) => {
-                                            const ytId = getYouTubeId(vid.url);
-                                            if (!ytId) return null;
-                                            return (
-                                              <div key={idx} className="space-y-1">
-                                                {vid.title && (
-                                                  <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>
-                                                )}
-                                                <div className="rounded-lg overflow-hidden border aspect-video">
-                                                  <iframe
-                                                    src={`https://www.youtube.com/embed/${ytId}`}
-                                                    className="w-full h-full"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                    title={vid.title || v.title}
-                                                  />
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-
-                              {renderMaterialsByCategory(moduleMaterials.filter((m: any) => m.file_type !== 'video'))}
-
-                              {/* Dynamic exercises */}
-                              <ExerciseRenderer moduleId={mod.id} />
-
-                              {/* Platform feature links */}
-                              <FeatureLinkCards moduleId={mod.id} />
-
-                              {moduleMaterials.length === 0 && (
-                                <p className="text-sm text-muted-foreground text-center py-4">
-                                  Nenhum material disponível neste módulo ainda.
-                                </p>
-                              )}
-
-                              <div className="flex justify-end pt-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={() => {
-                                    supabase.rpc('log_user_action', {
-                                      _action: 'MODULE_COMPLETED',
-                                      _table_name: 'program_modules',
-                                      _record_id: mod.id,
-                                      _new_data: { module_title: mod.title, program_name: program?.name },
-                                    }).then(() => {
-                                      toast.success(`Módulo "${mod.title}" marcado como concluído!`);
-                                    });
-                                  }}
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                  Marcar como concluído
-                                </Button>
-                              </div>
-                            </TabsContent>
-                          );
-                        })}
-                      </Tabs>
-                    ) : (
-                      <>
-                        {/* Líder 360 Questionnaire (no modules) */}
-                        {isLider360 && renderLider360Questionnaire()}
-
-                        {!isLider360 && unassignedMaterials.length === 0 && (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            Nenhum material disponível para este programa ainda.
-                          </p>
-                        )}
-                      </>
-                    )}
-
-                    {/* Show Líder 360 questionnaire after module tabs if modules exist */}
-                    {isLider360 && programModules.length > 0 && (
-                      <div className="mt-4">
-                        {renderLider360Questionnaire()}
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
+          <div className="space-y-8">
+            {enrollments.map((e: any) => renderEnrollmentCard(e))}
+          </div>
         )}
       </div>
     </AppLayout>
