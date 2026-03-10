@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   BookOpen, CalendarDays, GraduationCap, CheckCircle,
-  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList
+  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList, Lock, Unlock
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
