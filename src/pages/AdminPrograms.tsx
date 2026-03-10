@@ -360,7 +360,6 @@ export default function AdminPrograms() {
     try {
       let fileUrl = materialFileUrl.trim();
 
-      // Upload file if provided
       if (materialFile) {
         const fileExt = materialFile.name.split('.').pop();
         const fileName = `${selectedProgram}/${Date.now()}.${fileExt}`;
@@ -374,16 +373,23 @@ export default function AdminPrograms() {
         fileUrl = publicUrl;
       }
 
-      const { error } = await supabase.from('program_materials').insert({
+      const validVideos = materialVideoEntries.filter(v => v.url.trim());
+      const insertData: any = {
         program_id: selectedProgram,
         title: materialTitle.trim(),
         description: materialDescription.trim() || null,
-        file_url: fileUrl || null,
+        file_url: materialFileType === 'video' ? (validVideos[0]?.url || null) : (fileUrl || null),
         file_type: materialFileType,
         order_number: materials.length,
         module_id: materialModuleId && materialModuleId !== 'none' ? materialModuleId : null,
         category: materialCategory,
-      });
+      };
+
+      if (materialFileType === 'video' && validVideos.length > 0) {
+        insertData.video_urls = validVideos.map(v => ({ url: v.url.trim(), title: v.title.trim() || null }));
+      }
+
+      const { error } = await supabase.from('program_materials').insert(insertData);
       if (error) throw error;
       toast.success('Material adicionado');
       setMaterialTitle('');
@@ -393,6 +399,7 @@ export default function AdminPrograms() {
       setMaterialModuleId('');
       setMaterialCategory('material');
       setMaterialFile(null);
+      setMaterialVideoEntries([{ url: '', title: '' }]);
       refetchMaterials();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar material');
