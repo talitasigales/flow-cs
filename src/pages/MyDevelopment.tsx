@@ -44,7 +44,7 @@ function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMat
   return <p className="text-xs text-muted-foreground text-center py-3">Nenhum material neste módulo.</p>;
 }
 
-const PDA_AXES = ['Risco', 'Extroversão', 'Paciência', 'Norma', 'Autocontrole'];
+
 
 export default function MyDevelopment() {
   const { user, loading } = useAuth();
