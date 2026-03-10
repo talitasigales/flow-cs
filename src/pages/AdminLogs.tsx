@@ -100,9 +100,15 @@ const AdminLogs = () => {
       case 'DELETE':
         return <Badge variant="destructive">Deletado</Badge>;
       case 'MODULE_ACCESS':
-        return <Badge className="bg-blue-600">Acessou</Badge>;
+        return <Badge className="bg-blue-600">Acessou Módulo</Badge>;
       case 'MODULE_COMPLETED':
-        return <Badge className="bg-green-600">Concluiu</Badge>;
+        return <Badge className="bg-green-600">Concluiu Módulo</Badge>;
+      case 'VIDEO_PLAY':
+        return <Badge className="bg-purple-600">Assistiu Vídeo</Badge>;
+      case 'MATERIAL_EXPAND':
+        return <Badge className="bg-sky-600">Abriu Material</Badge>;
+      case 'MATERIAL_DOWNLOAD':
+        return <Badge className="bg-amber-600">Baixou Material</Badge>;
       default:
         return <Badge variant="outline">{action}</Badge>;
     }
