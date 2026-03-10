@@ -1745,6 +1745,11 @@ export default function AdminPrograms() {
               </Card>
             </TabsContent>
 
+            {/* BOAS-VINDAS TAB */}
+            <TabsContent value="welcome" className="mt-4">
+              <ProgramWelcomeManager programId={selectedProgram} />
+            </TabsContent>
+
             {/* VISÃO DO ALUNO TAB */}
             <TabsContent value="student-view" className="mt-4">
               {(() => {
