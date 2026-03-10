@@ -52,9 +52,25 @@ export default function MyDevelopment() {
     queryFn: async () => {
       const { data } = await supabase
         .from('program_enrollments')
-        .select('id, enrolled_at, class_id, programs(id, name, slug, description), program_classes(id, name, start_date, end_date)')
+        .select('id, enrolled_at, class_id, programs(id, name, slug, description), program_classes(id, name, start_date, end_date, video_conference_url, specialist)')
         .eq('user_id', user!.id)
         .order('enrolled_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const classIds = enrollments.map((e: any) => e.program_classes?.id).filter(Boolean);
+
+  const { data: allSchedules = [] } = useQuery({
+    queryKey: ['my-class-schedules', classIds],
+    enabled: classIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('class_schedules')
+        .select('*')
+        .in('class_id', classIds)
+        .order('schedule_date')
+        .order('order_number');
       return data || [];
     },
   });
