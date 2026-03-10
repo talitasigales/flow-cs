@@ -380,6 +380,48 @@ export default function AdminPrograms() {
     }
   };
 
+  const handleSaveSchedule = async () => {
+    if (!scheduleTitle.trim() || !scheduleClassId || !scheduleDate) {
+      toast.error('Título, turma e data são obrigatórios');
+      return;
+    }
+    setSavingSchedule(true);
+    try {
+      const { error } = await supabase.from('class_schedules').insert({
+        class_id: scheduleClassId,
+        module_id: scheduleModuleId || null,
+        title: scheduleTitle.trim(),
+        schedule_date: format(scheduleDate, 'yyyy-MM-dd'),
+        start_time: scheduleStartTime || null,
+        end_time: scheduleEndTime || null,
+        order_number: schedules.filter((s: any) => s.class_id === scheduleClassId).length,
+      });
+      if (error) throw error;
+      toast.success('Etapa adicionada ao cronograma');
+      setScheduleTitle('');
+      setScheduleDate(undefined);
+      setScheduleStartTime('');
+      setScheduleEndTime('');
+      setScheduleModuleId('');
+      setScheduleDialogOpen(false);
+      refetchSchedules();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
+  const handleDeleteSchedule = async (id: string) => {
+    const { error } = await supabase.from('class_schedules').delete().eq('id', id);
+    if (error) {
+      toast.error('Erro ao remover etapa');
+    } else {
+      toast.success('Etapa removida');
+      refetchSchedules();
+    }
+  };
+
   if (authLoading || adminLoading) {
     return (
       <AppLayout>
