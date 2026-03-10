@@ -536,7 +536,7 @@ export default function MyDevelopment() {
           </div>
         </div>
 
-        {enrollments.length > 1 && <Separator />}
+        
       </div>
     );
   };
