@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText,
-  ExternalLink, Layers, Video, ChevronRight, ChevronDown, FolderOpen
+  ExternalLink, Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
@@ -63,6 +64,8 @@ export default function MyDevelopment() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [pdaAxes, setPdaAxes] = useState<Record<string, string>>({});
   const [activeModule, setActiveModule] = useState<string | null>(null);
+  const [exerciseModuleId, setExerciseModuleId] = useState<string | null>(null);
+  const [contentTab, setContentTab] = useState<string>('modulos');
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
@@ -124,6 +127,23 @@ export default function MyDevelopment() {
       return data || [];
     },
   });
+
+  const moduleIds = allModules.map((m: any) => m.id);
+
+  const { data: allExercises = [] } = useQuery({
+    queryKey: ['my-module-exercises', moduleIds],
+    enabled: moduleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('module_exercises')
+        .select('id, module_id')
+        .in('module_id', moduleIds);
+      return data || [];
+    },
+  });
+
+  const getExercisesForModule = (moduleId: string) =>
+    allExercises.filter((ex: any) => ex.module_id === moduleId);
 
   const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
   const lider360ProgramId = lider360Enrollment?.programs?.id;
@@ -353,131 +373,195 @@ export default function MyDevelopment() {
           )}>
             {/* Module navigation */}
             {programModules.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-primary" />
-                    Módulos do Programa
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {programModules.map((mod: any, idx: number) => {
-                    const isActive = activeModule === mod.id;
-                    // Check if this module has a past schedule (completed)
-                    const modSchedule = classSchedules.find((s: any) => s.module_id === mod.id);
-                    const isCompleted = modSchedule && modSchedule.schedule_date < today;
-                    const isCurrent = modSchedule && modSchedule.schedule_date === today;
-                    const moduleMaterials = getMaterialsForModule(mod.id);
+              <Tabs value={contentTab} onValueChange={setContentTab}>
+                <TabsList className="w-full sm:w-auto mb-4">
+                  <TabsTrigger value="modulos" className="gap-1.5">
+                    <Layers className="w-4 h-4" /> Módulos
+                  </TabsTrigger>
+                  <TabsTrigger value="exercicios" className="gap-1.5">
+                    <ClipboardList className="w-4 h-4" /> Exercícios
+                  </TabsTrigger>
+                </TabsList>
 
-                    return (
-                      <div key={mod.id}>
-                        <button
-                          onClick={() => {
-                            setActiveModule(isActive ? null : mod.id);
-                            if (!isActive) {
-                              supabase.rpc('log_user_action', {
-                                _action: 'MODULE_ACCESS',
-                                _table_name: 'program_modules',
-                                _record_id: mod.id,
-                                _new_data: { module_title: mod.title, program_name: program?.name },
-                              });
-                            }
-                          }}
-                          className={cn(
-                            "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
-                            isActive ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-muted/50",
-                            isCompleted && !isActive && "opacity-70"
-                          )}
-                        >
-                          <div className={cn(
-                            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                            isCompleted ? "bg-primary/20 text-primary" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                          )}>
-                            {isCompleted ? <CheckCircle className="w-4 h-4" /> : idx + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold leading-tight">{mod.title}</p>
-                            {mod.description && (
-                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{mod.description}</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {moduleMaterials.length > 0 && (
-                              <Badge variant="secondary" className="text-[10px]">{moduleMaterials.length}</Badge>
-                            )}
-                            <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", isActive && "rotate-90")} />
-                          </div>
-                        </button>
+                <TabsContent value="modulos">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-primary" />
+                        Módulos do Programa
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {programModules.map((mod: any, idx: number) => {
+                        const isActive = activeModule === mod.id;
+                        const modSchedule = classSchedules.find((s: any) => s.module_id === mod.id);
+                        const isCompleted = modSchedule && modSchedule.schedule_date < today;
+                        const isCurrent = modSchedule && modSchedule.schedule_date === today;
+                        const moduleMaterials = getMaterialsForModule(mod.id);
+                        const moduleExercises = getExercisesForModule(mod.id);
 
-                        {/* Expanded module content */}
-                        {isActive && (
-                          <div className="mt-2 ml-11 space-y-4 pb-2">
-                            {mod.description && (
-                              <p className="text-sm text-muted-foreground">{mod.description}</p>
-                            )}
+                        return (
+                          <div key={mod.id}>
+                            <button
+                              onClick={() => {
+                                setActiveModule(isActive ? null : mod.id);
+                                if (!isActive) {
+                                  supabase.rpc('log_user_action', {
+                                    _action: 'MODULE_ACCESS',
+                                    _table_name: 'program_modules',
+                                    _record_id: mod.id,
+                                    _new_data: { module_title: mod.title, program_name: program?.name },
+                                  });
+                                }
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
+                                isActive ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-muted/50",
+                                isCompleted && !isActive && "opacity-70"
+                              )}
+                            >
+                              <div className={cn(
+                                "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
+                                isCompleted ? "bg-primary/20 text-primary" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                              )}>
+                                {isCompleted ? <CheckCircle className="w-4 h-4" /> : idx + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold leading-tight">{mod.title}</p>
+                                {mod.description && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{mod.description}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                {moduleMaterials.length > 0 && (
+                                  <Badge variant="secondary" className="text-[10px]">{moduleMaterials.length}</Badge>
+                                )}
+                                {moduleExercises.length > 0 && (
+                                  <Badge variant="outline" className="text-[10px] border-primary/40 text-primary gap-1">
+                                    <ClipboardList className="w-3 h-3" /> {moduleExercises.length}
+                                  </Badge>
+                                )}
+                                <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", isActive && "rotate-90")} />
+                              </div>
+                            </button>
 
-                            {/* Module videos */}
-                            {(() => {
-                              const moduleVideos = moduleMaterials.filter((m: any) => m.file_type === 'video' && m.file_url);
-                              if (moduleVideos.length === 0) return null;
-                              return (
-                                <div className="space-y-4">
-                                  {moduleVideos.map((v: any) => {
-                                    const videoUrls: { url: string; title: string | null }[] =
-                                      (v.video_urls && Array.isArray(v.video_urls) && v.video_urls.length > 0)
-                                        ? v.video_urls : v.file_url ? [{ url: v.file_url, title: null }] : [];
-                                    if (videoUrls.length === 0) return null;
-                                    return (
-                                      <div key={v.id} className="space-y-2">
-                                        <p className="text-xs font-semibold flex items-center gap-1.5">
-                                          <Video className="w-3.5 h-3.5 text-primary" />
-                                          {v.title}
-                                        </p>
-                                        {videoUrls.map((vid: any, vidIdx: number) => {
-                                          const ytId = vid.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{11})/)?.[1];
-                                          if (!ytId) return null;
-                                          return (
-                                            <div key={vidIdx} className="space-y-1">
-                                              {vid.title && <p className="text-[11px] text-muted-foreground">{vid.title}</p>}
-                                              <div className="rounded-lg overflow-hidden border aspect-video">
-                                                <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={vid.title || v.title} />
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    );
-                                  })}
+                            {/* Expanded module content */}
+                            {isActive && (
+                              <div className="mt-2 ml-11 space-y-4 pb-2">
+                                {mod.description && (
+                                  <p className="text-sm text-muted-foreground">{mod.description}</p>
+                                )}
+
+                                {/* Module videos */}
+                                {(() => {
+                                  const moduleVideos = moduleMaterials.filter((m: any) => m.file_type === 'video' && m.file_url);
+                                  if (moduleVideos.length === 0) return null;
+                                  return (
+                                    <div className="space-y-4">
+                                      {moduleVideos.map((v: any) => {
+                                        const videoUrls: { url: string; title: string | null }[] =
+                                          (v.video_urls && Array.isArray(v.video_urls) && v.video_urls.length > 0)
+                                            ? v.video_urls : v.file_url ? [{ url: v.file_url, title: null }] : [];
+                                        if (videoUrls.length === 0) return null;
+                                        return (
+                                          <div key={v.id} className="space-y-2">
+                                            <p className="text-xs font-semibold flex items-center gap-1.5">
+                                              <Video className="w-3.5 h-3.5 text-primary" />
+                                              {v.title}
+                                            </p>
+                                            {videoUrls.map((vid: any, vidIdx: number) => {
+                                              const ytId = vid.url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{11})/)?.[1];
+                                              if (!ytId) return null;
+                                              return (
+                                                <div key={vidIdx} className="space-y-1">
+                                                  {vid.title && <p className="text-[11px] text-muted-foreground">{vid.title}</p>}
+                                                  <div className="rounded-lg overflow-hidden border aspect-video">
+                                                    <iframe src={`https://www.youtube.com/embed/${ytId}`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={vid.title || v.title} />
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })()}
+
+                                <ProgramMaterials materials={moduleMaterials.filter((m: any) => m.file_type !== 'video')} />
+                                <FeatureLinkCards moduleId={mod.id} />
+
+                                {/* Link to exercises tab if module has exercises */}
+                                {moduleExercises.length > 0 && (
+                                  <button
+                                    onClick={() => {
+                                      setExerciseModuleId(mod.id);
+                                      setContentTab('exercicios');
+                                    }}
+                                    className="flex items-center gap-2 text-xs text-primary hover:underline p-2 rounded-lg bg-primary/5 border border-primary/20 w-full"
+                                  >
+                                    <ClipboardList className="w-4 h-4" />
+                                    <span>Este módulo possui <strong>{moduleExercises.length} exercício(s)</strong> — clique para acessar</span>
+                                    <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                                  </button>
+                                )}
+
+                                <ModuleEmptyState moduleId={mod.id} hasMaterials={moduleMaterials.length > 0} />
+
+                                <div className="flex justify-end pt-1">
+                                  <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={() => {
+                                    supabase.rpc('log_user_action', {
+                                      _action: 'MODULE_COMPLETED',
+                                      _table_name: 'program_modules',
+                                      _record_id: mod.id,
+                                      _new_data: { module_title: mod.title, program_name: program?.name },
+                                    }).then(() => toast.success(`Módulo "${mod.title}" marcado como concluído!`));
+                                  }}>
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    Marcar como concluído
+                                  </Button>
                                 </div>
-                              );
-                            })()}
-
-                            <ProgramMaterials materials={moduleMaterials.filter((m: any) => m.file_type !== 'video')} />
-                            <ExerciseRenderer moduleId={mod.id} />
-                            <FeatureLinkCards moduleId={mod.id} />
-
-                            <ModuleEmptyState moduleId={mod.id} hasMaterials={moduleMaterials.length > 0} />
-
-                            <div className="flex justify-end pt-1">
-                              <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={() => {
-                                supabase.rpc('log_user_action', {
-                                  _action: 'MODULE_COMPLETED',
-                                  _table_name: 'program_modules',
-                                  _record_id: mod.id,
-                                  _new_data: { module_title: mod.title, program_name: program?.name },
-                                }).then(() => toast.success(`Módulo "${mod.title}" marcado como concluído!`));
-                              }}>
-                                <CheckCircle className="w-3.5 h-3.5" />
-                                Marcar como concluído
-                              </Button>
-                            </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="exercicios">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4 text-primary" />
+                        Exercícios por Módulo
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {(() => {
+                        const modulesWithExercises = programModules.filter((mod: any) => getExercisesForModule(mod.id).length > 0);
+                        if (modulesWithExercises.length === 0) {
+                          return (
+                            <p className="text-sm text-muted-foreground text-center py-6">
+                              Nenhum exercício disponível nos módulos deste programa.
+                            </p>
+                          );
+                        }
+                        return modulesWithExercises.map((mod: any) => (
+                          <div key={mod.id} className="space-y-3">
+                            <h4 className="text-sm font-semibold flex items-center gap-2 pb-1 border-b">
+                              <Layers className="w-3.5 h-3.5 text-primary" />
+                              {mod.title}
+                            </h4>
+                            <ExerciseRenderer moduleId={mod.id} />
+                          </div>
+                        ));
+                      })()}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             )}
 
             {/* General materials - collapsible */}
