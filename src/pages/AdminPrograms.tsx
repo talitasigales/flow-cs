@@ -584,6 +584,142 @@ export default function AdminPrograms() {
               </Card>
             </TabsContent>
 
+            {/* CRONOGRAMA TAB */}
+            <TabsContent value="schedule" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Cronograma da Turma</CardTitle>
+                    <CardDescription>Defina as datas e horários de cada etapa/módulo por turma</CardDescription>
+                  </div>
+                  <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" /> Nova Etapa</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Adicionar Etapa ao Cronograma</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Turma</Label>
+                          <Select value={scheduleClassId} onValueChange={setScheduleClassId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a turma" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {classes.map((c: any) => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Título da Etapa</Label>
+                          <Input value={scheduleTitle} onChange={e => setScheduleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Módulo vinculado (opcional)</Label>
+                          <Select value={scheduleModuleId} onValueChange={setScheduleModuleId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sem módulo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Sem módulo</SelectItem>
+                              {modules.map((m: any) => (
+                                <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Data</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !scheduleDate && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {scheduleDate ? format(scheduleDate, "dd/MM/yyyy") : "Selecionar"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} className={cn("p-3 pointer-events-auto")} />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Hora Início</Label>
+                            <Input type="time" value={scheduleStartTime} onChange={e => setScheduleStartTime(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Hora Fim</Label>
+                            <Input type="time" value={scheduleEndTime} onChange={e => setScheduleEndTime(e.target.value)} />
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={handleSaveSchedule} disabled={savingSchedule}>
+                          {savingSchedule ? 'Salvando...' : 'Adicionar Etapa'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  {classes.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">Crie uma turma primeiro para definir o cronograma.</p>
+                  ) : (
+                    <div className="space-y-6">
+                      {classes.map((c: any) => {
+                        const classSchedules = schedules.filter((s: any) => s.class_id === c.id);
+                        if (classSchedules.length === 0) return null;
+                        return (
+                          <div key={c.id} className="space-y-3">
+                            <h3 className="font-semibold text-sm flex items-center gap-2">
+                              <GraduationCap className="w-4 h-4 text-primary" />
+                              {c.name}
+                              {c.specialist && <Badge variant="secondary" className="text-xs">{c.specialist}</Badge>}
+                            </h3>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Data</TableHead>
+                                  <TableHead>Horário</TableHead>
+                                  <TableHead>Etapa</TableHead>
+                                  <TableHead className="w-[80px]"></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {classSchedules.map((s: any) => (
+                                  <TableRow key={s.id}>
+                                    <TableCell>{format(new Date(s.schedule_date + 'T12:00:00'), 'dd/MM/yyyy')}</TableCell>
+                                    <TableCell>
+                                      {s.start_time && s.end_time
+                                        ? `${s.start_time.slice(0, 5)} às ${s.end_time.slice(0, 5)}`
+                                        : s.start_time ? s.start_time.slice(0, 5) : '—'}
+                                    </TableCell>
+                                    <TableCell className="font-medium">{s.title}</TableCell>
+                                    <TableCell>
+                                      <Button variant="ghost" size="icon" onClick={() => handleDeleteSchedule(s.id)} className="text-destructive hover:text-destructive">
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        );
+                      })}
+                      {schedules.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">Nenhuma etapa cadastrada. Clique em "Nova Etapa" para começar.</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* MÓDULOS TAB */}
             <TabsContent value="modules" className="mt-4">
               <Card>
