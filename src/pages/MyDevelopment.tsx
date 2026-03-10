@@ -86,9 +86,10 @@ export default function MyDevelopment() {
   });
 
   const classIds = enrollments.map((e: any) => e.program_classes?.id).filter(Boolean);
+  const classIdsKey = classIds.sort().join(',');
 
   const { data: allSchedules = [] } = useQuery({
-    queryKey: ['my-class-schedules', classIds],
+    queryKey: ['my-class-schedules', classIdsKey],
     enabled: classIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
