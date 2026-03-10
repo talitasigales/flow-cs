@@ -546,25 +546,47 @@ export default function MyDevelopment() {
 
                               {/* Video embeds for this module */}
                               {moduleVideos.length > 0 && (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                   {moduleVideos.map((v: any) => {
-                                    const ytId = getYouTubeId(v.file_url);
-                                    if (!ytId) return null;
+                                    // Support multiple videos via video_urls array
+                                    const videoUrls: { url: string; title: string | null }[] = 
+                                      (v.video_urls && Array.isArray(v.video_urls) && v.video_urls.length > 0)
+                                        ? v.video_urls
+                                        : v.file_url ? [{ url: v.file_url, title: null }] : [];
+                                    
+                                    if (videoUrls.length === 0) return null;
+
                                     return (
-                                      <div key={v.id} className="space-y-2">
+                                      <div key={v.id} className="space-y-3">
                                         <h5 className="text-sm font-medium flex items-center gap-2">
                                           <Video className="w-4 h-4 text-primary" />
                                           {v.title}
+                                          {videoUrls.length > 1 && (
+                                            <Badge variant="secondary" className="text-xs">{videoUrls.length} vídeos</Badge>
+                                          )}
                                         </h5>
                                         {v.description && <p className="text-xs text-muted-foreground">{v.description}</p>}
-                                        <div className="rounded-lg overflow-hidden border aspect-video">
-                                          <iframe
-                                            src={`https://www.youtube.com/embed/${ytId}`}
-                                            className="w-full h-full"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                            title={v.title}
-                                          />
+                                        <div className="space-y-3">
+                                          {videoUrls.map((vid: any, idx: number) => {
+                                            const ytId = getYouTubeId(vid.url);
+                                            if (!ytId) return null;
+                                            return (
+                                              <div key={idx} className="space-y-1">
+                                                {vid.title && (
+                                                  <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>
+                                                )}
+                                                <div className="rounded-lg overflow-hidden border aspect-video">
+                                                  <iframe
+                                                    src={`https://www.youtube.com/embed/${ytId}`}
+                                                    className="w-full h-full"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                    title={vid.title || v.title}
+                                                  />
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
                                         </div>
                                       </div>
                                     );
