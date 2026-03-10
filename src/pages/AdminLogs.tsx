@@ -99,6 +99,10 @@ const AdminLogs = () => {
         return <Badge variant="secondary">Atualizado</Badge>;
       case 'DELETE':
         return <Badge variant="destructive">Deletado</Badge>;
+      case 'MODULE_ACCESS':
+        return <Badge className="bg-blue-600">Acessou</Badge>;
+      case 'MODULE_COMPLETED':
+        return <Badge className="bg-green-600">Concluiu</Badge>;
       default:
         return <Badge variant="outline">{action}</Badge>;
     }
@@ -110,6 +114,7 @@ const AdminLogs = () => {
       'user_roles': 'Permissões',
       'module_materials': 'Materiais',
       'modules': 'Módulos',
+      'program_modules': 'Módulos do Programa',
       'profiles': 'Perfis',
       'matriz_9box': 'Matriz 9Box',
       'profile_evolution': 'Evolução de Perfil',
@@ -194,9 +199,11 @@ const AdminLogs = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="INSERT">Criado</SelectItem>
-                    <SelectItem value="UPDATE">Atualizado</SelectItem>
-                    <SelectItem value="DELETE">Deletado</SelectItem>
+                     <SelectItem value="INSERT">Criado</SelectItem>
+                     <SelectItem value="UPDATE">Atualizado</SelectItem>
+                     <SelectItem value="DELETE">Deletado</SelectItem>
+                     <SelectItem value="MODULE_ACCESS">Acessou Módulo</SelectItem>
+                     <SelectItem value="MODULE_COMPLETED">Concluiu Módulo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -272,7 +279,12 @@ const AdminLogs = () => {
                         <TableCell>{getActionBadge(log.action)}</TableCell>
                         <TableCell>{getResourceName(log.table_name)}</TableCell>
                         <TableCell className="font-mono text-xs text-muted-foreground">
-                          {log.record_id ? `${log.record_id.substring(0, 8)}...` : '-'}
+                          {log.new_data?.module_title ? (
+                            <span className="text-foreground text-sm font-normal not-italic" style={{ fontFamily: 'inherit' }}>
+                              {log.new_data.module_title}
+                              {log.new_data.program_name && <span className="text-muted-foreground"> ({log.new_data.program_name})</span>}
+                            </span>
+                          ) : log.record_id ? `${log.record_id.substring(0, 8)}...` : '-'}
                         </TableCell>
                       </TableRow>
                     ))
