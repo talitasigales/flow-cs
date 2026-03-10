@@ -88,12 +88,41 @@ serve(async (req) => {
     );
 
     // Check if user already exists in auth
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 50,
-    });
     const normalizedEmail = email.trim().toLowerCase();
-    const existingAuthUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
+    let existingAuthUser = null;
+    
+    // Try to create the user first - if it fails with email_exists, look them up
+    const tempPassword = crypto.randomUUID();
+    const { data: newUserAttempt, error: createAttemptError } = await supabaseAdmin.auth.admin.createUser({
+      email: normalizedEmail,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: { invited_by: user.email },
+    });
+
+    if (createAttemptError && createAttemptError.message?.includes('already been registered')) {
+      // User exists - find them by listing with email filter
+      const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      existingAuthUser = listData?.users?.find(u => u.email?.toLowerCase() === normalizedEmail) ?? null;
+      
+      if (!existingAuthUser) {
+        // Fallback: check profiles table
+        const { data: profileData } = await supabaseAdmin
+          .from('profiles')
+          .select('user_id')
+          .eq('email', normalizedEmail)
+          .maybeSingle();
+        if (profileData) {
+          existingAuthUser = { id: profileData.user_id, email: normalizedEmail };
+        }
+      }
+    } else if (createAttemptError) {
+      console.error('Error creating user:', createAttemptError);
+      return new Response(
+        JSON.stringify({ error: `Erro ao criar usuário: ${createAttemptError.message}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (existingAuthUser) {
       // User already exists - just update their role if needed
@@ -139,27 +168,8 @@ serve(async (req) => {
       );
     }
 
-    // Generate a temporary password
-    const tempPassword = crypto.randomUUID();
-
-    // Create the user
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        invited_by: user.email,
-      }
-    });
-
-    if (createError) {
-      console.error('Error creating user:', createError);
-      return new Response(
-        JSON.stringify({ error: `Erro ao criar usuário: ${createError.message}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // User was successfully created above (newUserAttempt)
+    const newUser = newUserAttempt!;
     console.log(`User created successfully: ${newUser.user.id}`);
 
     // Add role if admin
@@ -187,7 +197,7 @@ serve(async (req) => {
       console.error('Error recording invite:', inviteError);
     }
 
-    console.log(`Temporary password for ${email}: ${tempPassword}`);
+    console.log(`User ${email} created.`);
 
     return new Response(
       JSON.stringify({
