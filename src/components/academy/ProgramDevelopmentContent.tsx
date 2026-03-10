@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   BookOpen, CalendarDays, GraduationCap, CheckCircle,
-  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList
+  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList, Lock, Unlock
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
@@ -19,6 +19,7 @@ import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
   const { data: exercises = [] } = useQuery({
@@ -312,6 +313,9 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                       const modSchedule = schedules.find((s: any) => s.module_id === mod.id);
                       const isCompleted = modSchedule && modSchedule.schedule_date < today;
                       const isCurrent = modSchedule && modSchedule.schedule_date === today;
+                      // Module is unlocked if: no schedule exists (always open), or date is today or past
+                      const isUnlocked = !modSchedule || modSchedule.schedule_date <= today;
+                      const isLocked = !isUnlocked;
                       const moduleMaterials = getMaterialsForModule(mod.id);
                       const moduleExercises = getExercisesForModule(mod.id);
 
@@ -319,6 +323,10 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                         <div key={mod.id}>
                           <button
                             onClick={() => {
+                              if (isLocked) {
+                                toast.info(`Este módulo será desbloqueado em ${modSchedule ? format(new Date(modSchedule.schedule_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : ''}`);
+                                return;
+                              }
                               setActiveModule(isActive ? null : mod.id);
                               if (!isActive) {
                                 supabase.rpc('log_user_action', {
@@ -332,36 +340,68 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                             className={cn(
                               "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
                               isActive ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-muted/50",
-                              isCompleted && !isActive && "opacity-70"
+                              isCompleted && !isActive && "opacity-80",
+                              isLocked && "opacity-50 cursor-not-allowed"
                             )}
                           >
                             <div className={cn(
-                              "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                              isCompleted ? "bg-primary/20 text-primary" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                              "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500",
+                              isCompleted ? "bg-primary text-primary-foreground shadow-sm" : isCurrent ? "bg-primary text-primary-foreground ring-4 ring-primary/20" : isLocked ? "bg-muted/50 text-muted-foreground/50 border border-dashed border-border" : "bg-muted text-muted-foreground"
                             )}>
-                              {isCompleted ? <CheckCircle className="w-4 h-4" /> : idx + 1}
+                              {isCompleted ? <CheckCircle className="w-4 h-4" /> : isLocked ? <Lock className="w-3.5 h-3.5" /> : idx + 1}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold leading-tight">{mod.title}</p>
-                              {mod.description && (
+                              <div className="flex items-center gap-2">
+                                <p className={cn(
+                                  "text-sm font-semibold leading-tight",
+                                  isCompleted && "text-primary",
+                                  isLocked && "text-muted-foreground"
+                                )}>
+                                  {mod.title}
+                                </p>
+                                {isCompleted && (
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary border-0">
+                                    Concluído
+                                  </Badge>
+                                )}
+                                {isCurrent && (
+                                  <Badge className="text-[10px] px-1.5 py-0 h-4 animate-pulse">
+                                    Disponível
+                                  </Badge>
+                                )}
+                                {isLocked && modSchedule && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground border-muted-foreground/30">
+                                    <Lock className="w-2.5 h-2.5 mr-0.5" />
+                                    {format(new Date(modSchedule.schedule_date + 'T12:00:00'), "dd/MM", { locale: ptBR })}
+                                  </Badge>
+                                )}
+                              </div>
+                              {mod.description && !isLocked && (
                                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{mod.description}</p>
+                              )}
+                              {isLocked && (
+                                <p className="text-xs text-muted-foreground/60 mt-0.5">
+                                  Disponível a partir de {format(new Date(modSchedule!.schedule_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR })}
+                                </p>
                               )}
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              {moduleMaterials.length > 0 && (
+                              {!isLocked && moduleMaterials.length > 0 && (
                                 <Badge variant="secondary" className="text-[10px]">{moduleMaterials.length}</Badge>
                               )}
-                              {moduleExercises.length > 0 && (
+                              {!isLocked && moduleExercises.length > 0 && (
                                 <Badge variant="outline" className="text-[10px] border-primary/40 text-primary gap-1">
                                   <ClipboardList className="w-3 h-3" /> {moduleExercises.length}
                                 </Badge>
                               )}
-                              <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", isActive && "rotate-90")} />
+                              {!isLocked && (
+                                <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", isActive && "rotate-90")} />
+                              )}
                             </div>
                           </button>
 
-                          {isActive && (
-                            <div className="mt-2 ml-11 space-y-4 pb-2">
+                          {isActive && !isLocked && (
+                            <div className="mt-2 ml-11 space-y-4 pb-2 animate-in slide-in-from-top-2 duration-300">
                               {mod.description && (
                                 <p className="text-sm text-muted-foreground">{mod.description}</p>
                               )}
