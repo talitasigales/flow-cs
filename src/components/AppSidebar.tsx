@@ -84,18 +84,20 @@ export function AppSidebar() {
   const { unreadCount: notifCount } = useNotifications();
   const { enrollments, isEnrolled } = useEnrolledPrograms();
   const [communityNotActivated, setCommunityNotActivated] = useState(false);
+  const [firstName, setFirstName] = useState('');
   const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from('profiles')
-      .select('community_visible')
+      .select('community_visible, full_name')
       .eq('user_id', user.id)
       .single()
       .then(({ data }) => {
-        if (data && !data.community_visible) {
-          setCommunityNotActivated(true);
+        if (data) {
+          if (!data.community_visible) setCommunityNotActivated(true);
+          if (data.full_name) setFirstName(data.full_name.split(' ')[0]);
         }
       });
   }, [user]);
