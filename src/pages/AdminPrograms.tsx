@@ -662,9 +662,9 @@ export default function AdminPrograms() {
                 <SelectValue placeholder="Selecione a especialista" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Silvia Kirsten">Silvia Kirsten</SelectItem>
-                <SelectItem value="Julia Ferreira">Julia Ferreira</SelectItem>
-                <SelectItem value="Luciana Masiero">Luciana Masiero</SelectItem>
+                {specialists.map((s: any) => (
+                  <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
