@@ -257,9 +257,11 @@ export default function ProgramLider360() {
                 {modules.map((mod: any) => {
                   const moduleMaterials = getMaterialsForModule(mod.id);
                   return (
-                    <TabsContent key={mod.id} value={mod.id} className="space-y-4 mt-4">
+                      <TabsContent key={mod.id} value={mod.id} className="space-y-4 mt-4">
                       {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
                       {renderMaterialsByCategory(moduleMaterials)}
+                      <ExerciseRenderer moduleId={mod.id} />
+                      <FeatureLinkCards moduleId={mod.id} />
                       {moduleMaterials.length === 0 && (
                         <p className="text-sm text-muted-foreground text-center py-4">
                           Nenhum material disponível neste módulo ainda.
