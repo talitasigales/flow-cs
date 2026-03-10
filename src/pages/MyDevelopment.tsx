@@ -34,6 +34,25 @@ const QUESTIONS = [
   { id: 'q6', label: '6. O que você tem feito intencionalmente para evoluir como líder?' },
 ];
 
+function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
+  const { data: exercises = [] } = useQuery({
+    queryKey: ['module-exercises-check', moduleId],
+    queryFn: async () => {
+      const { data } = await supabase.from('module_exercises').select('id').eq('module_id', moduleId).limit(1);
+      return data || [];
+    },
+  });
+  const { data: featureLinks = [] } = useQuery({
+    queryKey: ['module-feature-links-check', moduleId],
+    queryFn: async () => {
+      const { data } = await supabase.from('module_feature_links').select('id').eq('module_id', moduleId).limit(1);
+      return data || [];
+    },
+  });
+  if (hasMaterials || exercises.length > 0 || featureLinks.length > 0) return null;
+  return <p className="text-xs text-muted-foreground text-center py-3">Nenhum material neste módulo.</p>;
+}
+
 const PDA_AXES = ['Risco', 'Extroversão', 'Paciência', 'Norma', 'Autocontrole'];
 
 export default function MyDevelopment() {
@@ -425,9 +444,7 @@ export default function MyDevelopment() {
                             <ExerciseRenderer moduleId={mod.id} />
                             <FeatureLinkCards moduleId={mod.id} />
 
-                            {moduleMaterials.length === 0 && (
-                              <p className="text-xs text-muted-foreground text-center py-3">Nenhum material disponível neste módulo ainda.</p>
-                            )}
+                            <ModuleEmptyState moduleId={mod.id} hasMaterials={moduleMaterials.length > 0} />
 
                             <div className="flex justify-end pt-1">
                               <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={() => {
