@@ -1014,6 +1014,7 @@ export type Database = {
           full_name: string | null
           id: string
           job_title: string | null
+          last_access_at: string | null
           last_password_change: string | null
           lgpd_accepted: boolean | null
           lgpd_accepted_at: string | null
@@ -1042,6 +1043,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           job_title?: string | null
+          last_access_at?: string | null
           last_password_change?: string | null
           lgpd_accepted?: boolean | null
           lgpd_accepted_at?: string | null
@@ -1070,6 +1072,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           job_title?: string | null
+          last_access_at?: string | null
           last_password_change?: string | null
           lgpd_accepted?: boolean | null
           lgpd_accepted_at?: string | null
