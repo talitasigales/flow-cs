@@ -32,6 +32,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Auto-logout between 01:00 and 06:00 BRT (UTC-3)
+  useEffect(() => {
+    const checkMaintenanceWindow = () => {
+      const now = new Date();
+      // Get current hour in Brazil timezone (America/Sao_Paulo)
+      const brHour = parseInt(
+        now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false })
+      );
+      if (brHour >= 1 && brHour < 6 && session) {
+        const lastAutoLogout = localStorage.getItem('last_auto_logout');
+        const today = now.toISOString().slice(0, 10);
+        if (lastAutoLogout !== today) {
+          localStorage.setItem('last_auto_logout', today);
+          supabase.auth.signOut().then(() => {
+            setUser(null);
+            setSession(null);
+            window.location.href = '/auth';
+          });
+        }
+      }
+    };
+
+    // Check immediately and then every 5 minutes
+    checkMaintenanceWindow();
+    const interval = setInterval(checkMaintenanceWindow, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [session]);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
