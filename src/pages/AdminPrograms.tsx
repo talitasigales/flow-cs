@@ -812,7 +812,10 @@ export default function AdminPrograms() {
                             <span className="text-sm font-medium">{mod.title}</span>
                           </AccordionTrigger>
                           <AccordionContent className="space-y-6 pb-4">
-                            <ModuleExerciseManager moduleId={mod.id} moduleTitle={mod.title} />
+                            <ModuleMaterialManager moduleId={mod.id} programId={selectedProgram} moduleTitle={mod.title} />
+                            <div className="border-t pt-4">
+                              <ModuleExerciseManager moduleId={mod.id} moduleTitle={mod.title} />
+                            </div>
                             <div className="border-t pt-4">
                               <ModuleFeatureLinkManager moduleId={mod.id} moduleTitle={mod.title} />
                             </div>
