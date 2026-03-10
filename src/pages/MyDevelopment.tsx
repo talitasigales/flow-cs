@@ -148,7 +148,7 @@ export default function MyDevelopment() {
   });
 
   const { data: allExercises = [] } = useQuery({
-    queryKey: ['my-module-exercises', moduleIds],
+    queryKey: ['my-module-exercises', moduleIdsKey],
     enabled: moduleIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
