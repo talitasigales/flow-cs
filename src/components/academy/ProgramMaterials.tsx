@@ -1,7 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
   prework: { label: 'Pre-work', icon: ClipboardList },
@@ -22,60 +24,78 @@ function getYouTubeId(url: string) {
 }
 
 function MaterialItem({ m }: { m: any }) {
+  const [open, setOpen] = useState(false);
   const isVideo = m.file_type === 'video';
   const videoUrls: { url: string; title: string | null }[] =
     isVideo && m.video_urls && Array.isArray(m.video_urls) && m.video_urls.length > 0
       ? m.video_urls
       : isVideo && m.file_url ? [{ url: m.file_url, title: null }] : [];
 
+  const hasExpandableContent = videoUrls.length > 0;
+  const isLink = !isVideo && m.file_url;
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
-        <div className="mt-0.5 text-muted-foreground">{getFileIcon(m.file_type)}</div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">
-            {m.title}
-            {videoUrls.length > 1 && (
-              <Badge variant="secondary" className="ml-2 text-xs">{videoUrls.length} vídeos</Badge>
-            )}
-          </p>
-          {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
-        </div>
-        {m.file_url && !isVideo && (
-          <Button variant="ghost" size="sm" asChild className="shrink-0">
-            <a href={m.file_url} target="_blank" rel="noopener noreferrer">
-              {['pdf', 'doc', 'other'].includes(m.file_type) ? (
-                <Download className="w-3.5 h-3.5" />
-              ) : (
-                <ExternalLink className="w-3.5 h-3.5" />
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="rounded-lg border bg-muted/20 overflow-hidden">
+        <CollapsibleTrigger className="w-full" disabled={!hasExpandableContent}>
+          <div className={cn(
+            "flex items-center gap-3 p-3 transition-colors text-left",
+            hasExpandableContent && "hover:bg-muted/40 cursor-pointer",
+          )}>
+            <div className="text-muted-foreground">{getFileIcon(m.file_type)}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium leading-tight">
+                {m.title}
+              </p>
+              {m.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{m.description}</p>}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {videoUrls.length > 0 && (
+                <Badge variant="secondary" className="text-xs">{videoUrls.length} {videoUrls.length === 1 ? 'vídeo' : 'vídeos'}</Badge>
               )}
-            </a>
-          </Button>
+              {isLink && (
+                <Button variant="ghost" size="sm" asChild className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                    {['pdf', 'doc', 'other'].includes(m.file_type) ? (
+                      <Download className="w-3.5 h-3.5" />
+                    ) : (
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    )}
+                  </a>
+                </Button>
+              )}
+              {hasExpandableContent && (
+                <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", open && "rotate-90")} />
+              )}
+            </div>
+          </div>
+        </CollapsibleTrigger>
+        {hasExpandableContent && (
+          <CollapsibleContent>
+            <div className="px-3 pb-3 space-y-3 border-t border-border/50 pt-3">
+              {videoUrls.map((vid: any, idx: number) => {
+                const ytId = getYouTubeId(vid.url);
+                if (!ytId) return null;
+                return (
+                  <div key={idx} className="space-y-1">
+                    {vid.title && <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>}
+                    <div className="rounded-lg overflow-hidden border aspect-video max-w-2xl">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}`}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={vid.title || m.title}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsibleContent>
         )}
       </div>
-      {videoUrls.length > 0 && (
-        <div className="space-y-3 pl-2">
-          {videoUrls.map((vid: any, idx: number) => {
-            const ytId = getYouTubeId(vid.url);
-            if (!ytId) return null;
-            return (
-              <div key={idx} className="space-y-1">
-                {vid.title && <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>}
-                <div className="rounded-lg overflow-hidden border aspect-video max-w-2xl">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${ytId}`}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={vid.title || m.title}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    </Collapsible>
   );
 }
 
