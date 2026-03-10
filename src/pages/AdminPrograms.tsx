@@ -1072,10 +1072,44 @@ export default function AdminPrograms() {
                       </Select>
                     </div>
                   </div>
-                  {materialFileType === 'link' || materialFileType === 'video' ? (
+                  {materialFileType === 'video' ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>URLs dos Vídeos (YouTube)</Label>
+                        <Button type="button" size="sm" variant="ghost" className="gap-1 text-xs h-7" onClick={() => setMaterialVideoEntries(prev => [...prev, { url: '', title: '' }])}>
+                          <Plus className="w-3 h-3" /> Adicionar vídeo
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {materialVideoEntries.map((entry, idx) => (
+                          <div key={idx} className="flex gap-2 items-start">
+                            <div className="flex-1 space-y-1.5">
+                              <Input
+                                value={entry.url}
+                                onChange={e => setMaterialVideoEntries(prev => prev.map((v, i) => i === idx ? { ...v, url: e.target.value } : v))}
+                                placeholder="https://youtube.com/watch?v=..."
+                                className="text-sm"
+                              />
+                              <Input
+                                value={entry.title}
+                                onChange={e => setMaterialVideoEntries(prev => prev.map((v, i) => i === idx ? { ...v, title: e.target.value } : v))}
+                                placeholder={`Título do vídeo ${idx + 1} (opcional)`}
+                                className="text-xs h-8"
+                              />
+                            </div>
+                            {materialVideoEntries.length > 1 && (
+                              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 mt-0.5 text-muted-foreground hover:text-destructive" onClick={() => setMaterialVideoEntries(prev => prev.filter((_, i) => i !== idx))}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : materialFileType === 'link' ? (
                     <div className="space-y-2">
-                      <Label>{materialFileType === 'video' ? 'URL do Vídeo (YouTube, Vimeo, etc.)' : 'URL do arquivo / link'}</Label>
-                      <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder={materialFileType === 'video' ? 'https://youtube.com/watch?v=...' : 'https://...'} />
+                      <Label>URL do arquivo / link</Label>
+                      <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
                     </div>
                   ) : (
                     <div className="space-y-3">
