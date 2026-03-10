@@ -113,6 +113,7 @@ export default function AdminPrograms() {
   const [scheduleEndTime, setScheduleEndTime] = useState('');
   const [scheduleModuleId, setScheduleModuleId] = useState('');
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [scheduleClassFilter, setScheduleClassFilter] = useState('all');
 
   // Specialists management state
   const [specialistDialogOpen, setSpecialistDialogOpen] = useState(false);
