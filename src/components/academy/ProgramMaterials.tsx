@@ -26,6 +26,7 @@ function getYouTubeId(url: string) {
 
 function MaterialItem({ m }: { m: any }) {
   const [open, setOpen] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<{ ytId: string; title: string } | null>(null);
   const isVideo = m.file_type === 'video';
   const videoUrls: { url: string; title: string | null }[] =
     isVideo && m.video_urls && Array.isArray(m.video_urls) && m.video_urls.length > 0
@@ -36,67 +37,90 @@ function MaterialItem({ m }: { m: any }) {
   const isLink = !isVideo && m.file_url;
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="rounded-lg border bg-muted/20 overflow-hidden">
-        <CollapsibleTrigger className="w-full" disabled={!hasExpandableContent}>
-          <div className={cn(
-            "flex items-center gap-3 p-3 transition-colors text-left",
-            hasExpandableContent && "hover:bg-muted/40 cursor-pointer",
-          )}>
-            <div className="text-muted-foreground">{getFileIcon(m.file_type)}</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium leading-tight">
-                {m.title}
-              </p>
-              {m.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{m.description}</p>}
+    <>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <div className="rounded-lg border bg-muted/20 overflow-hidden">
+          <CollapsibleTrigger className="w-full" disabled={!hasExpandableContent}>
+            <div className={cn(
+              "flex items-center gap-3 p-3 transition-colors text-left",
+              hasExpandableContent && "hover:bg-muted/40 cursor-pointer",
+            )}>
+              <div className="text-muted-foreground">{getFileIcon(m.file_type)}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium leading-tight">{m.title}</p>
+                {m.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{m.description}</p>}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {videoUrls.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">{videoUrls.length} {videoUrls.length === 1 ? 'vídeo' : 'vídeos'}</Badge>
+                )}
+                {isLink && (
+                  <Button variant="ghost" size="sm" asChild className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                      {['pdf', 'doc', 'other'].includes(m.file_type) ? <Download className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                    </a>
+                  </Button>
+                )}
+                {hasExpandableContent && (
+                  <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", open && "rotate-90")} />
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {videoUrls.length > 0 && (
-                <Badge variant="secondary" className="text-xs">{videoUrls.length} {videoUrls.length === 1 ? 'vídeo' : 'vídeos'}</Badge>
-              )}
-              {isLink && (
-                <Button variant="ghost" size="sm" asChild className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <a href={m.file_url} target="_blank" rel="noopener noreferrer">
-                    {['pdf', 'doc', 'other'].includes(m.file_type) ? (
-                      <Download className="w-3.5 h-3.5" />
-                    ) : (
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    )}
-                  </a>
-                </Button>
-              )}
-              {hasExpandableContent && (
-                <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", open && "rotate-90")} />
-              )}
-            </div>
+          </CollapsibleTrigger>
+          {hasExpandableContent && (
+            <CollapsibleContent>
+              <div className="px-3 pb-3 space-y-2 border-t border-border/50 pt-3">
+                {videoUrls.map((vid: any, idx: number) => {
+                  const ytId = getYouTubeId(vid.url);
+                  if (!ytId) return null;
+                  const thumb = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveVideo({ ytId, title: vid.title || m.title })}
+                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 transition-colors text-left group"
+                    >
+                      <div className="relative flex-shrink-0 w-28 aspect-video rounded-md overflow-hidden border">
+                        <img src={thumb} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                          <Play className="w-6 h-6 text-white fill-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-tight">{vid.title || `Vídeo ${idx + 1}`}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          )}
+        </div>
+      </Collapsible>
+
+      {/* Fullscreen video dialog */}
+      <Dialog open={!!activeVideo} onOpenChange={(v) => !v && setActiveVideo(null)}>
+        <DialogContent className="max-w-5xl w-[95vw] p-0 bg-black border-none gap-0">
+          <div className="flex items-center justify-between px-4 py-2 bg-background/80 backdrop-blur-sm">
+            <p className="text-sm font-medium truncate">{activeVideo?.title}</p>
+            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => setActiveVideo(null)}>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
-        </CollapsibleTrigger>
-        {hasExpandableContent && (
-          <CollapsibleContent>
-            <div className="px-3 pb-3 space-y-3 border-t border-border/50 pt-3">
-              {videoUrls.map((vid: any, idx: number) => {
-                const ytId = getYouTubeId(vid.url);
-                if (!ytId) return null;
-                return (
-                  <div key={idx} className="space-y-1">
-                    {vid.title && <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>}
-                    <div className="rounded-lg overflow-hidden border aspect-video max-w-2xl">
-                      <iframe
-                        src={`https://www.youtube.com/embed/${ytId}`}
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title={vid.title || m.title}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+          {activeVideo && (
+            <div className="aspect-video w-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${activeVideo.ytId}?autoplay=1`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowFullScreen
+                title={activeVideo.title}
+              />
             </div>
-          </CollapsibleContent>
-        )}
-      </div>
-    </Collapsible>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
