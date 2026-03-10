@@ -188,61 +188,6 @@ export default function MyDevelopment() {
   const getMaterialsForModule = (moduleId: string) => allMaterials.filter((m: any) => m.module_id === moduleId);
   const getMaterialsWithoutModule = (programId: string) => allMaterials.filter((m: any) => m.program_id === programId && !m.module_id);
 
-  const renderLider360Questionnaire = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Questionário de Autoconhecimento</CardTitle>
-        <CardDescription>Responda com honestidade e profundidade. O objetivo é ampliar sua consciência sobre como você lidera.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {QUESTIONS.map(q => (
-          <div key={q.id} className="space-y-2">
-            <Label className="text-sm font-medium">{q.label}</Label>
-            <Textarea value={answers[q.id] || ''} onChange={ev => setAnswers(prev => ({ ...prev, [q.id]: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[90px]" />
-          </div>
-        ))}
-        <div className="pt-4 border-t space-y-4">
-          <p className="text-sm text-muted-foreground font-medium">Com base no seu relatório PDA, responda:</p>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Ponto forte para liderança:</Label>
-            <Textarea value={answers['q7_strength'] || ''} onChange={ev => setAnswers(prev => ({ ...prev, q7_strength: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[70px]" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Oportunidade de desenvolvimento:</Label>
-            <Textarea value={answers['q8_development'] || ''} onChange={ev => setAnswers(prev => ({ ...prev, q8_development: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[70px]" />
-          </div>
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Eixo do PDA relacionado:</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-lg bg-muted/30 border">
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Baixo</p>
-                {PDA_AXES.map(axis => (
-                  <div key={`${axis}-baixo`} className="flex items-center gap-2">
-                    <Checkbox id={`dev-${axis}-baixo`} checked={pdaAxes[axis] === 'baixo'} onCheckedChange={() => handlePdaChange(axis, 'baixo')} />
-                    <label htmlFor={`dev-${axis}-baixo`} className="text-sm cursor-pointer">{axis} baixo</label>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alto</p>
-                {PDA_AXES.map(axis => (
-                  <div key={`${axis}-alto`} className="flex items-center gap-2">
-                    <Checkbox id={`dev-${axis}-alto`} checked={pdaAxes[axis] === 'alto'} onCheckedChange={() => handlePdaChange(axis, 'alto')} />
-                    <label htmlFor={`dev-${axis}-alto`} className="text-sm cursor-pointer">{axis} alto</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="pt-4 flex justify-end">
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? 'Salvando...' : existingResponse ? 'Atualizar Respostas' : 'Enviar Respostas'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   const renderEnrollmentCard = (e: any) => {
     const program = e.programs;
