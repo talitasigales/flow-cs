@@ -76,6 +76,7 @@ export default function AdminPrograms() {
   const [materialModuleId, setMaterialModuleId] = useState('');
   const [materialCategory, setMaterialCategory] = useState('material');
   const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [materialVideoEntries, setMaterialVideoEntries] = useState<{url: string; title: string}[]>([{ url: '', title: '' }]);
   const [savingMaterial, setSavingMaterial] = useState(false);
 
   // Modules state
@@ -359,7 +360,6 @@ export default function AdminPrograms() {
     try {
       let fileUrl = materialFileUrl.trim();
 
-      // Upload file if provided
       if (materialFile) {
         const fileExt = materialFile.name.split('.').pop();
         const fileName = `${selectedProgram}/${Date.now()}.${fileExt}`;
@@ -373,16 +373,23 @@ export default function AdminPrograms() {
         fileUrl = publicUrl;
       }
 
-      const { error } = await supabase.from('program_materials').insert({
+      const validVideos = materialVideoEntries.filter(v => v.url.trim());
+      const insertData: any = {
         program_id: selectedProgram,
         title: materialTitle.trim(),
         description: materialDescription.trim() || null,
-        file_url: fileUrl || null,
+        file_url: materialFileType === 'video' ? (validVideos[0]?.url || null) : (fileUrl || null),
         file_type: materialFileType,
         order_number: materials.length,
         module_id: materialModuleId && materialModuleId !== 'none' ? materialModuleId : null,
         category: materialCategory,
-      });
+      };
+
+      if (materialFileType === 'video' && validVideos.length > 0) {
+        insertData.video_urls = validVideos.map(v => ({ url: v.url.trim(), title: v.title.trim() || null }));
+      }
+
+      const { error } = await supabase.from('program_materials').insert(insertData);
       if (error) throw error;
       toast.success('Material adicionado');
       setMaterialTitle('');
@@ -392,6 +399,7 @@ export default function AdminPrograms() {
       setMaterialModuleId('');
       setMaterialCategory('material');
       setMaterialFile(null);
+      setMaterialVideoEntries([{ url: '', title: '' }]);
       refetchMaterials();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar material');
@@ -1064,10 +1072,44 @@ export default function AdminPrograms() {
                       </Select>
                     </div>
                   </div>
-                  {materialFileType === 'link' || materialFileType === 'video' ? (
+                  {materialFileType === 'video' ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>URLs dos Vídeos (YouTube)</Label>
+                        <Button type="button" size="sm" variant="ghost" className="gap-1 text-xs h-7" onClick={() => setMaterialVideoEntries(prev => [...prev, { url: '', title: '' }])}>
+                          <Plus className="w-3 h-3" /> Adicionar vídeo
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {materialVideoEntries.map((entry, idx) => (
+                          <div key={idx} className="flex gap-2 items-start">
+                            <div className="flex-1 space-y-1.5">
+                              <Input
+                                value={entry.url}
+                                onChange={e => setMaterialVideoEntries(prev => prev.map((v, i) => i === idx ? { ...v, url: e.target.value } : v))}
+                                placeholder="https://youtube.com/watch?v=..."
+                                className="text-sm"
+                              />
+                              <Input
+                                value={entry.title}
+                                onChange={e => setMaterialVideoEntries(prev => prev.map((v, i) => i === idx ? { ...v, title: e.target.value } : v))}
+                                placeholder={`Título do vídeo ${idx + 1} (opcional)`}
+                                className="text-xs h-8"
+                              />
+                            </div>
+                            {materialVideoEntries.length > 1 && (
+                              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 mt-0.5 text-muted-foreground hover:text-destructive" onClick={() => setMaterialVideoEntries(prev => prev.filter((_, i) => i !== idx))}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : materialFileType === 'link' ? (
                     <div className="space-y-2">
-                      <Label>{materialFileType === 'video' ? 'URL do Vídeo (YouTube, Vimeo, etc.)' : 'URL do arquivo / link'}</Label>
-                      <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder={materialFileType === 'video' ? 'https://youtube.com/watch?v=...' : 'https://...'} />
+                      <Label>URL do arquivo / link</Label>
+                      <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
                     </div>
                   ) : (
                     <div className="space-y-3">
