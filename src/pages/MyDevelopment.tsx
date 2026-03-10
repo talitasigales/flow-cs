@@ -192,27 +192,55 @@ export default function MyDevelopment() {
   const getFileIcon = (fileType: string | null) => {
     if (fileType === 'link') return <ExternalLink className="w-4 h-4" />;
     if (fileType === 'pdf') return <FileText className="w-4 h-4" />;
+    if (fileType === 'video') return <Video className="w-4 h-4" />;
     return <FileIcon className="w-4 h-4" />;
   };
 
-  const renderMaterialItem = (m: any) => (
-    <div key={m.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
-      <div className="mt-0.5 text-muted-foreground">
-        {getFileIcon(m.file_type)}
+  const getYouTubeId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const renderMaterialItem = (m: any) => {
+    const isVideo = m.file_type === 'video' && m.file_url;
+    const ytId = isVideo ? getYouTubeId(m.file_url) : null;
+
+    return (
+      <div key={m.id} className="space-y-2">
+        <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+          <div className="mt-0.5 text-muted-foreground">
+            {getFileIcon(m.file_type)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{m.title}</p>
+            {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+          </div>
+          {m.file_url && (
+            <Button variant="ghost" size="sm" asChild className="shrink-0">
+              <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                {m.file_type === 'pdf' || m.file_type === 'doc' || m.file_type === 'other' ? (
+                  <Download className="w-3.5 h-3.5" />
+                ) : (
+                  <ExternalLink className="w-3.5 h-3.5" />
+                )}
+              </a>
+            </Button>
+          )}
+        </div>
+        {ytId && (
+          <div className="rounded-lg overflow-hidden border aspect-video">
+            <iframe
+              src={`https://www.youtube.com/embed/${ytId}`}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={m.title}
+            />
+          </div>
+        )}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{m.title}</p>
-        {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
-      </div>
-      {m.file_url && (
-        <Button variant="ghost" size="sm" asChild className="shrink-0">
-          <a href={m.file_url} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </Button>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderMaterialsByCategory = (materials: any[]) => {
     const categories = ['prework', 'material', 'exercise'];
