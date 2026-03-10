@@ -273,7 +273,7 @@ export default function AdminPrograms() {
 
   // --- Handlers ---
 
-  const openClassDialog = (cls?: any) => {
+  const openClassDialog = async (cls?: any) => {
     if (cls) {
       setEditingClass(cls);
       setClassName(cls.name);
@@ -281,6 +281,9 @@ export default function AdminPrograms() {
       setClassEndDate(cls.end_date ? new Date(cls.end_date + 'T12:00:00') : undefined);
       setClassVideoUrl(cls.video_conference_url || '');
       setClassSpecialist(cls.specialist || '');
+      // Load existing class modules
+      const { data: cm } = await (supabase as any).from('class_modules').select('module_id').eq('class_id', cls.id);
+      setClassModuleIds((cm || []).map((r: any) => r.module_id));
     } else {
       setEditingClass(null);
       setClassName('');
@@ -288,6 +291,8 @@ export default function AdminPrograms() {
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      // Default: select all modules
+      setClassModuleIds(modules.map((m: any) => m.id));
     }
     setClassDialogOpen(true);
   };
