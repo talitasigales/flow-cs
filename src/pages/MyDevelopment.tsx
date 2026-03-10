@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
+import { PdaReportUpload } from '@/components/PdaReportUpload';
 import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
 import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
