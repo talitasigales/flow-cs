@@ -284,20 +284,32 @@ export default function MyDevelopment() {
                   <p className="text-sm text-muted-foreground max-w-xl">{program.description}</p>
                 )}
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground pt-1">
-                  {cls && (
-                    <span className="flex items-center gap-1">
-                      <GraduationCap className="w-3.5 h-3.5" />
-                      Turma: <span className="font-medium text-foreground">{cls.name}</span>
-                    </span>
-                  )}
-                  {cls?.start_date && (
-                    <span className="flex items-center gap-1">
-                      <CalendarDays className="w-3.5 h-3.5" />
-                      {format(new Date(cls.start_date + 'T12:00:00'), "dd/MM/yyyy")}
-                      {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
-                    </span>
-                  )}
-                </div>
+                   {cls && (
+                     <span className="flex items-center gap-1">
+                       <GraduationCap className="w-3.5 h-3.5" />
+                       Turma: <span className="font-medium text-foreground">{cls.name}</span>
+                     </span>
+                   )}
+                   {cls?.start_date && (
+                     <span className="flex items-center gap-1">
+                       <CalendarDays className="w-3.5 h-3.5" />
+                       {format(new Date(cls.start_date + 'T12:00:00'), "dd/MM/yyyy")}
+                       {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
+                     </span>
+                   )}
+                   {cls?.specialist && (
+                     <span className="flex items-center gap-1">
+                       <BookOpen className="w-3.5 h-3.5" />
+                       Especialista: <span className="font-medium text-foreground">{cls.specialist}</span>
+                     </span>
+                   )}
+                 </div>
+                 {cls?.video_conference_url && (
+                   <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1">
+                     <Video className="w-3.5 h-3.5" />
+                     {cls.video_conference_url}
+                   </a>
+                 )}
               </div>
               {cls?.video_conference_url && (
                 <Button size="sm" asChild className="shrink-0 gap-2">
