@@ -614,7 +614,46 @@ export default function AdminPrograms() {
     );
   }
 
-  const renderClassDialog = () => (
+  const openSpecialistDialog = (spec?: any) => {
+    if (spec) {
+      setEditingSpecialist(spec);
+      setSpecialistName(spec.name);
+      setSpecialistBio(spec.bio || '');
+      setSpecialistAvatarUrl(spec.avatar_url || '');
+    } else {
+      setEditingSpecialist(null);
+      setSpecialistName('');
+      setSpecialistBio('');
+      setSpecialistAvatarUrl('');
+    }
+    setSpecialistDialogOpen(true);
+  };
+
+  const handleSaveSpecialist = async () => {
+    if (!specialistName.trim()) { toast.error('Nome é obrigatório'); return; }
+    setSavingSpecialist(true);
+    try {
+      const payload = { name: specialistName.trim(), bio: specialistBio.trim() || null, avatar_url: specialistAvatarUrl.trim() || null };
+      if (editingSpecialist) {
+        await (supabase as any).from('specialists').update(payload).eq('id', editingSpecialist.id);
+      } else {
+        await (supabase as any).from('specialists').insert(payload);
+      }
+      toast.success(editingSpecialist ? 'Especialista atualizada!' : 'Especialista cadastrada!');
+      refetchSpecialists();
+      setSpecialistDialogOpen(false);
+      setEditingSpecialist(null);
+    } catch { toast.error('Erro ao salvar'); }
+    setSavingSpecialist(false);
+  };
+
+  const handleDeleteSpecialist = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta especialista?')) return;
+    await (supabase as any).from('specialists').delete().eq('id', id);
+    toast.success('Especialista removida');
+    refetchSpecialists();
+  };
+
     <Dialog open={classDialogOpen} onOpenChange={(v) => { setClassDialogOpen(v); if (!v) setEditingClass(null); }}>
       <DialogContent>
         <DialogHeader>
