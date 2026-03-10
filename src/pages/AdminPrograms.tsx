@@ -801,8 +801,8 @@ export default function AdminPrograms() {
               {modules.length > 0 && (
                 <Card className="mt-4">
                   <CardHeader>
-                    <CardTitle className="text-lg">Exercícios & Funcionalidades por Módulo</CardTitle>
-                    <CardDescription>Gerencie exercícios dinâmicos e links de funcionalidades da plataforma para cada módulo</CardDescription>
+                    <CardTitle className="text-lg">Materiais, Exercícios & Funcionalidades por Módulo</CardTitle>
+                    <CardDescription>Gerencie vídeos, arquivos, exercícios e links de funcionalidades para cada módulo</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Accordion type="multiple" className="space-y-2">
