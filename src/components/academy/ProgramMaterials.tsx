@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen, ChevronRight } from 'lucide-react';
+import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen, ChevronRight, Play, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
