@@ -192,7 +192,7 @@ export default function MyDevelopment() {
   const renderEnrollmentCard = (e: any) => {
     const program = e.programs;
     const cls = e.program_classes;
-    const isLider360 = program?.slug === 'lider-360';
+    
     const programModules = program ? getModulesForProgram(program.id, cls?.id) : [];
     const unassignedMaterials = program ? getMaterialsWithoutModule(program.id) : [];
     const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
