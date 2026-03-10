@@ -252,15 +252,22 @@ export default function MyDevelopment() {
     if (grouped.length === 0) return null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         {grouped.map(({ cat, items }) => {
           const config = CATEGORY_LABELS[cat] || CATEGORY_LABELS.material;
           const Icon = config.icon;
+          const isPrework = cat === 'prework';
           return (
-            <div key={cat} className="space-y-2">
+            <div key={cat} className={cn(
+              "space-y-2",
+              isPrework && "bg-accent/30 border border-accent rounded-lg p-4"
+            )}>
               <h5 className="text-sm font-semibold flex items-center gap-2">
                 <Icon className="w-4 h-4 text-primary" />
                 {config.label}
+                {isPrework && (
+                  <Badge variant="secondary" className="text-xs">Antes do início</Badge>
+                )}
               </h5>
               <div className="space-y-2">
                 {items.map(renderMaterialItem)}
