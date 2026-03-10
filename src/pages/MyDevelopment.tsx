@@ -145,6 +145,17 @@ export default function MyDevelopment() {
   const getExercisesForModule = (moduleId: string) =>
     allExercises.filter((ex: any) => ex.module_id === moduleId);
 
+  const { data: specialists = [] } = useQuery({
+    queryKey: ['specialists'],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('specialists').select('*');
+      return data || [];
+    },
+  });
+
+  const getSpecialist = (name: string | null) =>
+    name ? specialists.find((s: any) => s.name === name) : null;
+
   const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
   const lider360ProgramId = lider360Enrollment?.programs?.id;
 
