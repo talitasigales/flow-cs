@@ -497,6 +497,17 @@ export default function MyDevelopment() {
                       );
                     })()}
 
+                    {/* General materials (not linked to a specific module) */}
+                    {unassignedMaterials.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
+                          <FolderOpen className="w-4 h-4 text-primary" />
+                          Materiais Gerais do Programa
+                        </h4>
+                        {renderMaterialsByCategory(unassignedMaterials)}
+                      </div>
+                    )}
+
                     {/* Module-based navigation */}
                     {programModules.length > 0 ? (
                       <Tabs
@@ -525,6 +536,7 @@ export default function MyDevelopment() {
 
                         {programModules.map((mod: any) => {
                           const moduleMaterials = getMaterialsForModule(mod.id);
+                          const moduleVideos = moduleMaterials.filter((m: any) => m.file_type === 'video' && m.file_url);
                           const moduleSchedule = cls ? allSchedules.find((s: any) => s.class_id === cls.id && s.module_id === mod.id) : null;
                           return (
                             <TabsContent key={mod.id} value={mod.id} className="space-y-4">
@@ -532,7 +544,35 @@ export default function MyDevelopment() {
                                 <p className="text-sm text-muted-foreground">{mod.description}</p>
                               )}
 
-                              {renderMaterialsByCategory(moduleMaterials)}
+                              {/* Video embeds for this module */}
+                              {moduleVideos.length > 0 && (
+                                <div className="space-y-3">
+                                  {moduleVideos.map((v: any) => {
+                                    const ytId = getYouTubeId(v.file_url);
+                                    if (!ytId) return null;
+                                    return (
+                                      <div key={v.id} className="space-y-2">
+                                        <h5 className="text-sm font-medium flex items-center gap-2">
+                                          <Video className="w-4 h-4 text-primary" />
+                                          {v.title}
+                                        </h5>
+                                        {v.description && <p className="text-xs text-muted-foreground">{v.description}</p>}
+                                        <div className="rounded-lg overflow-hidden border aspect-video">
+                                          <iframe
+                                            src={`https://www.youtube.com/embed/${ytId}`}
+                                            className="w-full h-full"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title={v.title}
+                                          />
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {renderMaterialsByCategory(moduleMaterials.filter((m: any) => m.file_type !== 'video'))}
 
                               {/* Dynamic exercises */}
                               <ExerciseRenderer moduleId={mod.id} />
@@ -574,13 +614,6 @@ export default function MyDevelopment() {
                       <>
                         {/* Líder 360 Questionnaire (no modules) */}
                         {isLider360 && renderLider360Questionnaire()}
-
-                        {/* Unassigned materials */}
-                        {unassignedMaterials.length > 0 && (
-                          <div className="space-y-3 mt-4">
-                            {renderMaterialsByCategory(unassignedMaterials)}
-                          </div>
-                        )}
 
                         {!isLider360 && unassignedMaterials.length === 0 && (
                           <p className="text-sm text-muted-foreground text-center py-4">
