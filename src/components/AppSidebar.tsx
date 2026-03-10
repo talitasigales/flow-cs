@@ -108,14 +108,11 @@ export function AppSidebar() {
   // Build academy sub-items: always show calendar; show Meu Desenvolvimento + program links only if enrolled
   const allAcademySubItems = [
     ...academyBaseItems,
-    ...(isEnrolled ? [
-      ...academyEnrolledItems,
-      ...enrollments.map((p: any) => ({
-        title: p.name,
-        icon: BookOpen,
-        path: `/programas/${p.slug}`,
-      })),
-    ] : []),
+    ...(isEnrolled ? enrollments.map((p: any) => ({
+      title: p.name,
+      icon: BookOpen,
+      path: `/programas/${p.slug}`,
+    })) : []),
   ];
 
   const [openTrilhas, setOpenTrilhas] = useState(isInTrilhas);
