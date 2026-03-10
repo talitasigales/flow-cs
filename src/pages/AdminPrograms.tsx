@@ -504,6 +504,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="import" className="gap-1.5"><Upload className="w-4 h-4" /> Importar</TabsTrigger>
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
+              <TabsTrigger value="student-view" className="gap-1.5"><Eye className="w-4 h-4" /> Visão do Aluno</TabsTrigger>
             </TabsList>
 
             {/* TURMAS TAB */}
