@@ -54,6 +54,7 @@ export default function MyDevelopment() {
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [exerciseModuleId, setExerciseModuleId] = useState<string | null>(null);
   const [contentTab, setContentTab] = useState<string>('modulos');
+  const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
