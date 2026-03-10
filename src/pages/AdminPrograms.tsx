@@ -479,19 +479,29 @@ export default function AdminPrograms() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nome</TableHead>
+                        <TableHead>Especialista</TableHead>
                         <TableHead>Data Início</TableHead>
                         <TableHead>Data Fim</TableHead>
+                        <TableHead>Videoconferência</TableHead>
                         <TableHead className="w-[80px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {classes.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhuma turma cadastrada</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma turma cadastrada</TableCell></TableRow>
                       ) : classes.map((c: any) => (
                         <TableRow key={c.id}>
                           <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell>{c.specialist ? <Badge variant="secondary">{c.specialist}</Badge> : '—'}</TableCell>
                           <TableCell>{c.start_date ? format(new Date(c.start_date + 'T12:00:00'), 'dd/MM/yyyy') : '—'}</TableCell>
                           <TableCell>{c.end_date ? format(new Date(c.end_date + 'T12:00:00'), 'dd/MM/yyyy') : '—'}</TableCell>
+                          <TableCell>
+                            {c.video_conference_url ? (
+                              <a href={c.video_conference_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" /> Link
+                              </a>
+                            ) : '—'}
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteClass(c.id)} className="text-destructive hover:text-destructive">
                               <Trash2 className="w-4 h-4" />
