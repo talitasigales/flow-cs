@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
+import { PdaReportUpload } from '@/components/PdaReportUpload';
 import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
 import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
@@ -398,6 +399,11 @@ export default function MyDevelopment() {
             </div>
           </div>
         </Card>
+
+        {/* PDA Report Upload */}
+        {program?.id && (
+          <PdaReportUpload programId={program.id} programName={program.name} />
+        )}
 
         {/* Two-column layout: Journey + Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
