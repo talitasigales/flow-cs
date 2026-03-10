@@ -654,6 +654,7 @@ export default function AdminPrograms() {
     refetchSpecialists();
   };
 
+  const renderClassDialog = () => (
     <Dialog open={classDialogOpen} onOpenChange={(v) => { setClassDialogOpen(v); if (!v) setEditingClass(null); }}>
       <DialogContent>
         <DialogHeader>
