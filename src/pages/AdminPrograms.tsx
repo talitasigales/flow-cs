@@ -1218,6 +1218,42 @@ export default function AdminPrograms() {
 
             {/* MATRÍCULAS TAB */}
             <TabsContent value="enrollments" className="mt-4 space-y-4">
+              {/* Individual enrollment form */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Cadastrar Aluno Individual</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nome completo</Label>
+                      <Input placeholder="Nome do aluno" value={individualName} onChange={e => setIndividualName(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">E-mail</Label>
+                      <Input type="email" placeholder="aluno@empresa.com" value={individualEmail} onChange={e => setIndividualEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Turma</Label>
+                      <Select value={individualClassId} onValueChange={setIndividualClassId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a turma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {classes.map((c: any) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleIndividualEnrollment} disabled={enrollingIndividual || !individualName.trim() || !individualEmail.trim()} className="gap-1.5">
+                      <Plus className="w-4 h-4" />
+                      {enrollingIndividual ? 'Matriculando...' : 'Matricular'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="flex items-center gap-3">
                 <Label className="text-sm">Filtrar por turma:</Label>
                 <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
