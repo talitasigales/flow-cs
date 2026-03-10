@@ -499,8 +499,11 @@ export default function MyDevelopment() {
 
                               {renderMaterialsByCategory(moduleMaterials)}
 
-                              {/* Render Líder 360 questionnaire as exercise in module context */}
-                              {isLider360 && moduleMaterials.some((m: any) => m.category === 'exercise') && null}
+                              {/* Dynamic exercises */}
+                              <ExerciseRenderer moduleId={mod.id} />
+
+                              {/* Platform feature links */}
+                              <FeatureLinkCards moduleId={mod.id} />
 
                               {moduleMaterials.length === 0 && (
                                 <p className="text-sm text-muted-foreground text-center py-4">
