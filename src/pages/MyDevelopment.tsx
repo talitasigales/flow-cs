@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText, ExternalLink, FileIcon, Layers, ClipboardList, FolderOpen, Clock } from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, CheckCircle, FileText, ExternalLink, FileIcon, Layers, ClipboardList, FolderOpen, Clock, Video, Download } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
 import { toast } from 'sonner';
@@ -192,27 +192,55 @@ export default function MyDevelopment() {
   const getFileIcon = (fileType: string | null) => {
     if (fileType === 'link') return <ExternalLink className="w-4 h-4" />;
     if (fileType === 'pdf') return <FileText className="w-4 h-4" />;
+    if (fileType === 'video') return <Video className="w-4 h-4" />;
     return <FileIcon className="w-4 h-4" />;
   };
 
-  const renderMaterialItem = (m: any) => (
-    <div key={m.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
-      <div className="mt-0.5 text-muted-foreground">
-        {getFileIcon(m.file_type)}
+  const getYouTubeId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const renderMaterialItem = (m: any) => {
+    const isVideo = m.file_type === 'video' && m.file_url;
+    const ytId = isVideo ? getYouTubeId(m.file_url) : null;
+
+    return (
+      <div key={m.id} className="space-y-2">
+        <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+          <div className="mt-0.5 text-muted-foreground">
+            {getFileIcon(m.file_type)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium">{m.title}</p>
+            {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+          </div>
+          {m.file_url && (
+            <Button variant="ghost" size="sm" asChild className="shrink-0">
+              <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                {m.file_type === 'pdf' || m.file_type === 'doc' || m.file_type === 'other' ? (
+                  <Download className="w-3.5 h-3.5" />
+                ) : (
+                  <ExternalLink className="w-3.5 h-3.5" />
+                )}
+              </a>
+            </Button>
+          )}
+        </div>
+        {ytId && (
+          <div className="rounded-lg overflow-hidden border aspect-video">
+            <iframe
+              src={`https://www.youtube.com/embed/${ytId}`}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={m.title}
+            />
+          </div>
+        )}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{m.title}</p>
-        {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
-      </div>
-      {m.file_url && (
-        <Button variant="ghost" size="sm" asChild className="shrink-0">
-          <a href={m.file_url} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </Button>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderMaterialsByCategory = (materials: any[]) => {
     const categories = ['prework', 'material', 'exercise'];
@@ -224,15 +252,22 @@ export default function MyDevelopment() {
     if (grouped.length === 0) return null;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         {grouped.map(({ cat, items }) => {
           const config = CATEGORY_LABELS[cat] || CATEGORY_LABELS.material;
           const Icon = config.icon;
+          const isPrework = cat === 'prework';
           return (
-            <div key={cat} className="space-y-2">
+            <div key={cat} className={cn(
+              "space-y-2",
+              isPrework && "bg-accent/30 border border-accent rounded-lg p-4"
+            )}>
               <h5 className="text-sm font-semibold flex items-center gap-2">
                 <Icon className="w-4 h-4 text-primary" />
                 {config.label}
+                {isPrework && (
+                  <Badge variant="secondary" className="text-xs">Antes do início</Badge>
+                )}
               </h5>
               <div className="space-y-2">
                 {items.map(renderMaterialItem)}

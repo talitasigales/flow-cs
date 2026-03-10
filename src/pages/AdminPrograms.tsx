@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp } from 'lucide-react';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -74,6 +74,7 @@ export default function AdminPrograms() {
   const [materialFileType, setMaterialFileType] = useState('link');
   const [materialModuleId, setMaterialModuleId] = useState('');
   const [materialCategory, setMaterialCategory] = useState('material');
+  const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [savingMaterial, setSavingMaterial] = useState(false);
 
   // Modules state
@@ -345,16 +346,40 @@ export default function AdminPrograms() {
       toast.error('Título é obrigatório');
       return;
     }
+    if (materialFileType === 'link' && !materialFileUrl.trim()) {
+      toast.error('URL é obrigatória para links');
+      return;
+    }
+    if (['pdf', 'doc', 'other'].includes(materialFileType) && !materialFile && !materialFileUrl.trim()) {
+      toast.error('Selecione um arquivo ou informe uma URL');
+      return;
+    }
     setSavingMaterial(true);
     try {
+      let fileUrl = materialFileUrl.trim();
+
+      // Upload file if provided
+      if (materialFile) {
+        const fileExt = materialFile.name.split('.').pop();
+        const fileName = `${selectedProgram}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('program-materials')
+          .upload(fileName, materialFile);
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage
+          .from('program-materials')
+          .getPublicUrl(fileName);
+        fileUrl = publicUrl;
+      }
+
       const { error } = await supabase.from('program_materials').insert({
         program_id: selectedProgram,
         title: materialTitle.trim(),
         description: materialDescription.trim() || null,
-        file_url: materialFileUrl.trim() || null,
+        file_url: fileUrl || null,
         file_type: materialFileType,
         order_number: materials.length,
-        module_id: materialModuleId || null,
+        module_id: materialModuleId && materialModuleId !== 'none' ? materialModuleId : null,
         category: materialCategory,
       });
       if (error) throw error;
@@ -365,6 +390,7 @@ export default function AdminPrograms() {
       setMaterialFileType('link');
       setMaterialModuleId('');
       setMaterialCategory('material');
+      setMaterialFile(null);
       refetchMaterials();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar material');
@@ -1034,10 +1060,32 @@ export default function AdminPrograms() {
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>URL do arquivo / link</Label>
-                    <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
-                  </div>
+                  {materialFileType === 'link' || materialFileType === 'video' ? (
+                    <div className="space-y-2">
+                      <Label>{materialFileType === 'video' ? 'URL do Vídeo (YouTube, Vimeo, etc.)' : 'URL do arquivo / link'}</Label>
+                      <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder={materialFileType === 'video' ? 'https://youtube.com/watch?v=...' : 'https://...'} />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>Fazer upload de arquivo</Label>
+                        <Input
+                          type="file"
+                          accept={materialFileType === 'pdf' ? '.pdf' : '*'}
+                          onChange={e => setMaterialFile(e.target.files?.[0] || null)}
+                        />
+                        {materialFile && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <FileUp className="w-3 h-3" /> {materialFile.name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground text-xs">Ou informe uma URL externa</Label>
+                        <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>Descrição (opcional)</Label>
                     <Textarea value={materialDescription} onChange={e => setMaterialDescription(e.target.value)} placeholder="Breve descrição do material..." className="min-h-[80px]" />
