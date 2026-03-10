@@ -462,7 +462,21 @@ export default function MyDevelopment() {
 
                     {/* Module-based navigation */}
                     {programModules.length > 0 ? (
-                      <Tabs defaultValue={programModules[0]?.id} className="space-y-4">
+                      <Tabs
+                        defaultValue={programModules[0]?.id}
+                        className="space-y-4"
+                        onValueChange={(moduleId) => {
+                          const mod = programModules.find((m: any) => m.id === moduleId);
+                          if (mod) {
+                            supabase.rpc('log_user_action', {
+                              _action: 'MODULE_ACCESS',
+                              _table_name: 'program_modules',
+                              _record_id: mod.id,
+                              _new_data: { module_title: mod.title, program_name: program?.name },
+                            });
+                          }
+                        }}
+                      >
                         <TabsList className="flex-wrap h-auto gap-1">
                           {programModules.map((mod: any) => (
                             <TabsTrigger key={mod.id} value={mod.id} className="gap-1.5 text-xs">
@@ -474,6 +488,7 @@ export default function MyDevelopment() {
 
                         {programModules.map((mod: any) => {
                           const moduleMaterials = getMaterialsForModule(mod.id);
+                          const moduleSchedule = cls ? allSchedules.find((s: any) => s.class_id === cls.id && s.module_id === mod.id) : null;
                           return (
                             <TabsContent key={mod.id} value={mod.id} className="space-y-4">
                               {mod.description && (
@@ -490,6 +505,27 @@ export default function MyDevelopment() {
                                   Nenhum material disponível neste módulo ainda.
                                 </p>
                               )}
+
+                              <div className="flex justify-end pt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={() => {
+                                    supabase.rpc('log_user_action', {
+                                      _action: 'MODULE_COMPLETED',
+                                      _table_name: 'program_modules',
+                                      _record_id: mod.id,
+                                      _new_data: { module_title: mod.title, program_name: program?.name },
+                                    }).then(() => {
+                                      toast.success(`Módulo "${mod.title}" marcado como concluído!`);
+                                    });
+                                  }}
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                  Marcar como concluído
+                                </Button>
+                              </div>
                             </TabsContent>
                           );
                         })}
