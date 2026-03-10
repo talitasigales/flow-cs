@@ -340,6 +340,58 @@ export default function AdminPrograms() {
     }
   };
 
+  const handleIndividualEnrollment = async () => {
+    if (!individualEmail.trim() || !individualName.trim() || !selectedProgram) {
+      toast.error('Preencha nome, e-mail e selecione um programa');
+      return;
+    }
+    setEnrollingIndividual(true);
+    try {
+      // 1. Ensure user exists (invite-user creates if not exists)
+      const { data: inviteData, error: inviteError } = await supabase.functions.invoke('invite-user', {
+        body: { email: individualEmail.trim().toLowerCase(), role: 'user' },
+      });
+      if (inviteError) throw inviteError;
+
+      // 2. Update profile name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('email', individualEmail.trim().toLowerCase())
+        .maybeSingle();
+      if (profile) {
+        await supabase.from('profiles').update({ full_name: individualName.trim() }).eq('user_id', profile.user_id);
+      }
+
+      // 3. Enroll
+      const { data, error } = await supabase.functions.invoke('import-enrollments', {
+        body: { emails: individualEmail.trim(), program_id: selectedProgram, class_id: individualClassId || null },
+      });
+      if (error) throw error;
+
+      if (data.enrolled > 0) {
+        let msg = `${individualName} matriculado(a) com sucesso!`;
+        if (inviteData?.tempPassword) {
+          msg += ` Senha temporária: ${inviteData.tempPassword}`;
+        }
+        toast.success(msg, { duration: 15000 });
+      } else if (data.alreadyEnrolled > 0) {
+        toast.info('Aluno já está matriculado neste programa.');
+      } else {
+        toast.warning('Não foi possível matricular o aluno.');
+      }
+
+      setIndividualName('');
+      setIndividualEmail('');
+      setIndividualClassId('');
+      refetchEnrollments();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao matricular aluno');
+    } finally {
+      setEnrollingIndividual(false);
+    }
+  };
+
   const handleImport = async () => {
     if (!csvText.trim() || !selectedProgram) {
       toast.error('Selecione um programa e insira os e-mails');
