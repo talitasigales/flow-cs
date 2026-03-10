@@ -32,6 +32,7 @@ import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
 import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
+import { ProgramWelcomeManager } from '@/components/admin/ProgramWelcomeManager';
 import * as XLSX from 'xlsx';
 
 const QUESTION_LABELS: Record<string, string> = {
