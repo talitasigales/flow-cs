@@ -197,7 +197,6 @@ serve(async (req) => {
       console.error('Error recording invite:', inviteError);
     }
 
-    const tempPassword = newUser.user.id ? crypto.randomUUID() : '';
     console.log(`User ${email} created.`);
 
     return new Response(
