@@ -770,6 +770,33 @@ export default function AdminPrograms() {
                 </CardContent>
               </Card>
 
+              {/* Exercises & Feature Links per module */}
+              {modules.length > 0 && (
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Exercícios & Funcionalidades por Módulo</CardTitle>
+                    <CardDescription>Gerencie exercícios dinâmicos e links de funcionalidades da plataforma para cada módulo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Accordion type="multiple" className="space-y-2">
+                      {modules.map((mod: any) => (
+                        <AccordionItem key={mod.id} value={mod.id} className="border rounded-lg px-4">
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <span className="text-sm font-medium">{mod.title}</span>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-6 pb-4">
+                            <ModuleExerciseManager moduleId={mod.id} moduleTitle={mod.title} />
+                            <div className="border-t pt-4">
+                              <ModuleFeatureLinkManager moduleId={mod.id} moduleTitle={mod.title} />
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              )}
+
               <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
                 <DialogContent>
                   <DialogHeader>
