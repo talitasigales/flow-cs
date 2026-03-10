@@ -1414,8 +1414,14 @@ export default function AdminPrograms() {
                                 ))}
                               </SelectContent>
                             </Select>
-                          </TableCell>
+                           </TableCell>
                           <TableCell>{format(new Date(e.enrolled_at), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>
+                            {e.profiles?.last_access_at 
+                              ? format(new Date(e.profiles.last_access_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+                              : <span className="text-muted-foreground text-xs">Nunca</span>
+                            }
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
                               <Trash2 className="w-4 h-4" />
