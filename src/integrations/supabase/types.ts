@@ -892,7 +892,9 @@ export type Database = {
           id: string
           name: string
           program_id: string
+          specialist: string | null
           start_date: string | null
+          video_conference_url: string | null
         }
         Insert: {
           created_at?: string
@@ -900,7 +902,9 @@ export type Database = {
           id?: string
           name: string
           program_id: string
+          specialist?: string | null
           start_date?: string | null
+          video_conference_url?: string | null
         }
         Update: {
           created_at?: string
@@ -908,7 +912,9 @@ export type Database = {
           id?: string
           name?: string
           program_id?: string
+          specialist?: string | null
           start_date?: string | null
+          video_conference_url?: string | null
         }
         Relationships: [
           {
