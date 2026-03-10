@@ -100,9 +100,15 @@ const AdminLogs = () => {
       case 'DELETE':
         return <Badge variant="destructive">Deletado</Badge>;
       case 'MODULE_ACCESS':
-        return <Badge className="bg-blue-600">Acessou</Badge>;
+        return <Badge className="bg-blue-600">Acessou Módulo</Badge>;
       case 'MODULE_COMPLETED':
-        return <Badge className="bg-green-600">Concluiu</Badge>;
+        return <Badge className="bg-green-600">Concluiu Módulo</Badge>;
+      case 'VIDEO_PLAY':
+        return <Badge className="bg-purple-600">Assistiu Vídeo</Badge>;
+      case 'MATERIAL_EXPAND':
+        return <Badge className="bg-sky-600">Abriu Material</Badge>;
+      case 'MATERIAL_DOWNLOAD':
+        return <Badge className="bg-amber-600">Baixou Material</Badge>;
       default:
         return <Badge variant="outline">{action}</Badge>;
     }
@@ -233,11 +239,30 @@ const AdminLogs = () => {
     const data = log.new_data || log.old_data;
     if (!data) return log.record_id ? log.record_id.substring(0, 8) + '...' : '-';
 
-    if (log.action === 'MODULE_ACCESS' || log.action === 'MODULE_COMPLETED') {
+    if (['MODULE_ACCESS', 'MODULE_COMPLETED'].includes(log.action)) {
       return (
         <span>
           <span className="font-medium">{data.module_title}</span>
           {data.program_name && <span className="text-muted-foreground"> — {data.program_name}</span>}
+        </span>
+      );
+    }
+
+    if (log.action === 'VIDEO_PLAY') {
+      return (
+        <span>
+          <span className="font-medium">{data.video_title}</span>
+          {data.material_title && <span className="text-muted-foreground"> — {data.material_title}</span>}
+          {data.video_index && <span className="text-muted-foreground"> ({data.video_index}/{data.total_videos})</span>}
+        </span>
+      );
+    }
+
+    if (log.action === 'MATERIAL_EXPAND' || log.action === 'MATERIAL_DOWNLOAD') {
+      return (
+        <span>
+          <span className="font-medium">{data.material_title}</span>
+          {data.file_type && <span className="text-muted-foreground"> ({data.file_type})</span>}
         </span>
       );
     }
@@ -347,6 +372,9 @@ const AdminLogs = () => {
                      <SelectItem value="DELETE">Deletado</SelectItem>
                      <SelectItem value="MODULE_ACCESS">Acessou Módulo</SelectItem>
                      <SelectItem value="MODULE_COMPLETED">Concluiu Módulo</SelectItem>
+                     <SelectItem value="VIDEO_PLAY">Assistiu Vídeo</SelectItem>
+                     <SelectItem value="MATERIAL_EXPAND">Abriu Material</SelectItem>
+                     <SelectItem value="MATERIAL_DOWNLOAD">Baixou Material</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
