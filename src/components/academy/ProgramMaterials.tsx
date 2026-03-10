@@ -1,7 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
   prework: { label: 'Pre-work', icon: ClipboardList },
