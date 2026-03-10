@@ -239,11 +239,30 @@ const AdminLogs = () => {
     const data = log.new_data || log.old_data;
     if (!data) return log.record_id ? log.record_id.substring(0, 8) + '...' : '-';
 
-    if (log.action === 'MODULE_ACCESS' || log.action === 'MODULE_COMPLETED') {
+    if (['MODULE_ACCESS', 'MODULE_COMPLETED'].includes(log.action)) {
       return (
         <span>
           <span className="font-medium">{data.module_title}</span>
           {data.program_name && <span className="text-muted-foreground"> — {data.program_name}</span>}
+        </span>
+      );
+    }
+
+    if (log.action === 'VIDEO_PLAY') {
+      return (
+        <span>
+          <span className="font-medium">{data.video_title}</span>
+          {data.material_title && <span className="text-muted-foreground"> — {data.material_title}</span>}
+          {data.video_index && <span className="text-muted-foreground"> ({data.video_index}/{data.total_videos})</span>}
+        </span>
+      );
+    }
+
+    if (log.action === 'MATERIAL_EXPAND' || log.action === 'MATERIAL_DOWNLOAD') {
+      return (
+        <span>
+          <span className="font-medium">{data.material_title}</span>
+          {data.file_type && <span className="text-muted-foreground"> ({data.file_type})</span>}
         </span>
       );
     }
