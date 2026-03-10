@@ -74,6 +74,12 @@ export default function AdminPrograms() {
   // Import class selector
   const [importClassId, setImportClassId] = useState('');
 
+  // Individual enrollment state
+  const [individualName, setIndividualName] = useState('');
+  const [individualEmail, setIndividualEmail] = useState('');
+  const [individualClassId, setIndividualClassId] = useState('');
+  const [enrollingIndividual, setEnrollingIndividual] = useState(false);
+
   // Materials state
   const [materialTitle, setMaterialTitle] = useState('');
   const [materialDescription, setMaterialDescription] = useState('');
