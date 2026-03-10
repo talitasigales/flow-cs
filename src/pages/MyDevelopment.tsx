@@ -379,6 +379,9 @@ export default function MyDevelopment() {
                               {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
                             </span>
                           )}
+                          {cls?.specialist && (
+                            <Badge variant="secondary" className="text-xs">Especialista: {cls.specialist}</Badge>
+                          )}
                         </div>
                       </div>
                     </div>
