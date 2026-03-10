@@ -311,21 +311,34 @@ export default function AdminPrograms() {
         video_conference_url: classVideoUrl.trim() || null,
         specialist: classSpecialist || null,
       };
+      let classId: string;
       if (editingClass) {
         const { error } = await supabase.from('program_classes').update(payload).eq('id', editingClass.id);
         if (error) throw error;
+        classId = editingClass.id;
         toast.success('Turma atualizada com sucesso');
       } else {
         payload.program_id = selectedProgram;
-        const { error } = await supabase.from('program_classes').insert(payload);
+        const { data: newClass, error } = await supabase.from('program_classes').insert(payload).select('id').single();
         if (error) throw error;
+        classId = newClass.id;
         toast.success('Turma criada com sucesso');
       }
+
+      // Sync class_modules
+      await (supabase as any).from('class_modules').delete().eq('class_id', classId);
+      if (classModuleIds.length > 0) {
+        await (supabase as any).from('class_modules').insert(
+          classModuleIds.map(mid => ({ class_id: classId, module_id: mid }))
+        );
+      }
+
       setClassName('');
       setClassStartDate(undefined);
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      setClassModuleIds([]);
       setEditingClass(null);
       setClassDialogOpen(false);
       refetchClasses();
