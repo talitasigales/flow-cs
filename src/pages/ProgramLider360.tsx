@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CheckCircle, CalendarDays, ExternalLink, MapPin, Clock, BookOpen, Layers, FileText, FileIcon, ClipboardList, FolderOpen } from 'lucide-react';
+import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
+import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
 
 const QUESTIONS = [
   { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
@@ -255,9 +257,11 @@ export default function ProgramLider360() {
                 {modules.map((mod: any) => {
                   const moduleMaterials = getMaterialsForModule(mod.id);
                   return (
-                    <TabsContent key={mod.id} value={mod.id} className="space-y-4 mt-4">
+                      <TabsContent key={mod.id} value={mod.id} className="space-y-4 mt-4">
                       {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
                       {renderMaterialsByCategory(moduleMaterials)}
+                      <ExerciseRenderer moduleId={mod.id} />
+                      <FeatureLinkCards moduleId={mod.id} />
                       {moduleMaterials.length === 0 && (
                         <p className="text-sm text-muted-foreground text-center py-4">
                           Nenhum material disponível neste módulo ainda.

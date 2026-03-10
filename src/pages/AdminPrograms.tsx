@@ -22,6 +22,9 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock } from 'lucide-react';
+import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
+import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
@@ -766,6 +769,33 @@ export default function AdminPrograms() {
                   </Table>
                 </CardContent>
               </Card>
+
+              {/* Exercises & Feature Links per module */}
+              {modules.length > 0 && (
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Exercícios & Funcionalidades por Módulo</CardTitle>
+                    <CardDescription>Gerencie exercícios dinâmicos e links de funcionalidades da plataforma para cada módulo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Accordion type="multiple" className="space-y-2">
+                      {modules.map((mod: any) => (
+                        <AccordionItem key={mod.id} value={mod.id} className="border rounded-lg px-4">
+                          <AccordionTrigger className="hover:no-underline py-3">
+                            <span className="text-sm font-medium">{mod.title}</span>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-6 pb-4">
+                            <ModuleExerciseManager moduleId={mod.id} moduleTitle={mod.title} />
+                            <div className="border-t pt-4">
+                              <ModuleFeatureLinkManager moduleId={mod.id} moduleTitle={mod.title} />
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              )}
 
               <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
                 <DialogContent>
