@@ -26,12 +26,12 @@ function getYouTubeId(url: string) {
 }
 
 function logMaterialAccess(materialId: string, materialTitle: string, action: string, extra?: Record<string, any>) {
-  supabase.rpc('log_user_action', {
+  void supabase.rpc('log_user_action', {
     _action: action,
     _table_name: 'program_materials',
     _record_id: materialId,
     _new_data: { material_title: materialTitle, ...extra },
-  }).then(() => {}).catch?.(() => {});
+  });
 }
 
 function MaterialItem({ m }: { m: any }) {
