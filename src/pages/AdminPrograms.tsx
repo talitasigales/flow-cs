@@ -176,12 +176,16 @@ export default function AdminPrograms() {
         name: className.trim(),
         start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
         end_date: classEndDate ? format(classEndDate, 'yyyy-MM-dd') : null,
+        video_conference_url: classVideoUrl.trim() || null,
+        specialist: classSpecialist || null,
       });
       if (error) throw error;
       toast.success('Turma criada com sucesso');
       setClassName('');
       setClassStartDate(undefined);
       setClassEndDate(undefined);
+      setClassVideoUrl('');
+      setClassSpecialist('');
       setClassDialogOpen(false);
       refetchClasses();
     } catch (err: any) {
