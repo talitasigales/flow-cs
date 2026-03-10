@@ -448,6 +448,23 @@ export default function AdminPrograms() {
                             </Popover>
                           </div>
                         </div>
+                        <div className="space-y-2">
+                          <Label>Especialista Responsável</Label>
+                          <Select value={classSpecialist} onValueChange={setClassSpecialist}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a especialista" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Júlia">Júlia</SelectItem>
+                              <SelectItem value="Luciana">Luciana</SelectItem>
+                              <SelectItem value="Silvia">Silvia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Link da Videoconferência (Zoom/Meet)</Label>
+                          <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
+                        </div>
                       </div>
                       <DialogFooter>
                         <Button onClick={handleSaveClass} disabled={savingClass}>
