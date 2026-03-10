@@ -2,15 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { format } from 'date-fns';
@@ -27,14 +24,6 @@ import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const QUESTIONS = [
-  { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
-  { id: 'q2', label: '2. O que você acredita que faz muito bem como líder?' },
-  { id: 'q3', label: '3. Em que situações você sente que sua liderança é mais forte?' },
-  { id: 'q4', label: '4. Em que contextos você percebe que perde desempenho ou clareza?' },
-  { id: 'q5', label: '5. Se seu time pudesse descrevê-lo com sinceridade absoluta, o que diria?' },
-  { id: 'q6', label: '6. O que você tem feito intencionalmente para evoluir como líder?' },
-];
 
 function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
   const { data: exercises = [] } = useQuery({
@@ -55,15 +44,13 @@ function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMat
   return <p className="text-xs text-muted-foreground text-center py-3">Nenhum material neste módulo.</p>;
 }
 
-const PDA_AXES = ['Risco', 'Extroversão', 'Paciência', 'Norma', 'Autocontrole'];
+
 
 export default function MyDevelopment() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [pdaAxes, setPdaAxes] = useState<Record<string, string>>({});
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [exerciseModuleId, setExerciseModuleId] = useState<string | null>(null);
   const [contentTab, setContentTab] = useState<string>('modulos');
@@ -173,62 +160,6 @@ export default function MyDevelopment() {
   const getSpecialist = (name: string | null) =>
     name ? specialists.find((s: any) => s.name.toLowerCase().trim() === name.toLowerCase().trim()) : null;
 
-  const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
-  const lider360ProgramId = lider360Enrollment?.programs?.id;
-
-  const { data: existingResponse } = useQuery({
-    queryKey: ['workshop-response', lider360ProgramId, user?.id],
-    enabled: !!lider360ProgramId && !!user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('workshop_responses')
-        .select('*')
-        .eq('program_id', lider360ProgramId!)
-        .eq('user_id', user!.id)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  useEffect(() => {
-    if (existingResponse?.answers) {
-      const saved = existingResponse.answers as Record<string, any>;
-      const textAnswers: Record<string, string> = {};
-      QUESTIONS.forEach(q => { textAnswers[q.id] = saved[q.id] || ''; });
-      textAnswers['q7_strength'] = saved['q7_strength'] || '';
-      textAnswers['q8_development'] = saved['q8_development'] || '';
-      setAnswers(textAnswers);
-      setPdaAxes(saved['q9_pda_axes'] || {});
-    }
-  }, [existingResponse]);
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!lider360ProgramId || !user?.id) throw new Error('Dados insuficientes');
-      const payload = { ...answers, q9_pda_axes: pdaAxes };
-      if (existingResponse) {
-        const { error } = await supabase
-          .from('workshop_responses')
-          .update({ answers: payload, updated_at: new Date().toISOString() })
-          .eq('id', existingResponse.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('workshop_responses')
-          .insert({ program_id: lider360ProgramId, user_id: user.id, answers: payload });
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success('Respostas salvas com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['workshop-response'] });
-    },
-    onError: () => toast.error('Erro ao salvar respostas'),
-  });
-
-  const handlePdaChange = (axis: string, level: string) => {
-    setPdaAxes(prev => prev[axis] === level ? (() => { const n = { ...prev }; delete n[axis]; return n; })() : { ...prev, [axis]: level });
-  };
 
   if (loading || isLoading) {
     return (
@@ -257,66 +188,11 @@ export default function MyDevelopment() {
   const getMaterialsForModule = (moduleId: string) => allMaterials.filter((m: any) => m.module_id === moduleId);
   const getMaterialsWithoutModule = (programId: string) => allMaterials.filter((m: any) => m.program_id === programId && !m.module_id);
 
-  const renderLider360Questionnaire = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Questionário de Autoconhecimento</CardTitle>
-        <CardDescription>Responda com honestidade e profundidade. O objetivo é ampliar sua consciência sobre como você lidera.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {QUESTIONS.map(q => (
-          <div key={q.id} className="space-y-2">
-            <Label className="text-sm font-medium">{q.label}</Label>
-            <Textarea value={answers[q.id] || ''} onChange={ev => setAnswers(prev => ({ ...prev, [q.id]: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[90px]" />
-          </div>
-        ))}
-        <div className="pt-4 border-t space-y-4">
-          <p className="text-sm text-muted-foreground font-medium">Com base no seu relatório PDA, responda:</p>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Ponto forte para liderança:</Label>
-            <Textarea value={answers['q7_strength'] || ''} onChange={ev => setAnswers(prev => ({ ...prev, q7_strength: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[70px]" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Oportunidade de desenvolvimento:</Label>
-            <Textarea value={answers['q8_development'] || ''} onChange={ev => setAnswers(prev => ({ ...prev, q8_development: ev.target.value }))} placeholder="Escreva sua resposta..." className="min-h-[70px]" />
-          </div>
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Eixo do PDA relacionado:</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-lg bg-muted/30 border">
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Baixo</p>
-                {PDA_AXES.map(axis => (
-                  <div key={`${axis}-baixo`} className="flex items-center gap-2">
-                    <Checkbox id={`dev-${axis}-baixo`} checked={pdaAxes[axis] === 'baixo'} onCheckedChange={() => handlePdaChange(axis, 'baixo')} />
-                    <label htmlFor={`dev-${axis}-baixo`} className="text-sm cursor-pointer">{axis} baixo</label>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alto</p>
-                {PDA_AXES.map(axis => (
-                  <div key={`${axis}-alto`} className="flex items-center gap-2">
-                    <Checkbox id={`dev-${axis}-alto`} checked={pdaAxes[axis] === 'alto'} onCheckedChange={() => handlePdaChange(axis, 'alto')} />
-                    <label htmlFor={`dev-${axis}-alto`} className="text-sm cursor-pointer">{axis} alto</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="pt-4 flex justify-end">
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? 'Salvando...' : existingResponse ? 'Atualizar Respostas' : 'Enviar Respostas'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   const renderEnrollmentCard = (e: any) => {
     const program = e.programs;
     const cls = e.program_classes;
-    const isLider360 = program?.slug === 'lider-360';
+    
     const programModules = program ? getModulesForProgram(program.id, cls?.id) : [];
     const unassignedMaterials = program ? getMaterialsWithoutModule(program.id) : [];
     const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
@@ -336,11 +212,6 @@ export default function MyDevelopment() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-xl font-bold">{program?.name || 'Programa'}</h2>
                   <Badge variant="outline" className="text-xs border-primary/40 text-primary">Matriculado</Badge>
-                  {isLider360 && existingResponse && (
-                    <Badge variant="secondary" className="text-xs gap-1">
-                      <CheckCircle className="w-3 h-3" /> Respondido
-                    </Badge>
-                  )}
                 </div>
                 {program?.description && (
                   <p className="text-sm text-muted-foreground max-w-xl">{program.description}</p>
@@ -652,10 +523,8 @@ export default function MyDevelopment() {
               </Collapsible>
             )}
 
-            {/* Líder 360 Questionnaire */}
-            {isLider360 && renderLider360Questionnaire()}
 
-            {!isLider360 && programModules.length === 0 && unassignedMaterials.length === 0 && (
+            {programModules.length === 0 && unassignedMaterials.length === 0 && (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground text-sm">
                   Nenhum material disponível para este programa ainda.
