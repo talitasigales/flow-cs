@@ -26,6 +26,8 @@ import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager'
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
 import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
+import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
