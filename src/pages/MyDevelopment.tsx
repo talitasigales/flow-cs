@@ -130,6 +130,19 @@ export default function MyDevelopment() {
 
   const moduleIds = allModules.map((m: any) => m.id);
 
+  // Fetch class_modules to know which modules are assigned to each class
+  const { data: allClassModules = [] } = useQuery({
+    queryKey: ['my-class-modules', classIds],
+    enabled: classIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('class_modules')
+        .select('class_id, module_id')
+        .in('class_id', classIds);
+      return data || [];
+    },
+  });
+
   const { data: allExercises = [] } = useQuery({
     queryKey: ['my-module-exercises', moduleIds],
     enabled: moduleIds.length > 0,
@@ -223,7 +236,20 @@ export default function MyDevelopment() {
     );
   }
 
-  const getModulesForProgram = (programId: string) => allModules.filter((m: any) => m.program_id === programId);
+  const getModulesForProgram = (programId: string, classId?: string) => {
+    const programModules = allModules.filter((m: any) => m.program_id === programId);
+    // If class has specific modules assigned, filter by them
+    if (classId) {
+      const classModuleIds = allClassModules
+        .filter((cm: any) => cm.class_id === classId)
+        .map((cm: any) => cm.module_id);
+      // If class_modules records exist for this class, filter; otherwise show all
+      if (classModuleIds.length > 0) {
+        return programModules.filter((m: any) => classModuleIds.includes(m.id));
+      }
+    }
+    return programModules;
+  };
   const getMaterialsForModule = (moduleId: string) => allMaterials.filter((m: any) => m.module_id === moduleId);
   const getMaterialsWithoutModule = (programId: string) => allMaterials.filter((m: any) => m.program_id === programId && !m.module_id);
 
@@ -287,7 +313,7 @@ export default function MyDevelopment() {
     const program = e.programs;
     const cls = e.program_classes;
     const isLider360 = program?.slug === 'lider-360';
-    const programModules = program ? getModulesForProgram(program.id) : [];
+    const programModules = program ? getModulesForProgram(program.id, cls?.id) : [];
     const unassignedMaterials = program ? getMaterialsWithoutModule(program.id) : [];
     const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
     const today = new Date().toISOString().split('T')[0];

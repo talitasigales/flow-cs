@@ -141,6 +141,42 @@ export type Database = {
           },
         ]
       }
+      class_modules: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          module_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          module_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          module_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_modules_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "program_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_schedules: {
         Row: {
           class_id: string

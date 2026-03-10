@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -69,6 +70,7 @@ export default function AdminPrograms() {
   const [classEndDate, setClassEndDate] = useState<Date>();
   const [classVideoUrl, setClassVideoUrl] = useState('');
   const [classSpecialist, setClassSpecialist] = useState('');
+  const [classModuleIds, setClassModuleIds] = useState<string[]>([]);
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
@@ -272,7 +274,7 @@ export default function AdminPrograms() {
 
   // --- Handlers ---
 
-  const openClassDialog = (cls?: any) => {
+  const openClassDialog = async (cls?: any) => {
     if (cls) {
       setEditingClass(cls);
       setClassName(cls.name);
@@ -280,6 +282,9 @@ export default function AdminPrograms() {
       setClassEndDate(cls.end_date ? new Date(cls.end_date + 'T12:00:00') : undefined);
       setClassVideoUrl(cls.video_conference_url || '');
       setClassSpecialist(cls.specialist || '');
+      // Load existing class modules
+      const { data: cm } = await (supabase as any).from('class_modules').select('module_id').eq('class_id', cls.id);
+      setClassModuleIds((cm || []).map((r: any) => r.module_id));
     } else {
       setEditingClass(null);
       setClassName('');
@@ -287,6 +292,8 @@ export default function AdminPrograms() {
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      // Default: select all modules
+      setClassModuleIds(modules.map((m: any) => m.id));
     }
     setClassDialogOpen(true);
   };
@@ -305,21 +312,34 @@ export default function AdminPrograms() {
         video_conference_url: classVideoUrl.trim() || null,
         specialist: classSpecialist || null,
       };
+      let classId: string;
       if (editingClass) {
         const { error } = await supabase.from('program_classes').update(payload).eq('id', editingClass.id);
         if (error) throw error;
+        classId = editingClass.id;
         toast.success('Turma atualizada com sucesso');
       } else {
         payload.program_id = selectedProgram;
-        const { error } = await supabase.from('program_classes').insert(payload);
+        const { data: newClass, error } = await supabase.from('program_classes').insert(payload).select('id').single();
         if (error) throw error;
+        classId = newClass.id;
         toast.success('Turma criada com sucesso');
       }
+
+      // Sync class_modules
+      await (supabase as any).from('class_modules').delete().eq('class_id', classId);
+      if (classModuleIds.length > 0) {
+        await (supabase as any).from('class_modules').insert(
+          classModuleIds.map(mid => ({ class_id: classId, module_id: mid }))
+        );
+      }
+
       setClassName('');
       setClassStartDate(undefined);
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      setClassModuleIds([]);
       setEditingClass(null);
       setClassDialogOpen(false);
       refetchClasses();
@@ -784,6 +804,43 @@ export default function AdminPrograms() {
             <Label>Link da Videoconferência (Zoom/Meet)</Label>
             <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
           </div>
+          {modules.length > 0 && (
+            <div className="space-y-2">
+              <Label>Módulos desta Turma</Label>
+              <div className="border rounded-lg p-3 space-y-2 max-h-[200px] overflow-y-auto">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">{classModuleIds.length} de {modules.length} selecionados</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-6 px-2"
+                    onClick={() => setClassModuleIds(
+                      classModuleIds.length === modules.length ? [] : modules.map((m: any) => m.id)
+                    )}
+                  >
+                    {classModuleIds.length === modules.length ? 'Desmarcar todos' : 'Selecionar todos'}
+                  </Button>
+                </div>
+                {modules.map((m: any) => (
+                  <div key={m.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`class-mod-${m.id}`}
+                      checked={classModuleIds.includes(m.id)}
+                      onCheckedChange={(checked) => {
+                        setClassModuleIds(prev =>
+                          checked ? [...prev, m.id] : prev.filter(id => id !== m.id)
+                        );
+                      }}
+                    />
+                    <label htmlFor={`class-mod-${m.id}`} className="text-sm cursor-pointer flex-1">
+                      {m.order_number != null ? `${m.order_number}. ` : ''}{m.title}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button onClick={handleSaveClass} disabled={savingClass}>
