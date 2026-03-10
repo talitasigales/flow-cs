@@ -1189,6 +1189,7 @@ export type Database = {
           order_number: number | null
           program_id: string
           title: string
+          video_urls: Json | null
         }
         Insert: {
           category?: string | null
@@ -1201,6 +1202,7 @@ export type Database = {
           order_number?: number | null
           program_id: string
           title: string
+          video_urls?: Json | null
         }
         Update: {
           category?: string | null
@@ -1213,6 +1215,7 @@ export type Database = {
           order_number?: number | null
           program_id?: string
           title?: string
+          video_urls?: Json | null
         }
         Relationships: [
           {
