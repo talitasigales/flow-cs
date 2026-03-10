@@ -2,9 +2,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen, ChevronRight, Play, X } from 'lucide-react';
+import { ExternalLink, FileText, FileIcon, Video, Download, ClipboardList, FolderOpen, ChevronRight, ChevronLeft, Play, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
   prework: { label: 'Pre-work', icon: ClipboardList },
@@ -24,21 +25,61 @@ function getYouTubeId(url: string) {
   return match ? match[1] : null;
 }
 
+function logMaterialAccess(materialId: string, materialTitle: string, action: string, extra?: Record<string, any>) {
+  supabase.rpc('log_user_action', {
+    _action: action,
+    _table_name: 'program_materials',
+    _record_id: materialId,
+    _new_data: { material_title: materialTitle, ...extra },
+  }).catch(() => {});
+}
+
 function MaterialItem({ m }: { m: any }) {
   const [open, setOpen] = useState(false);
-  const [activeVideo, setActiveVideo] = useState<{ ytId: string; title: string } | null>(null);
+  const [activeVideoIdx, setActiveVideoIdx] = useState<number | null>(null);
   const isVideo = m.file_type === 'video';
   const videoUrls: { url: string; title: string | null }[] =
     isVideo && m.video_urls && Array.isArray(m.video_urls) && m.video_urls.length > 0
       ? m.video_urls
       : isVideo && m.file_url ? [{ url: m.file_url, title: null }] : [];
 
-  const hasExpandableContent = videoUrls.length > 0;
+  // Pre-compute ytIds
+  const videos = videoUrls.map((vid, idx) => ({
+    ...vid,
+    ytId: getYouTubeId(vid.url),
+    displayTitle: vid.title || `Vídeo ${idx + 1}`,
+  })).filter(v => v.ytId);
+
+  const hasExpandableContent = videos.length > 0;
   const isLink = !isVideo && m.file_url;
+  const activeVideo = activeVideoIdx !== null ? videos[activeVideoIdx] : null;
+
+  const openVideo = useCallback((idx: number) => {
+    setActiveVideoIdx(idx);
+    const vid = videos[idx];
+    if (vid) {
+      logMaterialAccess(m.id, m.title, 'VIDEO_PLAY', {
+        video_title: vid.displayTitle,
+        video_index: idx + 1,
+        total_videos: videos.length,
+      });
+    }
+  }, [videos, m.id, m.title]);
+
+  const handleExpand = useCallback((isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen) {
+      logMaterialAccess(m.id, m.title, 'MATERIAL_EXPAND');
+    }
+  }, [m.id, m.title]);
+
+  const handleLinkClick = useCallback(() => {
+    logMaterialAccess(m.id, m.title, 'MATERIAL_DOWNLOAD', { file_type: m.file_type });
+  }, [m.id, m.title, m.file_type]);
 
   return (
     <>
-      <Collapsible open={open} onOpenChange={setOpen}>
+      <Collapsible open={open} onOpenChange={handleExpand}>
         <div className="rounded-lg border bg-muted/20 overflow-hidden">
           <CollapsibleTrigger className="w-full" disabled={!hasExpandableContent}>
             <div className={cn(
@@ -51,11 +92,11 @@ function MaterialItem({ m }: { m: any }) {
                 {m.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{m.description}</p>}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                {videoUrls.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">{videoUrls.length} {videoUrls.length === 1 ? 'vídeo' : 'vídeos'}</Badge>
+                {videos.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">{videos.length} {videos.length === 1 ? 'vídeo' : 'vídeos'}</Badge>
                 )}
                 {isLink && (
-                  <Button variant="ghost" size="sm" asChild className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="sm" asChild className="shrink-0" onClick={(e) => { e.stopPropagation(); handleLinkClick(); }}>
                     <a href={m.file_url} target="_blank" rel="noopener noreferrer">
                       {['pdf', 'doc', 'other'].includes(m.file_type) ? <Download className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
                     </a>
@@ -70,14 +111,12 @@ function MaterialItem({ m }: { m: any }) {
           {hasExpandableContent && (
             <CollapsibleContent>
               <div className="px-3 pb-3 space-y-2 border-t border-border/50 pt-3">
-                {videoUrls.map((vid: any, idx: number) => {
-                  const ytId = getYouTubeId(vid.url);
-                  if (!ytId) return null;
-                  const thumb = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+                {videos.map((vid, idx) => {
+                  const thumb = `https://img.youtube.com/vi/${vid.ytId}/mqdefault.jpg`;
                   return (
                     <button
                       key={idx}
-                      onClick={() => setActiveVideo({ ytId, title: vid.title || m.title })}
+                      onClick={() => openVideo(idx)}
                       className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 transition-colors text-left group"
                     >
                       <div className="relative flex-shrink-0 w-28 aspect-video rounded-md overflow-hidden border">
@@ -87,7 +126,7 @@ function MaterialItem({ m }: { m: any }) {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-tight">{vid.title || `Vídeo ${idx + 1}`}</p>
+                        <p className="text-sm font-medium leading-tight">{vid.displayTitle}</p>
                       </div>
                     </button>
                   );
@@ -98,24 +137,61 @@ function MaterialItem({ m }: { m: any }) {
         </div>
       </Collapsible>
 
-      {/* Fullscreen video dialog */}
-      <Dialog open={!!activeVideo} onOpenChange={(v) => !v && setActiveVideo(null)}>
+      {/* Fullscreen video dialog with navigation */}
+      <Dialog open={activeVideoIdx !== null} onOpenChange={(v) => !v && setActiveVideoIdx(null)}>
         <DialogContent className="max-w-5xl w-[95vw] p-0 bg-black border-none gap-0">
+          {/* Header */}
           <div className="flex items-center justify-between px-4 py-2 bg-background/80 backdrop-blur-sm">
-            <p className="text-sm font-medium truncate">{activeVideo?.title}</p>
-            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => setActiveVideo(null)}>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="text-sm font-medium truncate">{activeVideo?.displayTitle}</p>
+              {videos.length > 1 && (
+                <Badge variant="secondary" className="text-[10px] shrink-0">
+                  {(activeVideoIdx ?? 0) + 1} / {videos.length}
+                </Badge>
+              )}
+            </div>
+            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => setActiveVideoIdx(null)}>
               <X className="w-4 h-4" />
             </Button>
           </div>
+
+          {/* Video */}
           {activeVideo && (
-            <div className="aspect-video w-full">
+            <div className="relative aspect-video w-full">
               <iframe
+                key={activeVideo.ytId}
                 src={`https://www.youtube.com/embed/${activeVideo.ytId}?autoplay=1`}
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 allowFullScreen
-                title={activeVideo.title}
+                title={activeVideo.displayTitle}
               />
+
+              {/* Navigation arrows */}
+              {videos.length > 1 && (
+                <>
+                  {activeVideoIdx! > 0 && (
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/70 hover:bg-background/90 backdrop-blur-sm shadow-lg"
+                      onClick={() => openVideo(activeVideoIdx! - 1)}
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                  )}
+                  {activeVideoIdx! < videos.length - 1 && (
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/70 hover:bg-background/90 backdrop-blur-sm shadow-lg"
+                      onClick={() => openVideo(activeVideoIdx! + 1)}
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           )}
         </DialogContent>
