@@ -291,6 +291,7 @@ export default function MyDevelopment() {
     const unassignedMaterials = program ? getMaterialsWithoutModule(program.id) : [];
     const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
     const today = new Date().toISOString().split('T')[0];
+    const specialist = getSpecialist(cls?.specialist);
 
     // Find the current/next module based on schedule
     const currentSchedule = classSchedules.find((s: any) => s.schedule_date >= today);
@@ -301,7 +302,7 @@ export default function MyDevelopment() {
         <Card className="overflow-hidden border-primary/20">
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-xl font-bold">{program?.name || 'Programa'}</h2>
                   <Badge variant="outline" className="text-xs border-primary/40 text-primary">Matriculado</Badge>
@@ -328,12 +329,6 @@ export default function MyDevelopment() {
                        {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
                      </span>
                    )}
-                   {cls?.specialist && (
-                     <span className="flex items-center gap-1">
-                       <BookOpen className="w-3.5 h-3.5" />
-                       Especialista: <span className="font-medium text-foreground">{cls.specialist}</span>
-                     </span>
-                   )}
                  </div>
                  {cls?.video_conference_url && (
                    <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1">
@@ -341,6 +336,30 @@ export default function MyDevelopment() {
                      {cls.video_conference_url}
                    </a>
                  )}
+
+                {/* Specialist card */}
+                {specialist && (
+                  <div className="flex items-center gap-3 mt-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                    {specialist.avatar_url ? (
+                      <img src={specialist.avatar_url} alt={specialist.name} className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-primary/20" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <BookOpen className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Especialista</p>
+                      <p className="text-sm font-semibold">{specialist.name}</p>
+                      {specialist.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{specialist.bio}</p>}
+                    </div>
+                  </div>
+                )}
+                {cls?.specialist && !specialist && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    <BookOpen className="w-3.5 h-3.5 inline mr-1" />
+                    Especialista: <span className="font-medium text-foreground">{cls.specialist}</span>
+                  </p>
+                )}
               </div>
               {cls?.video_conference_url && (
                 <Button size="sm" asChild className="shrink-0 gap-2">
