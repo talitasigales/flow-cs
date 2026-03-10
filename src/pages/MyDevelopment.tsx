@@ -202,8 +202,11 @@ export default function MyDevelopment() {
   };
 
   const renderMaterialItem = (m: any) => {
-    const isVideo = m.file_type === 'video' && m.file_url;
-    const ytId = isVideo ? getYouTubeId(m.file_url) : null;
+    const isVideo = m.file_type === 'video';
+    const videoUrls: { url: string; title: string | null }[] = 
+      isVideo && m.video_urls && Array.isArray(m.video_urls) && m.video_urls.length > 0
+        ? m.video_urls
+        : isVideo && m.file_url ? [{ url: m.file_url, title: null }] : [];
 
     return (
       <div key={m.id} className="space-y-2">
@@ -212,10 +215,15 @@ export default function MyDevelopment() {
             {getFileIcon(m.file_type)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">{m.title}</p>
+            <p className="text-sm font-medium">
+              {m.title}
+              {videoUrls.length > 1 && (
+                <Badge variant="secondary" className="ml-2 text-xs">{videoUrls.length} vídeos</Badge>
+              )}
+            </p>
             {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
           </div>
-          {m.file_url && (
+          {m.file_url && !isVideo && (
             <Button variant="ghost" size="sm" asChild className="shrink-0">
               <a href={m.file_url} target="_blank" rel="noopener noreferrer">
                 {m.file_type === 'pdf' || m.file_type === 'doc' || m.file_type === 'other' ? (
@@ -227,15 +235,26 @@ export default function MyDevelopment() {
             </Button>
           )}
         </div>
-        {ytId && (
-          <div className="rounded-lg overflow-hidden border aspect-video">
-            <iframe
-              src={`https://www.youtube.com/embed/${ytId}`}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title={m.title}
-            />
+        {videoUrls.length > 0 && (
+          <div className="space-y-3">
+            {videoUrls.map((vid: any, idx: number) => {
+              const ytId = getYouTubeId(vid.url);
+              if (!ytId) return null;
+              return (
+                <div key={idx} className="space-y-1">
+                  {vid.title && <p className="text-xs font-medium text-muted-foreground">{vid.title}</p>}
+                  <div className="rounded-lg overflow-hidden border aspect-video">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${ytId}`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={vid.title || m.title}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
