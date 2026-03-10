@@ -184,7 +184,7 @@ export default function AdminPrograms() {
       const userIds = [...new Set(enrs.map(e => e.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email')
+        .select('user_id, full_name, email, last_access_at')
         .in('user_id', userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
       return enrs.map(e => ({ ...e, profiles: profileMap.get(e.user_id) || null }));
@@ -1380,14 +1380,15 @@ export default function AdminPrograms() {
                       <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>E-mail</TableHead>
-                        <TableHead>Turma</TableHead>
+                         <TableHead>Turma</TableHead>
                         <TableHead>Data de Matrícula</TableHead>
+                        <TableHead>Último Acesso</TableHead>
                         <TableHead className="w-[100px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {enrollments.length === 0 ? (
-                        <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhuma matrícula encontrada</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma matrícula encontrada</TableCell></TableRow>
                       ) : enrollments.map((e: any) => (
                         <TableRow key={e.id}>
                           <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
@@ -1413,8 +1414,14 @@ export default function AdminPrograms() {
                                 ))}
                               </SelectContent>
                             </Select>
-                          </TableCell>
+                           </TableCell>
                           <TableCell>{format(new Date(e.enrolled_at), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell>
+                            {e.profiles?.last_access_at 
+                              ? format(new Date(e.profiles.last_access_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+                              : <span className="text-muted-foreground text-xs">Nunca</span>
+                            }
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
                               <Trash2 className="w-4 h-4" />

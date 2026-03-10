@@ -47,6 +47,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Track last access
+      if (session?.user) {
+        supabase.from('profiles')
+          .update({ last_access_at: new Date().toISOString() })
+          .eq('user_id', session.user.id)
+          .then(() => {});
+      }
     });
 
     return () => subscription.unsubscribe();
