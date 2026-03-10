@@ -1388,7 +1388,7 @@ export default function AdminPrograms() {
                     </TableHeader>
                     <TableBody>
                       {enrollments.length === 0 ? (
-                        <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhuma matrícula encontrada</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma matrícula encontrada</TableCell></TableRow>
                       ) : enrollments.map((e: any) => (
                         <TableRow key={e.id}>
                           <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
