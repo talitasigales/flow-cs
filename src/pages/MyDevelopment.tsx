@@ -86,9 +86,10 @@ export default function MyDevelopment() {
   });
 
   const classIds = enrollments.map((e: any) => e.program_classes?.id).filter(Boolean);
+  const classIdsKey = classIds.sort().join(',');
 
   const { data: allSchedules = [] } = useQuery({
-    queryKey: ['my-class-schedules', classIds],
+    queryKey: ['my-class-schedules', classIdsKey],
     enabled: classIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
@@ -102,9 +103,10 @@ export default function MyDevelopment() {
   });
 
   const programIds = enrollments.map((e: any) => e.programs?.id).filter(Boolean);
+  const programIdsKey = programIds.sort().join(',');
 
   const { data: allMaterials = [] } = useQuery({
-    queryKey: ['my-program-materials', programIds],
+    queryKey: ['my-program-materials', programIdsKey],
     enabled: programIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
@@ -117,7 +119,7 @@ export default function MyDevelopment() {
   });
 
   const { data: allModules = [] } = useQuery({
-    queryKey: ['my-program-modules', programIds],
+    queryKey: ['my-program-modules', programIdsKey],
     enabled: programIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
@@ -130,10 +132,11 @@ export default function MyDevelopment() {
   });
 
   const moduleIds = allModules.map((m: any) => m.id);
+  const moduleIdsKey = moduleIds.sort().join(',');
 
   // Fetch class_modules to know which modules are assigned to each class
   const { data: allClassModules = [] } = useQuery({
-    queryKey: ['my-class-modules', classIds],
+    queryKey: ['my-class-modules', classIdsKey],
     enabled: classIds.length > 0,
     queryFn: async () => {
       const { data } = await (supabase as any)
@@ -145,7 +148,7 @@ export default function MyDevelopment() {
   });
 
   const { data: allExercises = [] } = useQuery({
-    queryKey: ['my-module-exercises', moduleIds],
+    queryKey: ['my-module-exercises', moduleIdsKey],
     enabled: moduleIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
