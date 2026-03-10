@@ -31,7 +31,7 @@ function logMaterialAccess(materialId: string, materialTitle: string, action: st
     _table_name: 'program_materials',
     _record_id: materialId,
     _new_data: { material_title: materialTitle, ...extra },
-  }).catch(() => {});
+  }).then(() => {}).catch?.(() => {});
 }
 
 function MaterialItem({ m }: { m: any }) {
