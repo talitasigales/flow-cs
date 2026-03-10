@@ -84,18 +84,20 @@ export function AppSidebar() {
   const { unreadCount: notifCount } = useNotifications();
   const { enrollments, isEnrolled } = useEnrolledPrograms();
   const [communityNotActivated, setCommunityNotActivated] = useState(false);
+  const [firstName, setFirstName] = useState('');
   const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from('profiles')
-      .select('community_visible')
+      .select('community_visible, full_name')
       .eq('user_id', user.id)
       .single()
       .then(({ data }) => {
-        if (data && !data.community_visible) {
-          setCommunityNotActivated(true);
+        if (data) {
+          if (!data.community_visible) setCommunityNotActivated(true);
+          if (data.full_name) setFirstName(data.full_name.split(' ')[0]);
         }
       });
   }, [user]);
@@ -230,7 +232,7 @@ export function AppSidebar() {
             <img src={groLogo} alt="Grou Logo" className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <h2 className="text-lg font-bold gradient-text whitespace-nowrap">CS da Grou</h2>
+            <h2 className="text-lg font-bold gradient-text whitespace-nowrap">{firstName ? `Bem-vindo, ${firstName}` : 'Bem-vindo'}</h2>
             <p className="text-xs text-muted-foreground">Plataforma de Sucesso do Cliente</p>
           </div>
         </div>
