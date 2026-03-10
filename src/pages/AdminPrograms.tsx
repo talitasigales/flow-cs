@@ -22,11 +22,12 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight } from 'lucide-react';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
 import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { JourneyTimeline } from '@/components/academy/JourneyTimeline';
 import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
@@ -1030,7 +1031,6 @@ export default function AdminPrograms() {
               <TabsTrigger value="schedule" className="gap-1.5"><Clock className="w-4 h-4" /> Cronograma</TabsTrigger>
               <TabsTrigger value="modules" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos ({modules.length})</TabsTrigger>
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
-              <TabsTrigger value="import" className="gap-1.5"><Upload className="w-4 h-4" /> Importar</TabsTrigger>
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length + exerciseResponses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
               <TabsTrigger value="student-view" className="gap-1.5"><Eye className="w-4 h-4" /> Visão do Aluno</TabsTrigger>
@@ -1311,6 +1311,54 @@ export default function AdminPrograms() {
                 </CardContent>
               </Card>
 
+              {/* Import in bulk - collapsible */}
+              <Collapsible>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full">
+                      <div className="text-left">
+                        <CardTitle className="text-base flex items-center gap-2"><Upload className="w-4 h-4" /> Importar Matrículas em Massa</CardTitle>
+                        <CardDescription className="mt-1">Importe alunos via planilha ou cole e-mails</CardDescription>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-90" />
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-4 pt-0">
+                      <div className="space-y-2">
+                        <Label>Turma (opcional)</Label>
+                        <Select value={importClassId} onValueChange={setImportClassId}>
+                          <SelectTrigger className="w-[300px]">
+                            <SelectValue placeholder="Sem turma específica" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sem turma específica</SelectItem>
+                            {classes.map((c: any) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Importar de planilha (.xlsx, .xls, .csv)</Label>
+                        <div className="flex items-center gap-3">
+                          <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="max-w-sm" />
+                          <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
+                        <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com" className="min-h-[150px] font-mono text-sm" />
+                      </div>
+                      <Button onClick={handleImport} disabled={importing || !csvText.trim()}>
+                        {importing ? 'Importando...' : 'Importar Matrículas'}
+                      </Button>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+
+              {/* Filter + list */}
               <div className="flex items-center gap-3">
                 <Label className="text-sm">Filtrar por turma:</Label>
                 <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
@@ -1334,7 +1382,7 @@ export default function AdminPrograms() {
                         <TableHead>E-mail</TableHead>
                         <TableHead>Turma</TableHead>
                         <TableHead>Data de Matrícula</TableHead>
-                        <TableHead className="w-[80px]"></TableHead>
+                        <TableHead className="w-[100px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1344,7 +1392,28 @@ export default function AdminPrograms() {
                         <TableRow key={e.id}>
                           <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
                           <TableCell>{e.profiles?.email || '—'}</TableCell>
-                          <TableCell><Badge variant="secondary">{getClassName(e.class_id)}</Badge></TableCell>
+                          <TableCell>
+                            <Select
+                              value={e.class_id || 'none'}
+                              onValueChange={async (val) => {
+                                const newClassId = val === 'none' ? null : val;
+                                const { error } = await supabase.from('program_enrollments').update({ class_id: newClassId }).eq('id', e.id);
+                                if (error) { toast.error('Erro ao atualizar turma'); return; }
+                                toast.success('Turma atualizada');
+                                refetchEnrollments();
+                              }}
+                            >
+                              <SelectTrigger className="w-[180px] h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Sem turma</SelectItem>
+                                {classes.map((c: any) => (
+                                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                           <TableCell>{format(new Date(e.enrolled_at), 'dd/MM/yyyy')}</TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
@@ -1355,58 +1424,6 @@ export default function AdminPrograms() {
                       ))}
                     </TableBody>
                   </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* IMPORTAR TAB */}
-            <TabsContent value="import" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Importar Matrículas em Massa</CardTitle>
-                  <CardDescription>Importe alunos via planilha (Excel, Google Sheets exportado como .xlsx/.csv) ou cole os e-mails diretamente</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Turma (opcional)</Label>
-                    <Select value={importClassId} onValueChange={setImportClassId}>
-                      <SelectTrigger className="w-[300px]">
-                        <SelectValue placeholder="Sem turma específica" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Sem turma específica</SelectItem>
-                        {classes.map((c: any) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Importar de planilha (.xlsx, .xls, .csv)</Label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        onChange={handleFileUpload}
-                        className="max-w-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
-                    <Textarea
-                      value={csvText}
-                      onChange={e => setCsvText(e.target.value)}
-                      placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com"
-                      className="min-h-[200px] font-mono text-sm"
-                    />
-                  </div>
-                  <Button onClick={handleImport} disabled={importing || !csvText.trim()}>
-                    {importing ? 'Importando...' : 'Importar Matrículas'}
-                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
