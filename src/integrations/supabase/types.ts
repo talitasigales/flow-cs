@@ -1308,6 +1308,79 @@ export type Database = {
           },
         ]
       }
+      program_welcome_dismissed: {
+        Row: {
+          dismissed_at: string
+          id: string
+          program_id: string
+          user_id: string
+        }
+        Insert: {
+          dismissed_at?: string
+          id?: string
+          program_id: string
+          user_id: string
+        }
+        Update: {
+          dismissed_at?: string
+          id?: string
+          program_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_welcome_dismissed_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_welcome_messages: {
+        Row: {
+          active: boolean
+          content: string | null
+          created_at: string
+          id: string
+          message_type: string
+          program_id: string
+          title: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          active?: boolean
+          content?: string | null
+          created_at?: string
+          id?: string
+          message_type?: string
+          program_id: string
+          title?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          active?: boolean
+          content?: string | null
+          created_at?: string
+          id?: string
+          message_type?: string
+          program_id?: string
+          title?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_welcome_messages_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: true
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           active: boolean
