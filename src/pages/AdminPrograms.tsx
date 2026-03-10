@@ -803,6 +803,43 @@ export default function AdminPrograms() {
             <Label>Link da Videoconferência (Zoom/Meet)</Label>
             <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
           </div>
+          {modules.length > 0 && (
+            <div className="space-y-2">
+              <Label>Módulos desta Turma</Label>
+              <div className="border rounded-lg p-3 space-y-2 max-h-[200px] overflow-y-auto">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">{classModuleIds.length} de {modules.length} selecionados</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-6 px-2"
+                    onClick={() => setClassModuleIds(
+                      classModuleIds.length === modules.length ? [] : modules.map((m: any) => m.id)
+                    )}
+                  >
+                    {classModuleIds.length === modules.length ? 'Desmarcar todos' : 'Selecionar todos'}
+                  </Button>
+                </div>
+                {modules.map((m: any) => (
+                  <div key={m.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`class-mod-${m.id}`}
+                      checked={classModuleIds.includes(m.id)}
+                      onCheckedChange={(checked) => {
+                        setClassModuleIds(prev =>
+                          checked ? [...prev, m.id] : prev.filter(id => id !== m.id)
+                        );
+                      }}
+                    />
+                    <label htmlFor={`class-mod-${m.id}`} className="text-sm cursor-pointer flex-1">
+                      {m.order_number != null ? `${m.order_number}. ` : ''}{m.title}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button onClick={handleSaveClass} disabled={savingClass}>
