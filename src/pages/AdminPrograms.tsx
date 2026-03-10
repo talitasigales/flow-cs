@@ -113,6 +113,7 @@ export default function AdminPrograms() {
   const [scheduleEndTime, setScheduleEndTime] = useState('');
   const [scheduleModuleId, setScheduleModuleId] = useState('');
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [scheduleClassFilter, setScheduleClassFilter] = useState('all');
 
   // Specialists management state
   const [specialistDialogOpen, setSpecialistDialogOpen] = useState(false);
@@ -1101,71 +1102,105 @@ export default function AdminPrograms() {
             {/* CRONOGRAMA TAB */}
             <TabsContent value="schedule" className="mt-4 space-y-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-3">
                   <div>
                     <CardTitle className="text-lg">Cronograma da Turma</CardTitle>
                     <CardDescription>Defina as datas e horários de cada etapa/módulo por turma</CardDescription>
                   </div>
-                  <Button size="sm" className="gap-1.5" onClick={() => openScheduleDialog()}>
-                    <Plus className="w-4 h-4" /> Nova Etapa
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {classes.length > 0 && (
+                      <Select value={scheduleClassFilter} onValueChange={setScheduleClassFilter}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Filtrar por turma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as turmas</SelectItem>
+                          {classes.map((c: any) => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button size="sm" className="gap-1.5" onClick={() => {
+                      if (scheduleClassFilter !== 'all') {
+                        setScheduleClassId(scheduleClassFilter);
+                      }
+                      openScheduleDialog();
+                    }}>
+                      <Plus className="w-4 h-4" /> Nova Etapa
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {classes.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">Crie uma turma primeiro para definir o cronograma.</p>
-                  ) : (
-                    <div className="space-y-6">
-                      {classes.map((c: any) => {
-                        const classSchedules = schedules.filter((s: any) => s.class_id === c.id);
-                        if (classSchedules.length === 0) return null;
-                        return (
-                          <div key={c.id} className="space-y-3">
-                            <h3 className="font-semibold text-sm flex items-center gap-2">
-                              <GraduationCap className="w-4 h-4 text-primary" />
-                              {c.name}
-                              {c.specialist && <Badge variant="secondary" className="text-xs">{c.specialist}</Badge>}
-                            </h3>
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Data</TableHead>
-                                  <TableHead>Horário</TableHead>
-                                  <TableHead>Etapa</TableHead>
-                                  <TableHead className="w-[100px]"></TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {classSchedules.map((s: any) => (
-                                  <TableRow key={s.id}>
-                                    <TableCell>{format(new Date(s.schedule_date + 'T12:00:00'), 'dd/MM/yyyy')}</TableCell>
-                                    <TableCell>
-                                      {s.start_time && s.end_time
-                                        ? `${s.start_time.slice(0, 5)} às ${s.end_time.slice(0, 5)}`
-                                        : s.start_time ? s.start_time.slice(0, 5) : '—'}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{s.title}</TableCell>
-                                    <TableCell>
-                                      <div className="flex gap-1">
-                                        <Button variant="ghost" size="icon" onClick={() => openScheduleDialog(s)}>
-                                          <Pencil className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteSchedule(s.id)} className="text-destructive hover:text-destructive">
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        );
-                      })}
-                      {schedules.length === 0 && (
-                        <p className="text-center text-muted-foreground py-8">Nenhuma etapa cadastrada. Clique em "Nova Etapa" para começar.</p>
-                      )}
-                    </div>
-                  )}
+                  ) : (() => {
+                    const filteredClasses = scheduleClassFilter === 'all'
+                      ? classes
+                      : classes.filter((c: any) => c.id === scheduleClassFilter);
+
+                    const hasAnySchedule = filteredClasses.some((c: any) =>
+                      schedules.some((s: any) => s.class_id === c.id)
+                    );
+
+                    return (
+                      <div className="space-y-6">
+                        {filteredClasses.map((c: any) => {
+                          const classSchedules = schedules.filter((s: any) => s.class_id === c.id);
+                          if (classSchedules.length === 0 && scheduleClassFilter === 'all') return null;
+                          return (
+                            <div key={c.id} className="space-y-3">
+                              <h3 className="font-semibold text-sm flex items-center gap-2">
+                                <GraduationCap className="w-4 h-4 text-primary" />
+                                {c.name}
+                                {c.specialist && <Badge variant="secondary" className="text-xs">{c.specialist}</Badge>}
+                              </h3>
+                              {classSchedules.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-4 text-sm">Nenhuma etapa cadastrada para esta turma.</p>
+                              ) : (
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Data</TableHead>
+                                      <TableHead>Horário</TableHead>
+                                      <TableHead>Etapa</TableHead>
+                                      <TableHead className="w-[100px]"></TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {classSchedules.map((s: any) => (
+                                      <TableRow key={s.id}>
+                                        <TableCell>{format(new Date(s.schedule_date + 'T12:00:00'), 'dd/MM/yyyy')}</TableCell>
+                                        <TableCell>
+                                          {s.start_time && s.end_time
+                                            ? `${s.start_time.slice(0, 5)} às ${s.end_time.slice(0, 5)}`
+                                            : s.start_time ? s.start_time.slice(0, 5) : '—'}
+                                        </TableCell>
+                                        <TableCell className="font-medium">{s.title}</TableCell>
+                                        <TableCell>
+                                          <div className="flex gap-1">
+                                            <Button variant="ghost" size="icon" onClick={() => openScheduleDialog(s)}>
+                                              <Pencil className="w-4 h-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteSchedule(s.id)} className="text-destructive hover:text-destructive">
+                                              <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                          </div>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {!hasAnySchedule && scheduleClassFilter === 'all' && (
+                          <p className="text-center text-muted-foreground py-8">Nenhuma etapa cadastrada. Clique em "Nova Etapa" para começar.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
               {renderScheduleDialog()}
