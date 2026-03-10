@@ -51,8 +51,6 @@ export default function MyDevelopment() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [pdaAxes, setPdaAxes] = useState<Record<string, string>>({});
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [exerciseModuleId, setExerciseModuleId] = useState<string | null>(null);
   const [contentTab, setContentTab] = useState<string>('modulos');
