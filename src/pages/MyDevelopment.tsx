@@ -400,6 +400,11 @@ export default function MyDevelopment() {
           </div>
         </Card>
 
+        {/* PDA Report Upload */}
+        {program?.id && (
+          <PdaReportUpload programId={program.id} programName={program.name} />
+        )}
+
         {/* Two-column layout: Journey + Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Journey Timeline */}
