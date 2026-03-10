@@ -425,9 +425,7 @@ export default function MyDevelopment() {
                             <ExerciseRenderer moduleId={mod.id} />
                             <FeatureLinkCards moduleId={mod.id} />
 
-                            {moduleMaterials.length === 0 && (
-                              <p className="text-xs text-muted-foreground text-center py-3">Nenhum material disponível neste módulo ainda.</p>
-                            )}
+                            <ModuleEmptyState moduleId={mod.id} hasMaterials={moduleMaterials.length > 0} />
 
                             <div className="flex justify-end pt-1">
                               <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={() => {
