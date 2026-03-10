@@ -1060,10 +1060,32 @@ export default function AdminPrograms() {
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>URL do arquivo / link</Label>
-                    <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
-                  </div>
+                  {materialFileType === 'link' || materialFileType === 'video' ? (
+                    <div className="space-y-2">
+                      <Label>{materialFileType === 'video' ? 'URL do Vídeo (YouTube, Vimeo, etc.)' : 'URL do arquivo / link'}</Label>
+                      <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder={materialFileType === 'video' ? 'https://youtube.com/watch?v=...' : 'https://...'} />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>Fazer upload de arquivo</Label>
+                        <Input
+                          type="file"
+                          accept={materialFileType === 'pdf' ? '.pdf' : '*'}
+                          onChange={e => setMaterialFile(e.target.files?.[0] || null)}
+                        />
+                        {materialFile && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <FileUp className="w-3 h-3" /> {materialFile.name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-muted-foreground text-xs">Ou informe uma URL externa</Label>
+                        <Input value={materialFileUrl} onChange={e => setMaterialFileUrl(e.target.value)} placeholder="https://..." />
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>Descrição (opcional)</Label>
                     <Textarea value={materialDescription} onChange={e => setMaterialDescription(e.target.value)} placeholder="Breve descrição do material..." className="min-h-[80px]" />
