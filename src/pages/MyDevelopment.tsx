@@ -236,7 +236,20 @@ export default function MyDevelopment() {
     );
   }
 
-  const getModulesForProgram = (programId: string) => allModules.filter((m: any) => m.program_id === programId);
+  const getModulesForProgram = (programId: string, classId?: string) => {
+    const programModules = allModules.filter((m: any) => m.program_id === programId);
+    // If class has specific modules assigned, filter by them
+    if (classId) {
+      const classModuleIds = allClassModules
+        .filter((cm: any) => cm.class_id === classId)
+        .map((cm: any) => cm.module_id);
+      // If class_modules records exist for this class, filter; otherwise show all
+      if (classModuleIds.length > 0) {
+        return programModules.filter((m: any) => classModuleIds.includes(m.id));
+      }
+    }
+    return programModules;
+  };
   const getMaterialsForModule = (moduleId: string) => allMaterials.filter((m: any) => m.module_id === moduleId);
   const getMaterialsWithoutModule = (programId: string) => allMaterials.filter((m: any) => m.program_id === programId && !m.module_id);
 
