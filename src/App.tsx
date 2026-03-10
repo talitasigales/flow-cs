@@ -71,7 +71,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/programas/calendario" element={<ProgramCalendar />} />
           <Route path="/programas/meu-desenvolvimento" element={<MyDevelopment />} />
-          <Route path="/programas/lider-360" element={<ProgramLider360 />} />
+          
           <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
           
