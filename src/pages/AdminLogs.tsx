@@ -199,9 +199,11 @@ const AdminLogs = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="INSERT">Criado</SelectItem>
-                    <SelectItem value="UPDATE">Atualizado</SelectItem>
-                    <SelectItem value="DELETE">Deletado</SelectItem>
+                     <SelectItem value="INSERT">Criado</SelectItem>
+                     <SelectItem value="UPDATE">Atualizado</SelectItem>
+                     <SelectItem value="DELETE">Deletado</SelectItem>
+                     <SelectItem value="MODULE_ACCESS">Acessou Módulo</SelectItem>
+                     <SelectItem value="MODULE_COMPLETED">Concluiu Módulo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
