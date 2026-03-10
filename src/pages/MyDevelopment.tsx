@@ -563,7 +563,6 @@ export default function MyDevelopment() {
                 </TabsContent>
               </Tabs>
             )}
-            )}
 
             {/* General materials - collapsible */}
             {unassignedMaterials.length > 0 && (
