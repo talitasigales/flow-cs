@@ -652,8 +652,6 @@ export default function MyDevelopment() {
               </Collapsible>
             )}
 
-            {/* Líder 360 Questionnaire */}
-            {isLider360 && renderLider360Questionnaire()}
 
             {!isLider360 && programModules.length === 0 && unassignedMaterials.length === 0 && (
               <Card>
