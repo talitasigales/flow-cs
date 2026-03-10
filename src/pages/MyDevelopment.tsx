@@ -130,6 +130,19 @@ export default function MyDevelopment() {
 
   const moduleIds = allModules.map((m: any) => m.id);
 
+  // Fetch class_modules to know which modules are assigned to each class
+  const { data: allClassModules = [] } = useQuery({
+    queryKey: ['my-class-modules', classIds],
+    enabled: classIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('class_modules')
+        .select('class_id, module_id')
+        .in('class_id', classIds);
+      return data || [];
+    },
+  });
+
   const { data: allExercises = [] } = useQuery({
     queryKey: ['my-module-exercises', moduleIds],
     enabled: moduleIds.length > 0,
