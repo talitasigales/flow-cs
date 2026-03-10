@@ -76,6 +76,7 @@ export default function AdminPrograms() {
   const [materialModuleId, setMaterialModuleId] = useState('');
   const [materialCategory, setMaterialCategory] = useState('material');
   const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [materialVideoEntries, setMaterialVideoEntries] = useState<{url: string; title: string}[]>([{ url: '', title: '' }]);
   const [savingMaterial, setSavingMaterial] = useState(false);
 
   // Modules state
