@@ -104,6 +104,14 @@ export default function AdminPrograms() {
   const [scheduleModuleId, setScheduleModuleId] = useState('');
   const [savingSchedule, setSavingSchedule] = useState(false);
 
+  // Specialists management state
+  const [specialistDialogOpen, setSpecialistDialogOpen] = useState(false);
+  const [editingSpecialist, setEditingSpecialist] = useState<any>(null);
+  const [specialistName, setSpecialistName] = useState('');
+  const [specialistBio, setSpecialistBio] = useState('');
+  const [specialistAvatarUrl, setSpecialistAvatarUrl] = useState('');
+  const [savingSpecialist, setSavingSpecialist] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
   }, [authLoading, adminLoading, user, isAdmin, navigate]);
