@@ -225,7 +225,7 @@ export default function ProgramLider360() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold gradient-text">Líder 360</h1>
-            <p className="text-muted-foreground text-sm">Workshop de Autogestão — Questionário de Autoconhecimento</p>
+            <p className="text-muted-foreground text-sm">Workshop de Autogestão</p>
           </div>
           {existingResponse && (
             <Badge variant="outline" className="gap-1 text-primary border-primary/30">
