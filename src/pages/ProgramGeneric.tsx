@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarDays, BookOpen, Layers, ExternalLink, FileText, FileIcon, ClipboardList, FolderOpen } from 'lucide-react';
 import { useEffect } from 'react';
+import { ProgramWelcomePopup } from '@/components/ProgramWelcomePopup';
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: any }> = {
   prework: { label: 'Pre-work', icon: ClipboardList },
@@ -151,6 +152,7 @@ export default function ProgramGeneric() {
 
   return (
     <AppLayout>
+      <ProgramWelcomePopup programId={program.id} />
       <div className="space-y-6 max-w-4xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold gradient-text">{program.name}</h1>

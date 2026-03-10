@@ -17,6 +17,7 @@ import { ptBR } from 'date-fns/locale';
 import { CheckCircle, CalendarDays, ExternalLink, MapPin, Clock, BookOpen, Layers, FileText, FileIcon, ClipboardList, FolderOpen } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
+import { ProgramWelcomePopup } from '@/components/ProgramWelcomePopup';
 
 const QUESTIONS = [
   { id: 'q1', label: '1. Como você descreveria seu estilo de gestão?' },
@@ -221,6 +222,7 @@ export default function ProgramLider360() {
 
   return (
     <AppLayout>
+      {program?.id && <ProgramWelcomePopup programId={program.id} />}
       <div className="space-y-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <div>
