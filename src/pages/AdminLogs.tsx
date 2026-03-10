@@ -421,7 +421,7 @@ const AdminLogs = () => {
                         <TableCell>{log.user_name}</TableCell>
                         <TableCell>{getActionBadge(log.action)}</TableCell>
                         <TableCell>{getResourceName(log.table_name)}</TableCell>
-                        <TableCell className="text-sm max-w-xs truncate">
+                        <TableCell className="text-sm max-w-md">
                           {getLogDetails(log)}
                         </TableCell>
                       </TableRow>
