@@ -524,7 +524,7 @@ export default function MyDevelopment() {
             )}
 
 
-            {!isLider360 && programModules.length === 0 && unassignedMaterials.length === 0 && (
+            {programModules.length === 0 && unassignedMaterials.length === 0 && (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground text-sm">
                   Nenhum material disponível para este programa ainda.
