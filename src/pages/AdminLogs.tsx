@@ -372,6 +372,9 @@ const AdminLogs = () => {
                      <SelectItem value="DELETE">Deletado</SelectItem>
                      <SelectItem value="MODULE_ACCESS">Acessou Módulo</SelectItem>
                      <SelectItem value="MODULE_COMPLETED">Concluiu Módulo</SelectItem>
+                     <SelectItem value="VIDEO_PLAY">Assistiu Vídeo</SelectItem>
+                     <SelectItem value="MATERIAL_EXPAND">Abriu Material</SelectItem>
+                     <SelectItem value="MATERIAL_DOWNLOAD">Baixou Material</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
