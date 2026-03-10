@@ -19,7 +19,7 @@ export function AppLayout({ children, className = '' }: AppLayoutProps) {
             <SidebarTrigger className="-ml-1">
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
-            <span className="text-sm font-semibold gradient-text ml-3">CS da Grou</span>
+            <span className="text-sm font-semibold gradient-text ml-3">Plataforma de Sucesso do Cliente</span>
           </header>
           {/* User avatar fixed top-right */}
           <div className="fixed top-3 right-4 z-50">

@@ -232,7 +232,7 @@ export function AppSidebar() {
             <img src={groLogo} alt="Grou Logo" className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300" />
           </div>
           <div className="flex-1 overflow-hidden">
-            <h2 className="text-lg font-bold gradient-text whitespace-nowrap">CS da Grou</h2>
+            <h2 className="text-lg font-bold gradient-text whitespace-nowrap">{firstName ? `Bem-vindo, ${firstName}` : 'Bem-vindo'}</h2>
             <p className="text-xs text-muted-foreground">Plataforma de Sucesso do Cliente</p>
           </div>
         </div>
