@@ -119,7 +119,7 @@ export default function MyDevelopment() {
   });
 
   const { data: allModules = [] } = useQuery({
-    queryKey: ['my-program-modules', programIds],
+    queryKey: ['my-program-modules', programIdsKey],
     enabled: programIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
@@ -132,10 +132,11 @@ export default function MyDevelopment() {
   });
 
   const moduleIds = allModules.map((m: any) => m.id);
+  const moduleIdsKey = moduleIds.sort().join(',');
 
   // Fetch class_modules to know which modules are assigned to each class
   const { data: allClassModules = [] } = useQuery({
-    queryKey: ['my-class-modules', classIds],
+    queryKey: ['my-class-modules', classIdsKey],
     enabled: classIds.length > 0,
     queryFn: async () => {
       const { data } = await (supabase as any)
