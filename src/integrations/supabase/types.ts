@@ -308,6 +308,41 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_responses: {
+        Row: {
+          answers: Json
+          exercise_id: string
+          id: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          exercise_id: string
+          id?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          exercise_id?: string
+          id?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_responses_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "module_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_base: {
         Row: {
           category: string
@@ -370,6 +405,88 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      module_exercises: {
+        Row: {
+          created_at: string
+          description: string | null
+          exercise_type: string
+          id: string
+          module_id: string
+          order_number: number | null
+          questions: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          exercise_type?: string
+          id?: string
+          module_id: string
+          order_number?: number | null
+          questions?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          exercise_type?: string
+          id?: string
+          module_id?: string
+          order_number?: number | null
+          questions?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_exercises_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "program_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_feature_links: {
+        Row: {
+          created_at: string
+          description: string | null
+          feature_key: string
+          id: string
+          label: string | null
+          module_id: string
+          order_number: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          feature_key: string
+          id?: string
+          label?: string | null
+          module_id: string
+          order_number?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          feature_key?: string
+          id?: string
+          label?: string | null
+          module_id?: string
+          order_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_feature_links_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "program_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       module_materials: {
         Row: {
