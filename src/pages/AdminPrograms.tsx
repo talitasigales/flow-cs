@@ -389,7 +389,7 @@ export default function AdminPrograms() {
     try {
       const { error } = await supabase.from('class_schedules').insert({
         class_id: scheduleClassId,
-        module_id: scheduleModuleId || null,
+        module_id: scheduleModuleId && scheduleModuleId !== 'none' ? scheduleModuleId : null,
         title: scheduleTitle.trim(),
         schedule_date: format(scheduleDate, 'yyyy-MM-dd'),
         start_time: scheduleStartTime || null,
