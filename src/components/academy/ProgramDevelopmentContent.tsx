@@ -19,6 +19,7 @@ import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
   const { data: exercises = [] } = useQuery({
