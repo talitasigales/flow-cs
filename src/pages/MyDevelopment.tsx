@@ -379,6 +379,9 @@ export default function MyDevelopment() {
                               {cls.end_date && ` — ${format(new Date(cls.end_date + 'T12:00:00'), "dd/MM/yyyy")}`}
                             </span>
                           )}
+                          {cls?.specialist && (
+                            <Badge variant="secondary" className="text-xs">Especialista: {cls.specialist}</Badge>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -387,6 +390,17 @@ export default function MyDevelopment() {
                   <AccordionContent className="px-5 pb-5">
                     {program?.description && (
                       <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
+                    )}
+
+                    {cls?.video_conference_url && (
+                      <div className="mb-4">
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="gap-2">
+                            <ExternalLink className="w-4 h-4" />
+                            Link da Videoconferência
+                          </a>
+                        </Button>
+                      </div>
                     )}
 
                     {/* Journey Cards */}
