@@ -646,9 +646,9 @@ export default function AdminPrograms() {
                 <SelectValue placeholder="Selecione a especialista" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Júlia">Júlia</SelectItem>
-                <SelectItem value="Luciana">Luciana</SelectItem>
-                <SelectItem value="Silvia">Silvia</SelectItem>
+                <SelectItem value="Silvia Kirsten">Silvia Kirsten</SelectItem>
+                <SelectItem value="Julia Ferreira">Julia Ferreira</SelectItem>
+                <SelectItem value="Luciana Masiero">Luciana Masiero</SelectItem>
               </SelectContent>
             </Select>
           </div>
