@@ -81,6 +81,16 @@ export default function AdminPrograms() {
   const [moduleOrder, setModuleOrder] = useState(0);
   const [savingModule, setSavingModule] = useState(false);
 
+  // Schedule state
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleClassId, setScheduleClassId] = useState('');
+  const [scheduleTitle, setScheduleTitle] = useState('');
+  const [scheduleDate, setScheduleDate] = useState<Date>();
+  const [scheduleStartTime, setScheduleStartTime] = useState('');
+  const [scheduleEndTime, setScheduleEndTime] = useState('');
+  const [scheduleModuleId, setScheduleModuleId] = useState('');
+  const [savingSchedule, setSavingSchedule] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
   }, [authLoading, adminLoading, user, isAdmin, navigate]);
