@@ -92,9 +92,10 @@ serve(async (req) => {
     let existingAuthUser = null;
     
     // Try to create the user first - if it fails with email_exists, look them up
+    const tempPassword = crypto.randomUUID();
     const { data: newUserAttempt, error: createAttemptError } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
-      password: crypto.randomUUID(),
+      password: tempPassword,
       email_confirm: true,
       user_metadata: { invited_by: user.email },
     });
