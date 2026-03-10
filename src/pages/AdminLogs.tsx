@@ -376,15 +376,8 @@ const AdminLogs = () => {
                         <TableCell>{log.user_name}</TableCell>
                         <TableCell>{getActionBadge(log.action)}</TableCell>
                         <TableCell>{getResourceName(log.table_name)}</TableCell>
-                        <TableCell className="text-sm">
-                          {(log.action === 'MODULE_ACCESS' || log.action === 'MODULE_COMPLETED') && log.new_data ? (
-                            <span>
-                              <span className="font-medium">{log.new_data.module_title}</span>
-                              {log.new_data.program_name && <span className="text-muted-foreground"> — {log.new_data.program_name}</span>}
-                            </span>
-                          ) : log.record_id ? (
-                            <span className="font-mono text-xs text-muted-foreground">{log.record_id.substring(0, 8)}...</span>
-                          ) : '-'}
+                        <TableCell className="text-sm max-w-xs truncate">
+                          {getLogDetails(log)}
                         </TableCell>
                       </TableRow>
                     ))
