@@ -542,7 +542,7 @@ export default function MyDevelopment() {
 
   return (
     <AppLayout>
-      <div className="space-y-8 max-w-6xl mx-auto">
+      <div className="space-y-6 max-w-6xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold gradient-text">Meu Desenvolvimento</h1>
           <p className="text-muted-foreground text-sm">Acompanhe sua jornada de aprendizagem e acesse os materiais dos seus programas</p>
@@ -557,9 +557,40 @@ export default function MyDevelopment() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
-            {enrollments.map((e: any) => renderEnrollmentCard(e))}
-          </div>
+          <>
+            {/* Program selector when multiple enrollments */}
+            {enrollments.length > 1 && (
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">Programa:</label>
+                <Select
+                  value={selectedEnrollmentId || enrollments[0]?.id || ''}
+                  onValueChange={(val) => {
+                    setSelectedEnrollmentId(val);
+                    setActiveModule(null);
+                    setContentTab('modulos');
+                  }}
+                >
+                  <SelectTrigger className="max-w-md">
+                    <SelectValue placeholder="Selecione um programa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {enrollments.map((e: any) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.programs?.name || 'Programa'}{e.program_classes?.name ? ` — ${e.program_classes.name}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Render only the selected enrollment */}
+            {(() => {
+              const currentId = selectedEnrollmentId || enrollments[0]?.id;
+              const selected = enrollments.find((e: any) => e.id === currentId) || enrollments[0];
+              return selected ? renderEnrollmentCard(selected) : null;
+            })()}
+          </>
         )}
       </div>
     </AppLayout>
