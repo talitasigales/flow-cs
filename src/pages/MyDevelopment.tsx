@@ -212,11 +212,6 @@ export default function MyDevelopment() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-xl font-bold">{program?.name || 'Programa'}</h2>
                   <Badge variant="outline" className="text-xs border-primary/40 text-primary">Matriculado</Badge>
-                  {isLider360 && existingResponse && (
-                    <Badge variant="secondary" className="text-xs gap-1">
-                      <CheckCircle className="w-3 h-3" /> Respondido
-                    </Badge>
-                  )}
                 </div>
                 {program?.description && (
                   <p className="text-sm text-muted-foreground max-w-xl">{program.description}</p>
