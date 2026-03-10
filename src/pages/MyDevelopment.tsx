@@ -128,6 +128,23 @@ export default function MyDevelopment() {
     },
   });
 
+  const moduleIds = allModules.map((m: any) => m.id);
+
+  const { data: allExercises = [] } = useQuery({
+    queryKey: ['my-module-exercises', moduleIds],
+    enabled: moduleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('module_exercises')
+        .select('id, module_id')
+        .in('module_id', moduleIds);
+      return data || [];
+    },
+  });
+
+  const getExercisesForModule = (moduleId: string) =>
+    allExercises.filter((ex: any) => ex.module_id === moduleId);
+
   const lider360Enrollment = enrollments.find((e: any) => e.programs?.slug === 'lider-360');
   const lider360ProgramId = lider360Enrollment?.programs?.id;
 
