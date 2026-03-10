@@ -115,6 +115,7 @@ const AdminLogs = () => {
       'module_materials': 'Materiais',
       'modules': 'Módulos',
       'program_modules': 'Módulos do Programa',
+      'program_materials': 'Materiais do Programa',
       'profiles': 'Perfis',
       'matriz_9box': 'Matriz 9Box',
       'profile_evolution': 'Evolução de Perfil',
@@ -122,8 +123,105 @@ const AdminLogs = () => {
       'pdi_actions': 'Ações PDI',
       'pdi_checkins': 'Check-ins PDI',
       'pdi_closures': 'Encerramento PDI',
+      'pdi_mentors': 'Mentores PDI',
+      'community_posts': 'Posts Comunidade',
+      'community_comments': 'Comentários',
+      'community_likes': 'Curtidas',
+      'user_progress': 'Progresso',
+      'programs': 'Programas',
+      'program_classes': 'Turmas',
+      'program_enrollments': 'Matrículas',
+      'program_events': 'Eventos',
+      'class_schedules': 'Agenda de Aulas',
+      'webinars': 'Webinars',
+      'knowledge_base': 'Base de Conhecimento',
+      'chat_messages': 'Mensagens Chat',
+      'nanda_messages': 'Mensagens Nanda',
+      'notifications': 'Notificações',
+      'user_follows': 'Seguidores',
+      'user_invites': 'Convites',
+      'workshop_responses': 'Respostas Workshop',
     };
     return mapping[tableName] || tableName;
+  };
+
+  const getLogDetails = (log: AuditLog) => {
+    const data = log.new_data || log.old_data;
+    if (!data) return log.record_id ? log.record_id.substring(0, 8) + '...' : '-';
+
+    if (log.action === 'MODULE_ACCESS' || log.action === 'MODULE_COMPLETED') {
+      return (
+        <span>
+          <span className="font-medium">{data.module_title}</span>
+          {data.program_name && <span className="text-muted-foreground"> — {data.program_name}</span>}
+        </span>
+      );
+    }
+
+    switch (log.table_name) {
+      case 'profiles':
+        return data.full_name || data.email || '-';
+      case 'user_roles':
+        return `Papel: ${data.role || '-'}`;
+      case 'pdis':
+        return `${data.employee_name || '-'} — Eixo: ${data.pda_axis || '-'}`;
+      case 'pdi_actions':
+        return `${(data.description || '').substring(0, 60)}${data.status ? ` (${data.status})` : ''}`;
+      case 'pdi_checkins':
+        return `Check-in #${data.checkin_number || '-'}`;
+      case 'pdi_closures':
+        return `Status: ${data.final_status || '-'}${data.satisfaction_score ? ` — Nota: ${data.satisfaction_score}` : ''}`;
+      case 'pdi_mentors':
+        return `Mentor: ${data.mentor_name || '-'}`;
+      case 'matriz_9box':
+        return `${data.employee_name || '-'} — Perf: ${data.performance ?? '-'} / Pot: ${data.potential ?? '-'}`;
+      case 'profile_evolution':
+        return `${data.employee_name || '-'} — ${data.assessment_date || '-'}`;
+      case 'community_posts':
+        return (data.content || '').substring(0, 60) + ((data.content || '').length > 60 ? '...' : '');
+      case 'community_comments':
+        return (data.content || '').substring(0, 60) + ((data.content || '').length > 60 ? '...' : '');
+      case 'community_likes':
+        return `Reação: ${data.reaction_type || 'like'}`;
+      case 'user_progress':
+        return data.completed ? 'Concluído' : 'Em andamento';
+      case 'modules':
+      case 'program_modules':
+        return data.title || '-';
+      case 'module_materials':
+      case 'program_materials':
+        return `${data.title || '-'}${data.file_type ? ` (${data.file_type})` : ''}`;
+      case 'programs':
+        return data.name || '-';
+      case 'program_classes':
+        return `${data.name || '-'}${data.specialist ? ` — ${data.specialist}` : ''}`;
+      case 'program_enrollments':
+        return 'Matrícula em programa';
+      case 'program_events':
+        return `${data.title || '-'} — ${data.event_date || '-'}`;
+      case 'class_schedules':
+        return `${data.title || '-'} — ${data.schedule_date || '-'}`;
+      case 'webinars':
+        return `${data.title || '-'}${data.presenter ? ` — ${data.presenter}` : ''}`;
+      case 'knowledge_base':
+        return `${data.title || '-'} (${data.category || '-'})`;
+      case 'chat_messages':
+        return (data.content || '').substring(0, 50) + ((data.content || '').length > 50 ? '...' : '');
+      case 'nanda_messages':
+        return `[${data.role || '-'}] ${(data.content || '').substring(0, 50)}`;
+      case 'notifications':
+        return `${data.type || '-'}: ${(data.message || '').substring(0, 50)}`;
+      case 'user_follows':
+        return 'Seguiu usuário';
+      case 'user_invites':
+        return `${data.email || '-'} — ${data.status || '-'}`;
+      case 'workshop_responses':
+        return 'Resposta de workshop';
+      default: {
+        const fallback = Object.entries(data).find(([k, v]) => typeof v === 'string' && !['id','user_id','created_at','updated_at'].includes(k) && (v as string).length > 0);
+        return fallback ? (fallback[1] as string).substring(0, 60) : (log.record_id ? log.record_id.substring(0, 8) + '...' : '-');
+      }
+    }
   };
 
   const filteredLogs = logs.filter(log => {
@@ -278,15 +376,8 @@ const AdminLogs = () => {
                         <TableCell>{log.user_name}</TableCell>
                         <TableCell>{getActionBadge(log.action)}</TableCell>
                         <TableCell>{getResourceName(log.table_name)}</TableCell>
-                        <TableCell className="text-sm">
-                          {(log.action === 'MODULE_ACCESS' || log.action === 'MODULE_COMPLETED') && log.new_data ? (
-                            <span>
-                              <span className="font-medium">{log.new_data.module_title}</span>
-                              {log.new_data.program_name && <span className="text-muted-foreground"> — {log.new_data.program_name}</span>}
-                            </span>
-                          ) : log.record_id ? (
-                            <span className="font-mono text-xs text-muted-foreground">{log.record_id.substring(0, 8)}...</span>
-                          ) : '-'}
+                        <TableCell className="text-sm max-w-xs truncate">
+                          {getLogDetails(log)}
                         </TableCell>
                       </TableRow>
                     ))
