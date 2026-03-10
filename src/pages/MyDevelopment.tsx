@@ -392,6 +392,17 @@ export default function MyDevelopment() {
                       <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
                     )}
 
+                    {cls?.video_conference_url && (
+                      <div className="mb-4">
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="gap-2">
+                            <ExternalLink className="w-4 h-4" />
+                            Link da Videoconferência
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+
                     {/* Journey Cards */}
                     {(() => {
                       const classSchedules = cls ? allSchedules.filter((s: any) => s.class_id === cls.id) : [];
