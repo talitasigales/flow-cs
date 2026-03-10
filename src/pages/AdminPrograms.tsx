@@ -1380,8 +1380,9 @@ export default function AdminPrograms() {
                       <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>E-mail</TableHead>
-                        <TableHead>Turma</TableHead>
+                         <TableHead>Turma</TableHead>
                         <TableHead>Data de Matrícula</TableHead>
+                        <TableHead>Último Acesso</TableHead>
                         <TableHead className="w-[100px]"></TableHead>
                       </TableRow>
                     </TableHeader>
