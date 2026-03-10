@@ -222,6 +222,7 @@ export default function ProgramLider360() {
 
   return (
     <AppLayout>
+      {program?.id && <ProgramWelcomePopup programId={program.id} />}
       <div className="space-y-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <div>
