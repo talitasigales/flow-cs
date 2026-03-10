@@ -258,16 +258,17 @@ export default function AdminPrograms() {
     },
   });
 
+  const classIdsAdmin = classes.map((c: any) => c.id);
+  const classIdsAdminKey = classIdsAdmin.sort().join(',');
+
   const { data: schedules = [], refetch: refetchSchedules } = useQuery({
-    queryKey: ['class-schedules-admin', selectedProgram],
-    enabled: !!selectedProgram,
+    queryKey: ['class-schedules-admin', classIdsAdminKey],
+    enabled: classIdsAdmin.length > 0,
     queryFn: async () => {
-      const classIds = classes.map((c: any) => c.id);
-      if (classIds.length === 0) return [];
       const { data } = await supabase
         .from('class_schedules')
         .select('*')
-        .in('class_id', classIds)
+        .in('class_id', classIdsAdmin)
         .order('schedule_date')
         .order('order_number');
       return data || [];
