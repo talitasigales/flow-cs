@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink } from 'lucide-react';
 
 const QUESTION_LABELS: Record<string, string> = {
   q1: '1. Estilo de gestão',
@@ -57,6 +57,8 @@ export default function AdminPrograms() {
   const [className, setClassName] = useState('');
   const [classStartDate, setClassStartDate] = useState<Date>();
   const [classEndDate, setClassEndDate] = useState<Date>();
+  const [classVideoUrl, setClassVideoUrl] = useState('');
+  const [classSpecialist, setClassSpecialist] = useState('');
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
@@ -174,12 +176,16 @@ export default function AdminPrograms() {
         name: className.trim(),
         start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
         end_date: classEndDate ? format(classEndDate, 'yyyy-MM-dd') : null,
+        video_conference_url: classVideoUrl.trim() || null,
+        specialist: classSpecialist || null,
       });
       if (error) throw error;
       toast.success('Turma criada com sucesso');
       setClassName('');
       setClassStartDate(undefined);
       setClassEndDate(undefined);
+      setClassVideoUrl('');
+      setClassSpecialist('');
       setClassDialogOpen(false);
       refetchClasses();
     } catch (err: any) {
@@ -442,6 +448,23 @@ export default function AdminPrograms() {
                             </Popover>
                           </div>
                         </div>
+                        <div className="space-y-2">
+                          <Label>Especialista Responsável</Label>
+                          <Select value={classSpecialist} onValueChange={setClassSpecialist}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a especialista" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Júlia">Júlia</SelectItem>
+                              <SelectItem value="Luciana">Luciana</SelectItem>
+                              <SelectItem value="Silvia">Silvia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Link da Videoconferência (Zoom/Meet)</Label>
+                          <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
+                        </div>
                       </div>
                       <DialogFooter>
                         <Button onClick={handleSaveClass} disabled={savingClass}>
@@ -456,19 +479,29 @@ export default function AdminPrograms() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nome</TableHead>
+                        <TableHead>Especialista</TableHead>
                         <TableHead>Data Início</TableHead>
                         <TableHead>Data Fim</TableHead>
+                        <TableHead>Videoconferência</TableHead>
                         <TableHead className="w-[80px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {classes.length === 0 ? (
-                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhuma turma cadastrada</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma turma cadastrada</TableCell></TableRow>
                       ) : classes.map((c: any) => (
                         <TableRow key={c.id}>
                           <TableCell className="font-medium">{c.name}</TableCell>
+                          <TableCell>{c.specialist ? <Badge variant="secondary">{c.specialist}</Badge> : '—'}</TableCell>
                           <TableCell>{c.start_date ? format(new Date(c.start_date + 'T12:00:00'), 'dd/MM/yyyy') : '—'}</TableCell>
                           <TableCell>{c.end_date ? format(new Date(c.end_date + 'T12:00:00'), 'dd/MM/yyyy') : '—'}</TableCell>
+                          <TableCell>
+                            {c.video_conference_url ? (
+                              <a href={c.video_conference_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" /> Link
+                              </a>
+                            ) : '—'}
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteClass(c.id)} className="text-destructive hover:text-destructive">
                               <Trash2 className="w-4 h-4" />
