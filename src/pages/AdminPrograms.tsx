@@ -124,6 +124,14 @@ export default function AdminPrograms() {
     },
   });
 
+  const { data: specialists = [], refetch: refetchSpecialists } = useQuery({
+    queryKey: ['all-specialists'],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('specialists').select('*').order('name');
+      return data || [];
+    },
+  });
+
   const { data: classes = [], refetch: refetchClasses } = useQuery({
     queryKey: ['program-classes', selectedProgram],
     enabled: !!selectedProgram,
