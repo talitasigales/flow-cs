@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle } from 'lucide-react';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
 import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager';
@@ -104,6 +104,14 @@ export default function AdminPrograms() {
   const [scheduleModuleId, setScheduleModuleId] = useState('');
   const [savingSchedule, setSavingSchedule] = useState(false);
 
+  // Specialists management state
+  const [specialistDialogOpen, setSpecialistDialogOpen] = useState(false);
+  const [editingSpecialist, setEditingSpecialist] = useState<any>(null);
+  const [specialistName, setSpecialistName] = useState('');
+  const [specialistBio, setSpecialistBio] = useState('');
+  const [specialistAvatarUrl, setSpecialistAvatarUrl] = useState('');
+  const [savingSpecialist, setSavingSpecialist] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !adminLoading && (!user || !isAdmin)) navigate('/dashboard');
   }, [authLoading, adminLoading, user, isAdmin, navigate]);
@@ -112,6 +120,14 @@ export default function AdminPrograms() {
     queryKey: ['all-programs'],
     queryFn: async () => {
       const { data } = await supabase.from('programs').select('*').order('name');
+      return data || [];
+    },
+  });
+
+  const { data: specialists = [], refetch: refetchSpecialists } = useQuery({
+    queryKey: ['all-specialists'],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('specialists').select('*').order('name');
       return data || [];
     },
   });
@@ -598,6 +614,46 @@ export default function AdminPrograms() {
     );
   }
 
+  const openSpecialistDialog = (spec?: any) => {
+    if (spec) {
+      setEditingSpecialist(spec);
+      setSpecialistName(spec.name);
+      setSpecialistBio(spec.bio || '');
+      setSpecialistAvatarUrl(spec.avatar_url || '');
+    } else {
+      setEditingSpecialist(null);
+      setSpecialistName('');
+      setSpecialistBio('');
+      setSpecialistAvatarUrl('');
+    }
+    setSpecialistDialogOpen(true);
+  };
+
+  const handleSaveSpecialist = async () => {
+    if (!specialistName.trim()) { toast.error('Nome é obrigatório'); return; }
+    setSavingSpecialist(true);
+    try {
+      const payload = { name: specialistName.trim(), bio: specialistBio.trim() || null, avatar_url: specialistAvatarUrl.trim() || null };
+      if (editingSpecialist) {
+        await (supabase as any).from('specialists').update(payload).eq('id', editingSpecialist.id);
+      } else {
+        await (supabase as any).from('specialists').insert(payload);
+      }
+      toast.success(editingSpecialist ? 'Especialista atualizada!' : 'Especialista cadastrada!');
+      refetchSpecialists();
+      setSpecialistDialogOpen(false);
+      setEditingSpecialist(null);
+    } catch { toast.error('Erro ao salvar'); }
+    setSavingSpecialist(false);
+  };
+
+  const handleDeleteSpecialist = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta especialista?')) return;
+    await (supabase as any).from('specialists').delete().eq('id', id);
+    toast.success('Especialista removida');
+    refetchSpecialists();
+  };
+
   const renderClassDialog = () => (
     <Dialog open={classDialogOpen} onOpenChange={(v) => { setClassDialogOpen(v); if (!v) setEditingClass(null); }}>
       <DialogContent>
@@ -646,9 +702,9 @@ export default function AdminPrograms() {
                 <SelectValue placeholder="Selecione a especialista" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Silvia Kirsten">Silvia Kirsten</SelectItem>
-                <SelectItem value="Julia Ferreira">Julia Ferreira</SelectItem>
-                <SelectItem value="Luciana Masiero">Luciana Masiero</SelectItem>
+                {specialists.map((s: any) => (
+                  <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -745,6 +801,84 @@ export default function AdminPrograms() {
           <h1 className="text-2xl font-bold gradient-text">Gerenciar Programas</h1>
           <p className="text-muted-foreground text-sm">Turmas, módulos, matrículas, materiais e respostas dos alunos</p>
         </div>
+
+        {/* Specialists Management */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2"><UserCircle className="w-5 h-5" /> Especialistas</CardTitle>
+              <CardDescription>Cadastre e edite as especialistas que ministram os cursos</CardDescription>
+            </div>
+            <Button size="sm" className="gap-1.5" onClick={() => openSpecialistDialog()}>
+              <Plus className="w-4 h-4" /> Nova Especialista
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {specialists.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">Nenhuma especialista cadastrada.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {specialists.map((s: any) => (
+                  <div key={s.id} className="flex items-start gap-3 p-4 rounded-lg border bg-muted/20">
+                    {s.avatar_url ? (
+                      <img src={s.avatar_url} alt={s.name} className="w-14 h-14 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <UserCircle className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold">{s.name}</p>
+                      {s.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{s.bio}</p>}
+                      <div className="flex gap-1 mt-2">
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => openSpecialistDialog(s)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Editar
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-destructive" onClick={() => handleDeleteSpecialist(s.id)}>
+                          <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Specialist Dialog */}
+        <Dialog open={specialistDialogOpen} onOpenChange={(v) => { setSpecialistDialogOpen(v); if (!v) setEditingSpecialist(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingSpecialist ? 'Editar Especialista' : 'Nova Especialista'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Nome Completo</Label>
+                <Input value={specialistName} onChange={e => setSpecialistName(e.target.value)} placeholder="Ex: Silvia Kirsten" />
+              </div>
+              <div className="space-y-2">
+                <Label>Mini Currículo</Label>
+                <Textarea value={specialistBio} onChange={e => setSpecialistBio(e.target.value)} placeholder="Breve descrição profissional..." className="min-h-[80px]" />
+              </div>
+              <div className="space-y-2">
+                <Label>URL da Foto</Label>
+                <Input value={specialistAvatarUrl} onChange={e => setSpecialistAvatarUrl(e.target.value)} placeholder="/images/specialists/nome.png ou URL externa" />
+                {specialistAvatarUrl && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <img src={specialistAvatarUrl} alt="Preview" className="w-16 h-16 rounded-full object-cover border" />
+                    <span className="text-xs text-muted-foreground">Preview</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleSaveSpecialist} disabled={savingSpecialist}>
+                {savingSpecialist ? 'Salvando...' : editingSpecialist ? 'Atualizar' : 'Cadastrar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="flex items-center gap-3">
           <Label>Programa:</Label>
