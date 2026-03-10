@@ -114,6 +114,7 @@ const AdminLogs = () => {
       'user_roles': 'Permissões',
       'module_materials': 'Materiais',
       'modules': 'Módulos',
+      'program_modules': 'Módulos do Programa',
       'profiles': 'Perfis',
       'matriz_9box': 'Matriz 9Box',
       'profile_evolution': 'Evolução de Perfil',
