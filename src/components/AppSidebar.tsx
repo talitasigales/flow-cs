@@ -67,10 +67,6 @@ const academyBaseItems = [
   { title: 'Calendário de Turmas', icon: CalendarDays, path: '/programas/calendario' },
 ];
 
-const academyEnrolledItems = [
-  { title: 'Meu Desenvolvimento', icon: TrendingUp, path: '/programas/meu-desenvolvimento' },
-];
-
 const trilhasPaths = trilhasSubItems.map(i => i.path);
 const toolsPaths = toolsSubItems.map(i => i.path);
 const communityPaths = ['/community', '/members', '/messages'];
@@ -112,14 +108,11 @@ export function AppSidebar() {
   // Build academy sub-items: always show calendar; show Meu Desenvolvimento + program links only if enrolled
   const allAcademySubItems = [
     ...academyBaseItems,
-    ...(isEnrolled ? [
-      ...academyEnrolledItems,
-      ...enrollments.map((p: any) => ({
-        title: p.name,
-        icon: BookOpen,
-        path: `/programas/${p.slug}`,
-      })),
-    ] : []),
+    ...(isEnrolled ? enrollments.map((p: any) => ({
+      title: p.name,
+      icon: BookOpen,
+      path: `/programas/${p.slug}`,
+    })) : []),
   ];
 
   const [openTrilhas, setOpenTrilhas] = useState(isInTrilhas);

@@ -27,7 +27,7 @@ import Messages from "./pages/Messages";
 import ChatConversation from "./pages/ChatConversation";
 import Members from "./pages/Members";
 import PublicProfile from "./pages/PublicProfile";
-import ProgramLider360 from "./pages/ProgramLider360";
+
 import ProgramGeneric from "./pages/ProgramGeneric";
 import ProgramCalendar from "./pages/ProgramCalendar";
 import AdminPrograms from "./pages/AdminPrograms";
@@ -71,7 +71,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/programas/calendario" element={<ProgramCalendar />} />
           <Route path="/programas/meu-desenvolvimento" element={<MyDevelopment />} />
-          <Route path="/programas/lider-360" element={<ProgramLider360 />} />
+          
           <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
           
