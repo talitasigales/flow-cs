@@ -186,12 +186,19 @@ export default function AdminPrograms() {
     queryKey: ['all-responses', selectedProgram],
     enabled: !!selectedProgram,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: resps } = await supabase
         .from('workshop_responses')
-        .select('id, user_id, answers, submitted_at, profiles(full_name, email)')
+        .select('id, user_id, answers, submitted_at')
         .eq('program_id', selectedProgram)
         .order('submitted_at', { ascending: false });
-      return data || [];
+      if (!resps || resps.length === 0) return [];
+      const userIds = [...new Set(resps.map(r => r.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', userIds);
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+      return resps.map(r => ({ ...r, profiles: profileMap.get(r.user_id) || null }));
     },
   });
 
