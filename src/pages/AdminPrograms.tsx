@@ -24,6 +24,7 @@ import { ptBR } from 'date-fns/locale';
 import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp } from 'lucide-react';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
+import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const QUESTION_LABELS: Record<string, string> = {
