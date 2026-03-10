@@ -99,6 +99,10 @@ const AdminLogs = () => {
         return <Badge variant="secondary">Atualizado</Badge>;
       case 'DELETE':
         return <Badge variant="destructive">Deletado</Badge>;
+      case 'MODULE_ACCESS':
+        return <Badge className="bg-blue-600">Acessou</Badge>;
+      case 'MODULE_COMPLETED':
+        return <Badge className="bg-green-600">Concluiu</Badge>;
       default:
         return <Badge variant="outline">{action}</Badge>;
     }
