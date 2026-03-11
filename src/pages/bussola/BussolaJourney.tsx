@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BussolaLayout } from '@/components/bussola/BussolaLayout';
 import { JourneyTimeline, EncounterStatus } from '@/components/bussola/JourneyTimeline';
 import { BUSSOLA_ENCOUNTERS } from '@/data/bussolaEncounters';
-import { Compass, Loader2 } from 'lucide-react';
+import { Compass, Loader2, Rocket, Target } from 'lucide-react';
 
 export default function BussolaJourney() {
   const { user, loading: authLoading } = useAuth();
@@ -16,7 +16,6 @@ export default function BussolaJourney() {
     if (!authLoading && !user) navigate('/auth');
   }, [authLoading, user, navigate]);
 
-  // Get bussola program
   const { data: program } = useQuery({
     queryKey: ['bussola-program'],
     queryFn: async () => {
@@ -30,7 +29,6 @@ export default function BussolaJourney() {
     enabled: !!user,
   });
 
-  // Get sessions for this user
   const { data: sessions = [] } = useQuery({
     queryKey: ['bussola-sessions', user?.id, program?.id],
     queryFn: async () => {
@@ -45,7 +43,6 @@ export default function BussolaJourney() {
     enabled: !!user?.id && !!program?.id,
   });
 
-  // Get workbooks for this user
   const { data: workbooks = [] } = useQuery({
     queryKey: ['bussola-workbooks', user?.id, program?.id],
     queryFn: async () => {
@@ -64,28 +61,24 @@ export default function BussolaJourney() {
     return (
       <BussolaLayout>
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
         </div>
       </BussolaLayout>
     );
   }
 
-  // Determine encounter statuses
   const getStatus = (num: number): 'locked' | 'active' | 'completed' => {
     const session = sessions.find((s: any) => s.encounter_number === num);
     if (session?.status === 'completed') return 'completed';
     
-    // Welcome (0) is always active if not completed
     if (num === 0) {
       const wb = workbooks.find((w: any) => w.encounter_number === 0 && !w.is_prework);
       return wb?.data?.signed ? 'completed' : 'active';
     }
     
-    // Each encounter unlocks after the previous is completed
     const prevStatus = getStatus(num - 1);
     if (prevStatus === 'completed') {
-      if (session) return 'active';
-      return 'active'; // auto-unlock after previous completion
+      return 'active';
     }
     return 'locked';
   };
@@ -104,24 +97,39 @@ export default function BussolaJourney() {
     };
   });
 
+  const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'Explorador(a)';
+
   return (
     <BussolaLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Hero */}
-        <div className="mb-8 rounded-2xl bg-gradient-to-r from-primary/10 via-sky-100/50 to-amber-100/50 p-6 border border-primary/10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Compass className="h-6 w-6" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(280,80%,30%)] via-[hsl(300,60%,25%)] to-[hsl(320,70%,20%)] p-6 border border-white/10">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-transparent rounded-full blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-cyan-400/15 to-transparent rounded-full blur-2xl" />
+          
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl">👋</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-purple-300/80">Bem-vindo(a) de volta</span>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold">Sua Jornada Bússola</h2>
-              <p className="text-sm text-muted-foreground">5 encontros para descobrir seu caminho</p>
+            <h2 className="text-2xl font-black text-white mb-1">
+              Olá, {userName}!
+            </h2>
+            <p className="text-sm text-white/50 max-w-md">
+              Cada fase te leva mais perto de descobrir seu caminho. Sem pressa, sem pressão — no seu ritmo.
+            </p>
+
+            <div className="flex gap-3 mt-4">
+              <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
+                <Target className="h-4 w-4 text-cyan-400" />
+                <span className="text-xs font-semibold text-white/80">5 Fases</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
+                <Rocket className="h-4 w-4 text-rose-400" />
+                <span className="text-xs font-semibold text-white/80">Individual</span>
+              </div>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Transforme autoconhecimento em decisões conscientes sobre sua carreira. 
-            Cada encontro te leva mais perto do seu futuro.
-          </p>
         </div>
 
         {/* Timeline */}
