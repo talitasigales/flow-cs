@@ -80,6 +80,7 @@ const App = () => (
           <Route path="/admin/programs" element={<AdminPrograms />} />
           
           <Route path="/bussola" element={<BussolaJourney />} />
+          <Route path="/bussola/painel" element={<BussolaPainel />} />
           <Route path="/bussola/encontro/:number" element={<BussolaEncounter />} />
           
           <Route path="/profile" element={<UserProfile />} />
