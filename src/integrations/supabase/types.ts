@@ -53,6 +53,129 @@ export type Database = {
         }
         Relationships: []
       }
+      bussola_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          program_id: string
+          psychologist_id: string
+          young_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          program_id: string
+          psychologist_id: string
+          young_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          program_id?: string
+          psychologist_id?: string
+          young_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bussola_assignments_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bussola_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          encounter_number: number
+          id: string
+          notes: Json | null
+          program_id: string
+          psychologist_user_id: string
+          scheduled_date: string | null
+          status: string
+          updated_at: string
+          young_user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          encounter_number: number
+          id?: string
+          notes?: Json | null
+          program_id: string
+          psychologist_user_id: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+          young_user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          encounter_number?: number
+          id?: string
+          notes?: Json | null
+          program_id?: string
+          psychologist_user_id?: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+          young_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bussola_sessions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bussola_workbooks: {
+        Row: {
+          created_at: string
+          data: Json
+          encounter_number: number
+          id: string
+          is_prework: boolean
+          program_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          encounter_number: number
+          id?: string
+          is_prework?: boolean
+          program_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          encounter_number?: number
+          id?: string
+          is_prework?: boolean
+          program_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bussola_workbooks_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_conversations: {
         Row: {
           created_at: string
