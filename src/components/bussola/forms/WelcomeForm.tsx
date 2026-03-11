@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { Rocket, PartyPopper, Sparkles } from 'lucide-react';
 
 interface WelcomeFormProps {
   data: Record<string, any>;
@@ -33,80 +32,108 @@ export function WelcomeForm({ data, onChange, onSubmit }: WelcomeFormProps) {
 
   if (signed) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
-        <CardContent className="pt-6 text-center space-y-3">
-          <div className="text-5xl">✅</div>
-          <h3 className="text-xl font-bold text-green-800">Compromisso Assinado!</h3>
-          <p className="text-sm text-green-700">
-            <strong>{data.name || name}</strong>, sua jornada já começou.
-          </p>
-          <p className="text-xs text-green-600">Volte à jornada e acesse o Encontro 1.</p>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 p-8 text-center space-y-4">
+        <div className="flex justify-center">
+          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+            <PartyPopper className="h-8 w-8 text-white" />
+          </div>
+        </div>
+        <h3 className="text-xl font-black text-white">Compromisso Assinado! 🎉</h3>
+        <p className="text-sm text-white/60">
+          <strong className="text-emerald-300">{data.name || name}</strong>, sua jornada já começou.
+        </p>
+        <p className="text-xs text-white/40">Volte à jornada e acesse a Fase 1.</p>
+        <div className="flex items-center justify-center gap-1.5 text-amber-400">
+          <Sparkles className="h-4 w-4" />
+          <span className="text-sm font-bold">+50 XP conquistados!</span>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">🌟 Bem-vindo(a) à sua Jornada!</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+      {/* Welcome card */}
+      <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+        <div className="p-6 space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+              <Rocket className="h-5 w-5 text-white" />
+            </div>
+            <h3 className="text-xl font-black text-white">Bem-vindo(a) à sua Jornada!</h3>
+          </div>
+          
+          <p className="text-sm text-white/50">
             Este é seu roteiro para transformar autoconhecimento em decisões conscientes sobre sua carreira.
           </p>
 
-          <div className="rounded-lg bg-muted/50 p-4 space-y-3">
-            <h4 className="font-semibold">📅 Como funciona:</h4>
-            <p className="text-sm">A Jornada Bússola tem 5 encontros de 1 hora com um(a) psicólogo(a) especializado(a):</p>
-            <div className="space-y-1 text-sm">
-              <p><strong>Encontro 1:</strong> Entender quem você é + escolher carreira</p>
-              <p><strong>Encontro 2:</strong> Mapear suas competências</p>
-              <p><strong>Encontro 3:</strong> Desenhar os caminhos possíveis</p>
-              <p><strong>Encontro 4:</strong> Lidar com pressão, medo e incerteza</p>
-              <p><strong>Encontro 5:</strong> Criar plano de ação para os próximos anos</p>
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
+            <h4 className="font-bold text-white/90 flex items-center gap-2">
+              <span>🎮</span> Como funciona:
+            </h4>
+            <p className="text-sm text-white/50">5 encontros individuais de 1h com um(a) psicólogo(a):</p>
+            <div className="space-y-2">
+              {[
+                { phase: '1', text: 'Entender quem você é + escolher carreira', color: 'text-violet-400' },
+                { phase: '2', text: 'Mapear suas competências', color: 'text-cyan-400' },
+                { phase: '3', text: 'Desenhar os caminhos possíveis', color: 'text-emerald-400' },
+                { phase: '4', text: 'Lidar com pressão, medo e incerteza', color: 'text-rose-400' },
+                { phase: '5', text: 'Criar plano de ação para os próximos anos', color: 'text-amber-400' },
+              ].map(item => (
+                <div key={item.phase} className="flex items-center gap-3">
+                  <span className={`text-xs font-black ${item.color} bg-white/5 rounded-lg px-2 py-1 min-w-[32px] text-center`}>
+                    {item.phase}
+                  </span>
+                  <span className="text-sm text-white/60">{item.text}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-            <h4 className="font-semibold">✅ 3 Regras de Ouro:</h4>
-            <ol className="list-decimal ml-4 text-sm space-y-1">
-              <li>Não existe resposta certa ou errada — este é o SEU caminho</li>
-              <li>Você pode mudar de ideia — e está tudo bem</li>
-              <li>Peça ajuda sempre que precisar — seu/sua psicólogo(a) está aqui para isso</li>
-            </ol>
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
+            <h4 className="font-bold text-white/90 flex items-center gap-2">
+              <span>💎</span> 3 Regras de Ouro:
+            </h4>
+            <div className="space-y-2 text-sm text-white/60">
+              <p>1. Não existe resposta certa ou errada — este é o SEU caminho</p>
+              <p>2. Você pode mudar de ideia — e está tudo bem</p>
+              <p>3. Peça ajuda sempre que precisar — seu/sua psicólogo(a) está aqui pra isso</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="border-primary/30">
-        <CardHeader>
-          <CardTitle className="text-lg">📝 Meu Compromisso</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm">
+      {/* Commitment card */}
+      <div className="rounded-2xl bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/20 overflow-hidden">
+        <div className="p-6 space-y-4">
+          <h3 className="text-lg font-black text-white flex items-center gap-2">
+            <span>✍️</span> Meu Compromisso
+          </h3>
+          <p className="text-sm text-white/50">
             Eu me comprometo a participar ativamente desta Jornada, fazer os pré-trabalhos 
             e construir meu futuro com consciência.
           </p>
           <div className="space-y-2">
-            <Label htmlFor="sign-name">Seu nome completo (assinatura)</Label>
+            <label className="text-xs font-semibold text-white/40 uppercase tracking-wider">Seu nome completo (assinatura)</label>
             <Input
-              id="sign-name"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Digite seu nome completo"
-              className="text-lg font-medium"
+              className="text-lg font-medium bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-purple-400/50 focus:ring-purple-400/20"
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Data: {new Date().toLocaleDateString('pt-BR')}
+          <p className="text-xs text-white/30">
+            📅 Data: {new Date().toLocaleDateString('pt-BR')}
           </p>
-          <Button onClick={handleSign} className="w-full" size="lg">
-            ✍️ Assinar Compromisso
+          <Button 
+            onClick={handleSign} 
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-base h-12 rounded-xl"
+            size="lg"
+          >
+            🚀 Assinar e Começar a Jornada
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
