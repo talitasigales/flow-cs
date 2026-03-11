@@ -38,6 +38,7 @@ import NotFound from "./pages/NotFound";
 
 import BussolaJourney from "./pages/bussola/BussolaJourney";
 import BussolaEncounter from "./pages/bussola/BussolaEncounter";
+import BussolaPainel from "./pages/bussola/BussolaPainel";
 
 const queryClient = new QueryClient();
 
