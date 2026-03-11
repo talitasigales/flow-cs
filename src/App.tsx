@@ -38,6 +38,7 @@ import NotFound from "./pages/NotFound";
 
 import BussolaJourney from "./pages/bussola/BussolaJourney";
 import BussolaEncounter from "./pages/bussola/BussolaEncounter";
+import BussolaPainel from "./pages/bussola/BussolaPainel";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
           <Route path="/admin/programs" element={<AdminPrograms />} />
           
           <Route path="/bussola" element={<BussolaJourney />} />
+          <Route path="/bussola/painel" element={<BussolaPainel />} />
           <Route path="/bussola/encontro/:number" element={<BussolaEncounter />} />
           
           <Route path="/profile" element={<UserProfile />} />
