@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BussolaLayout } from '@/components/bussola/BussolaLayout';
 import { JourneyTimeline, EncounterStatus } from '@/components/bussola/JourneyTimeline';
 import { BUSSOLA_ENCOUNTERS } from '@/data/bussolaEncounters';
-import { Compass, Loader2, Rocket, Target } from 'lucide-react';
+import { Loader2, Rocket, Target } from 'lucide-react';
 
 export default function BussolaJourney() {
   const { user, loading: authLoading } = useAuth();
@@ -61,7 +61,7 @@ export default function BussolaJourney() {
     return (
       <BussolaLayout>
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </BussolaLayout>
     );
@@ -103,30 +103,30 @@ export default function BussolaJourney() {
     <BussolaLayout>
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Hero */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(280,80%,30%)] via-[hsl(300,60%,25%)] to-[hsl(320,70%,20%)] p-6 border border-white/10">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-400/20 to-transparent rounded-full blur-2xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-cyan-400/15 to-transparent rounded-full blur-2xl" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/80 via-primary/60 to-accent/50 p-6 border border-primary/20">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-secondary/30 to-transparent rounded-full blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-2xl" />
           
           <div className="relative">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">👋</span>
-              <span className="text-xs font-bold uppercase tracking-widest text-purple-300/80">Bem-vindo(a) de volta</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary-foreground/80">Bem-vindo(a) de volta</span>
             </div>
-            <h2 className="text-2xl font-black text-white mb-1">
+            <h2 className="text-2xl font-black text-primary-foreground mb-1">
               Olá, {userName}!
             </h2>
-            <p className="text-sm text-white/50 max-w-md">
+            <p className="text-sm text-primary-foreground/60 max-w-md">
               Cada fase te leva mais perto de descobrir seu caminho. Sem pressa, sem pressão — no seu ritmo.
             </p>
 
             <div className="flex gap-3 mt-4">
-              <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
-                <Target className="h-4 w-4 text-cyan-400" />
-                <span className="text-xs font-semibold text-white/80">5 Fases</span>
+              <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/10 px-3 py-2">
+                <Target className="h-4 w-4 text-primary-foreground" />
+                <span className="text-xs font-semibold text-primary-foreground/80">5 Fases</span>
               </div>
-              <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
-                <Rocket className="h-4 w-4 text-rose-400" />
-                <span className="text-xs font-semibold text-white/80">Individual</span>
+              <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/10 px-3 py-2">
+                <Rocket className="h-4 w-4 text-primary-foreground" />
+                <span className="text-xs font-semibold text-primary-foreground/80">Individual</span>
               </div>
             </div>
           </div>
