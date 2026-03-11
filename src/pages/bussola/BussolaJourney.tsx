@@ -112,7 +112,14 @@ export default function BussolaJourney() {
     return 'locked';
   };
 
-  const encounterStatuses: EncounterStatus[] = BUSSOLA_ENCOUNTERS.map(enc => {
+  const encounterCount = assignment?.encounter_count || 5;
+  
+  // Filter encounters based on assignment type
+  const availableEncounters = encounterCount === 1
+    ? BUSSOLA_ENCOUNTERS.filter(e => e.number === 0 || e.number === 1)  // Only welcome + 1 encounter
+    : BUSSOLA_ENCOUNTERS;
+
+  const encounterStatuses: EncounterStatus[] = availableEncounters.map(enc => {
     const preworkWb = workbooks.find((w: any) => w.encounter_number === enc.number && w.is_prework);
     const preworkDone = preworkWb?.data && Object.keys(preworkWb.data).length > 0;
     
@@ -127,6 +134,7 @@ export default function BussolaJourney() {
   });
 
   const userName = profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Jovem';
+  const phasesLabel = encounterCount === 1 ? '1 Encontro' : '5 Fases';
 
   return (
     <BussolaLayout>
@@ -145,13 +153,15 @@ export default function BussolaJourney() {
               Olá, {userName}!
             </h2>
             <p className="text-sm text-primary-foreground/60 max-w-md">
-              Cada fase te leva mais perto de descobrir seu caminho. Sem pressa, sem pressão — no seu ritmo.
+              {encounterCount === 1
+                ? 'Seu encontro individual de orientação vocacional te espera.'
+                : 'Cada fase te leva mais perto de descobrir seu caminho. Sem pressa, sem pressão — no seu ritmo.'}
             </p>
 
             <div className="flex gap-3 mt-4">
               <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/10 px-3 py-2">
                 <Target className="h-4 w-4 text-primary-foreground" />
-                <span className="text-xs font-semibold text-primary-foreground/80">5 Fases</span>
+                <span className="text-xs font-semibold text-primary-foreground/80">{phasesLabel}</span>
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-primary-foreground/10 px-3 py-2">
                 <Rocket className="h-4 w-4 text-primary-foreground" />
