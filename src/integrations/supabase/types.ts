@@ -56,23 +56,35 @@ export type Database = {
       bussola_assignments: {
         Row: {
           created_at: string
+          encounter_count: number
           id: string
           program_id: string
           psychologist_id: string
+          status: string
+          young_email: string | null
+          young_name: string | null
           young_user_id: string
         }
         Insert: {
           created_at?: string
+          encounter_count?: number
           id?: string
           program_id: string
           psychologist_id: string
+          status?: string
+          young_email?: string | null
+          young_name?: string | null
           young_user_id: string
         }
         Update: {
           created_at?: string
+          encounter_count?: number
           id?: string
           program_id?: string
           psychologist_id?: string
+          status?: string
+          young_email?: string | null
+          young_name?: string | null
           young_user_id?: string
         }
         Relationships: [
