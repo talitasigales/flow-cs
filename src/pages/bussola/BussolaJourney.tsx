@@ -16,6 +16,19 @@ export default function BussolaJourney() {
     if (!authLoading && !user) navigate('/auth');
   }, [authLoading, user, navigate]);
 
+  const { data: profile } = useQuery({
+    queryKey: ['bussola-profile', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user!.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: program } = useQuery({
     queryKey: ['bussola-program'],
     queryFn: async () => {
