@@ -110,7 +110,7 @@ export default function BussolaJourney() {
     };
   });
 
-  const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'Explorador(a)';
+  const userName = profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Jovem';
 
   return (
     <BussolaLayout>
