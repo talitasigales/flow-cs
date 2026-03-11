@@ -36,6 +36,9 @@ import MyDevelopment from "./pages/MyDevelopment";
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
+import BussolaJourney from "./pages/bussola/BussolaJourney";
+import BussolaEncounter from "./pages/bussola/BussolaEncounter";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -74,6 +77,9 @@ const App = () => (
           
           <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
+          
+          <Route path="/bussola" element={<BussolaJourney />} />
+          <Route path="/bussola/encontro/:number" element={<BussolaEncounter />} />
           
           <Route path="/profile" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
