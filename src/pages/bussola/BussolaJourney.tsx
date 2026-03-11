@@ -70,6 +70,22 @@ export default function BussolaJourney() {
     enabled: !!user?.id && !!program?.id,
   });
 
+  // Fetch assignment to know encounter_count (1 or 5)
+  const { data: assignment } = useQuery({
+    queryKey: ['bussola-assignment', user?.id, program?.id],
+    queryFn: async () => {
+      if (!user?.id || !program?.id) return null;
+      const { data } = await supabase
+        .from('bussola_assignments' as any)
+        .select('encounter_count')
+        .eq('young_user_id', user.id)
+        .eq('program_id', program.id)
+        .maybeSingle();
+      return data as any;
+    },
+    enabled: !!user?.id && !!program?.id,
+  });
+
   if (authLoading || !program) {
     return (
       <BussolaLayout>
