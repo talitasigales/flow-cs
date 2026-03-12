@@ -59,7 +59,7 @@ export type Database = {
           encounter_count: number
           id: string
           program_id: string
-          psychologist_id: string
+          psychologist_id: string | null
           status: string
           young_email: string | null
           young_name: string | null
@@ -70,7 +70,7 @@ export type Database = {
           encounter_count?: number
           id?: string
           program_id: string
-          psychologist_id: string
+          psychologist_id?: string | null
           status?: string
           young_email?: string | null
           young_name?: string | null
@@ -81,7 +81,7 @@ export type Database = {
           encounter_count?: number
           id?: string
           program_id?: string
-          psychologist_id?: string
+          psychologist_id?: string | null
           status?: string
           young_email?: string | null
           young_name?: string | null
@@ -96,6 +96,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bussola_payments: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string | null
+          dom_transaction_id: string
+          encounter_count: number
+          id: string
+          raw_payload: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name?: string | null
+          dom_transaction_id: string
+          encounter_count?: number
+          id?: string
+          raw_payload?: Json | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string | null
+          dom_transaction_id?: string
+          encounter_count?: number
+          id?: string
+          raw_payload?: Json | null
+          status?: string
+        }
+        Relationships: []
       }
       bussola_sessions: {
         Row: {
