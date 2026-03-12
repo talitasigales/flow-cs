@@ -174,10 +174,30 @@ export default function BussolaEncounter() {
                 🎯 Encontro
               </button>
             </div>
-            {activeTab === 'prework' ? renderPrework() : renderForm()}
+            {activeTab === 'prework' ? renderPrework() : (
+              <>
+                {renderForm()}
+                <button
+                  onClick={mainSaveNow}
+                  disabled={mainSaving}
+                  className="w-full mt-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 transition-all disabled:opacity-50"
+                >
+                  {mainSaving ? 'Salvando...' : '💾 Salvar'}
+                </button>
+              </>
+            )}
           </div>
         ) : (
-          renderForm()
+          <>
+            {renderForm()}
+            <button
+              onClick={mainSaveNow}
+              disabled={mainSaving}
+              className="w-full mt-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 transition-all disabled:opacity-50"
+            >
+              {mainSaving ? 'Salvando...' : '💾 Salvar'}
+            </button>
+          </>
         )}
       </div>
     </BussolaLayout>
