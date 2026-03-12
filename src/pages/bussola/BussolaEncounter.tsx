@@ -92,6 +92,11 @@ export default function BussolaEncounter() {
               );
             })}
           </ul>
+          {encounterNum === 1 && (
+            <p className="mt-3 text-xs text-amber-300/70 italic">
+              📩 Você receberá o link para preenchimento do TOV por email.
+            </p>
+          )}
         </div>
       </div>
     );
