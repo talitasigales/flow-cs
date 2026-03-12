@@ -31,6 +31,7 @@ import PublicProfile from "./pages/PublicProfile";
 import ProgramGeneric from "./pages/ProgramGeneric";
 import ProgramCalendar from "./pages/ProgramCalendar";
 import AdminPrograms from "./pages/AdminPrograms";
+import AdminPayments from "./pages/AdminPayments";
 import MyDevelopment from "./pages/MyDevelopment";
 
 import UserProfile from "./pages/UserProfile";
