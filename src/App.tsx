@@ -79,6 +79,7 @@ const App = () => (
           
           <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
+          <Route path="/admin/payments" element={<AdminPayments />} />
           
           <Route path="/bussola" element={<BussolaJourney />} />
           <Route path="/bussola/painel" element={<BussolaPainel />} />
