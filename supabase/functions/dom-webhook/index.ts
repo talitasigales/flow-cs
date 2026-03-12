@@ -193,6 +193,45 @@ Deno.serve(async (req) => {
 
     console.log('[dom-webhook] Successfully processed payment for:', email, '| Encounters:', finalEncounterCount);
 
+    // Send notification email to Mariana via Resend
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (resendApiKey) {
+      try {
+        const planLabel = finalEncounterCount === 1 ? 'Avulso (1 encontro)' : `Jornada Completa (${finalEncounterCount} encontros)`;
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #2d6a4f;">🎉 Nova Compra Bússola Aprovada</h2>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Nome:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${name || 'Não informado'}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${email}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Plano:</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${planLabel}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">ID Transação:</td><td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 12px;">${transactionId}</td></tr>
+              <tr><td style="padding: 8px; font-weight: bold;">Data:</td><td style="padding: 8px;">${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td></tr>
+            </table>
+            <p style="color: #666; font-size: 14px;">Acesse o painel admin para atribuir um psicólogo ao jovem.</p>
+          </div>
+        `;
+
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'Bússola Grou <onboarding@resend.dev>',
+            to: ['mariana.borges@grougp.com.br'],
+            subject: `Nova compra Bússola: ${finalEncounterCount === 1 ? 'Avulso' : 'Jornada Completa'} - ${name || email}`,
+            html: emailHtml,
+          }),
+        });
+
+        const resendData = await resendRes.json();
+        console.log('[dom-webhook] Resend response:', resendRes.status, JSON.stringify(resendData));
+      } catch (emailErr) {
+        console.error('[dom-webhook] Email notification error (non-blocking):', emailErr);
+      }
+    } else {
+      console.warn('[dom-webhook] RESEND_API_KEY not set, skipping email notification');
+    }
+
     return new Response(JSON.stringify({
       success: true,
       user_id: userId,
