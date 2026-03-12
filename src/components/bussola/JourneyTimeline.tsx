@@ -47,7 +47,7 @@ export function JourneyTimeline({ encounters, programId }: JourneyTimelineProps)
           </div>
           <div className="flex items-center gap-1.5">
             <Star className="h-4 w-4 text-secondary" />
-            <span className="text-sm font-bold text-foreground">{completedCount}/{encounters.length}</span>
+            <span className="text-sm font-bold text-foreground">{Math.max(0, completedCount - 1)}/{encounters.length - 1}</span>
             <span className="text-xs text-muted-foreground">etapas</span>
           </div>
         </div>
