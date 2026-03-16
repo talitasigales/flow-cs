@@ -75,17 +75,52 @@ serve(async (req) => {
       );
     }
 
+    const userId = newUser.user.id;
+
     // Update profile with company and job_title
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({ full_name, company, job_title, password_changed: true })
-      .eq('user_id', newUser.user.id);
+      .eq('user_id', userId);
 
     if (profileError) {
       console.error('Error updating profile:', profileError);
     }
 
-    console.log(`User registered: ${normalizedEmail} (${newUser.user.id})`);
+    // Process pending enrollments for this email
+    const { data: pendingRows, error: pendingError } = await supabaseAdmin
+      .from('pending_enrollments')
+      .select('id, program_id, class_id')
+      .eq('email', normalizedEmail);
+
+    if (pendingError) {
+      console.error('Error checking pending enrollments:', pendingError);
+    } else if (pendingRows && pendingRows.length > 0) {
+      for (const row of pendingRows) {
+        const { error: enrollError } = await supabaseAdmin
+          .from('program_enrollments')
+          .insert({
+            user_id: userId,
+            program_id: row.program_id,
+            class_id: row.class_id,
+          });
+
+        if (enrollError) {
+          console.error(`Error enrolling user in program ${row.program_id}:`, enrollError);
+        } else {
+          console.log(`Auto-enrolled user ${normalizedEmail} in program ${row.program_id}`);
+        }
+      }
+
+      // Delete processed pending enrollments
+      const pendingIds = pendingRows.map(r => r.id);
+      await supabaseAdmin
+        .from('pending_enrollments')
+        .delete()
+        .in('id', pendingIds);
+    }
+
+    console.log(`User registered: ${normalizedEmail} (${userId})`);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Conta criada com sucesso! Faça login.' }),
