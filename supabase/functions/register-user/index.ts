@@ -47,19 +47,9 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 50 });
     const normalizedEmail = email.trim().toLowerCase();
-    const exists = existingUsers?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
 
-    if (exists) {
-      return new Response(
-        JSON.stringify({ error: 'Este email já está cadastrado. Faça login.' }),
-        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Create user with email_confirm: true (no confirmation email sent)
+    // Try to create user directly — handle duplicate via error code
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: normalizedEmail,
       password,
@@ -68,6 +58,12 @@ serve(async (req) => {
     });
 
     if (createError) {
+      if ((createError as any).code === 'email_exists' || createError.message?.includes('already been registered')) {
+        return new Response(
+          JSON.stringify({ error: 'Este email já está cadastrado. Faça login.' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       console.error('Error creating user:', createError);
       return new Response(
         JSON.stringify({ error: `Erro ao criar conta: ${createError.message}` }),
