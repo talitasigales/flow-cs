@@ -1148,6 +1148,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_enrollments: {
+        Row: {
+          class_id: string | null
+          created_at: string
+          email: string
+          id: string
+          program_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          program_id: string
+        }
+        Update: {
+          class_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_enrollments_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_evolution: {
         Row: {
           a_value: number | null
