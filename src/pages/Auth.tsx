@@ -52,21 +52,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (!user) return;
-    // Check role for redirect
-    supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .then(({ data: roles }) => {
-        const roleNames = (roles || []).map((r: any) => r.role);
-        if (roleNames.includes('young')) {
-          navigate('/bussola');
-        } else if (roleNames.includes('psychologist')) {
-          navigate('/bussola/painel');
-        } else {
-          navigate('/dashboard');
-        }
-      });
+    navigate('/dashboard');
   }, [user, navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
