@@ -63,7 +63,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados ao Risco baixo? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Risco alto e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Risco alto e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a sua necessidade de ter todos os dados antes de decidir impacta os prazos e resultados do seu trabalho?',
+      'Em quais situações a falta de assertividade na comunicação prejudicou a defesa das suas ideias?',
+      'O que lhe impede de assumir novos desafios e sair da zona de conforto? Que suporte precisaria?',
+      'Como você poderia desenvolver uma orientação maior para metas sem perder sua capacidade analítica?',
+      'Quais pequenas ações do dia a dia poderiam ajudá-lo(a) a se posicionar com mais segurança?'
     ],
     oppositeAxis: 'risco_alto'
   },
