@@ -152,6 +152,15 @@ export default function Module() {
       completed: true,
       completed_at: new Date().toISOString()
     });
+    // Log the completion for admin audit trail
+    if (module) {
+      supabase.rpc('log_user_action', {
+        _action: 'MODULE_COMPLETED',
+        _table_name: 'modules',
+        _record_id: module.id,
+        _new_data: { module_title: module.title, module_order: module.order_number },
+      });
+    }
   };
 
   const getCurrentModuleIndex = () => {
