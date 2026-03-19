@@ -125,7 +125,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Extroversão baixa? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Extroversão alta e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Extroversão alta e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a dificuldade de iniciar conversas impacta suas oportunidades profissionais e relacionamentos no trabalho?',
+      'Em quais situações a timidez impediu que você expressasse uma ideia ou opinião importante?',
+      'O que lhe ajudaria a se sentir mais confortável ao trabalhar em grupo e compartilhar suas contribuições?',
+      'Quais ambientes ou contextos facilitam para que você se expresse melhor? O que eles têm em comum?',
+      'Como você poderia desenvolver sua capacidade de persuasão e influência mantendo sua autenticidade?'
     ],
     oppositeAxis: 'extroversao_alta'
   },
