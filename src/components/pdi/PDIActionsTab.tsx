@@ -193,7 +193,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
           </div>
         </TabsContent>
 
-        {['experience', 'mentoring', 'formal'].map(type => (
+        {['experience', 'social', 'formal'].map(type => (
           <TabsContent key={type} value={type} className="space-y-4">
             {actions.filter(a => a.action_type === type).map(action => (
               <ActionCard

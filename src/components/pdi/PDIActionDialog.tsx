@@ -18,7 +18,7 @@ interface PDIActionDialogProps {
 
 const ACTION_TYPES = [
   { value: 'experience', label: '🟢 Experiência (70%)', description: 'Aprendizado através da prática' },
-  { value: 'mentoring', label: '🟡 Mentoria (20%)', description: 'Aprendizado com orientação' },
+  { value: 'social', label: '🟡 Aprendizado Social (20%)', description: 'Aprendizado com mentoria e interação' },
   { value: 'formal', label: '🔵 Educação Formal (10%)', description: 'Cursos, treinamentos, leituras' }
 ];
 
