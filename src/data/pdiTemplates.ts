@@ -32,7 +32,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que sentiu que flexibilizou seus comportamentos relacionados ao Risco alto? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que tem um perfil de Risco baixo e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que tem um perfil de Risco baixo e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a sua tendência de tomar decisões rápidas impacta sua equipe e seus resultados?',
+      'Em quais situações você percebe que sua postura direta e confrontativa gera mais resistência do que colaboração?',
+      'O que você poderia fazer diferente para equilibrar sua orientação a resultados com o cuidado nas relações?',
+      'Quais estratégias você já tentou para prestar mais atenção aos detalhes e processos?',
+      'Como você pode envolver mais as pessoas nas decisões ao invés de pressioná-las por resultados?'
     ],
     oppositeAxis: 'risco_baixo'
   },
