@@ -249,7 +249,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados as Normas baixas? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que tem um perfil de Normas altas e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que tem um perfil de Normas altas e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a dificuldade de seguir normas já impactou negativamente sua relação com gestores ou equipe?',
+      'Em quais situações sua visão global fez com que perdesse detalhes importantes de um projeto?',
+      'O que lhe ajudaria a aceitar regras que considera desnecessárias sem perder a motivação?',
+      'Quais processos ou normas são realmente essenciais para a qualidade do seu trabalho? Como priorizá-los?',
+      'Como você poderia trabalhar melhor em colaboração com hierarquias mantendo sua autonomia criativa?'
     ],
     oppositeAxis: 'normas_altas'
   }
