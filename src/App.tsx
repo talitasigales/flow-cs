@@ -76,11 +76,7 @@ const App = () => (
           
           <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
-          <Route path="/admin/payments" element={<AdminPayments />} />
           
-          <Route path="/bussola" element={<BussolaJourney />} />
-          <Route path="/bussola/painel" element={<BussolaPainel />} />
-          <Route path="/bussola/encontro/:number" element={<BussolaEncounter />} />
           
           <Route path="/profile" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
