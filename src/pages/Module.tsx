@@ -264,6 +264,8 @@ export default function Module() {
                     _table_name: 'modules',
                     _record_id: module.id,
                     _new_data: { module_title: module.title, video_url: module.video_url },
+                  }).then(({ error }) => {
+                    if (error) console.error('Failed to log VIDEO_PLAY:', error);
                   });
                 }
               }}
