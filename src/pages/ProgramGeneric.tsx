@@ -14,7 +14,7 @@ export default function ProgramGeneric() {
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
-    if (slug === 'bussola') navigate('/bussola', { replace: true });
+    
   }, [loading, user, navigate, slug]);
 
   const { data: program, isLoading: loadingProgram } = useQuery({
