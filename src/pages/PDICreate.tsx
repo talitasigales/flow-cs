@@ -38,7 +38,7 @@ export default function PDICreate() {
       case 2:
         return Object.keys(behaviorRatings).length === 5;
       case 3:
-        return Object.keys(reflectiveAnswers).length === 3;
+        return Object.keys(reflectiveAnswers).length >= 3 && Object.values(reflectiveAnswers).some(a => a.trim() !== '');
       default:
         return false;
     }

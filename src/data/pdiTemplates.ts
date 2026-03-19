@@ -32,7 +32,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que sentiu que flexibilizou seus comportamentos relacionados ao Risco alto? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que tem um perfil de Risco baixo e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que tem um perfil de Risco baixo e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a sua tendência de tomar decisões rápidas impacta sua equipe e seus resultados?',
+      'Em quais situações você percebe que sua postura direta e confrontativa gera mais resistência do que colaboração?',
+      'O que você poderia fazer diferente para equilibrar sua orientação a resultados com o cuidado nas relações?',
+      'Quais estratégias você já tentou para prestar mais atenção aos detalhes e processos?',
+      'Como você pode envolver mais as pessoas nas decisões ao invés de pressioná-las por resultados?'
     ],
     oppositeAxis: 'risco_baixo'
   },
@@ -58,7 +63,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados ao Risco baixo? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Risco alto e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Risco alto e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a sua necessidade de ter todos os dados antes de decidir impacta os prazos e resultados do seu trabalho?',
+      'Em quais situações a falta de assertividade na comunicação prejudicou a defesa das suas ideias?',
+      'O que lhe impede de assumir novos desafios e sair da zona de conforto? Que suporte precisaria?',
+      'Como você poderia desenvolver uma orientação maior para metas sem perder sua capacidade analítica?',
+      'Quais pequenas ações do dia a dia poderiam ajudá-lo(a) a se posicionar com mais segurança?'
     ],
     oppositeAxis: 'risco_alto'
   },
@@ -84,7 +94,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Extroversão alta? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Extroversão baixa e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Extroversão baixa e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a sua facilidade de se distrair afeta a qualidade das suas entregas e prazos?',
+      'Em quais situações você percebe que falar mais e escutar menos prejudicou uma relação ou decisão?',
+      'O que lhe motiva a dizer sim quando deveria dizer não? Como isso impacta sua rotina?',
+      'Quais técnicas de concentração e foco você já experimentou? O que funcionou e o que não funcionou?',
+      'Como você poderia ser mais observador(a) nas interações sem perder sua energia e entusiasmo?'
     ],
     oppositeAxis: 'extroversao_baixa'
   },
@@ -110,7 +125,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Extroversão baixa? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Extroversão alta e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Extroversão alta e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a dificuldade de iniciar conversas impacta suas oportunidades profissionais e relacionamentos no trabalho?',
+      'Em quais situações a timidez impediu que você expressasse uma ideia ou opinião importante?',
+      'O que lhe ajudaria a se sentir mais confortável ao trabalhar em grupo e compartilhar suas contribuições?',
+      'Quais ambientes ou contextos facilitam para que você se expresse melhor? O que eles têm em comum?',
+      'Como você poderia desenvolver sua capacidade de persuasão e influência mantendo sua autenticidade?'
     ],
     oppositeAxis: 'extroversao_alta'
   },
@@ -136,7 +156,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Paciência alta? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Paciência baixa e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Paciência baixa e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a resistência à mudança já limitou oportunidades de crescimento na sua carreira?',
+      'Em quais situações a pressão por resultados mais rápidos lhe causou maior desconforto? Como reagiu?',
+      'O que lhe ajudaria a lidar melhor com múltiplas tarefas sem perder a qualidade?',
+      'Quais estratégias poderiam ajudá-lo(a) a se posicionar mais firmemente quando necessário?',
+      'Como você poderia se adaptar melhor a ambientes imprevisíveis sem comprometer sua estabilidade emocional?'
     ],
     oppositeAxis: 'paciencia_baixa'
   },
@@ -162,7 +187,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Paciência baixa? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que tem um perfil de Paciência alta e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que tem um perfil de Paciência alta e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como sua impaciência com o ritmo dos outros já prejudicou a colaboração e o trabalho em equipe?',
+      'Em quais situações a falta de planejamento trouxe consequências negativas para seus projetos?',
+      'O que lhe motiva a pular etapas e ir direto para a ação? Quais os riscos disso?',
+      'Quais práticas de organização e gestão de tempo você poderia adotar para dar conta das demandas?',
+      'Como desenvolver uma escuta mais ativa poderia melhorar suas relações profissionais?'
     ],
     oppositeAxis: 'paciencia_alta'
   },
@@ -188,7 +218,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados as Normas altas? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que tem um perfil de Normas baixas e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que tem um perfil de Normas baixas e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a rigidez no cumprimento de regras já dificultou a adaptação a novas situações no trabalho?',
+      'Em quais situações o excesso de atenção aos detalhes comprometeu prazos ou a visão do todo?',
+      'O que lhe ajudaria a agir com mais autonomia quando não há diretrizes claras definidas?',
+      'Quais situações exigem mais flexibilidade da sua parte? Como você poderia se preparar para elas?',
+      'Como você poderia exercitar a criatividade e inovação mantendo a qualidade que valoriza?'
     ],
     oppositeAxis: 'normas_baixas'
   },
@@ -214,7 +249,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados as Normas baixas? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que tem um perfil de Normas altas e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que tem um perfil de Normas altas e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a dificuldade de seguir normas já impactou negativamente sua relação com gestores ou equipe?',
+      'Em quais situações sua visão global fez com que perdesse detalhes importantes de um projeto?',
+      'O que lhe ajudaria a aceitar regras que considera desnecessárias sem perder a motivação?',
+      'Quais processos ou normas são realmente essenciais para a qualidade do seu trabalho? Como priorizá-los?',
+      'Como você poderia trabalhar melhor em colaboração com hierarquias mantendo sua autonomia criativa?'
     ],
     oppositeAxis: 'normas_altas'
   }

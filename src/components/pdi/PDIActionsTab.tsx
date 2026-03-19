@@ -26,7 +26,7 @@ interface PDIActionsTabProps {
 
 const ACTION_TYPE_LABELS: Record<string, string> = {
   experience: '🟢 Experiência',
-  mentoring: '🟡 Mentoria',
+  social: '🟡 Social',
   formal: '🔵 Formal'
 };
 
@@ -121,7 +121,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
           <TabsTrigger value="all">Todas ({actions.length})</TabsTrigger>
           <TabsTrigger value="kanban">Kanban</TabsTrigger>
           <TabsTrigger value="experience">Experiência</TabsTrigger>
-          <TabsTrigger value="mentoring">Mentoria</TabsTrigger>
+          <TabsTrigger value="social">Social</TabsTrigger>
           <TabsTrigger value="formal">Formal</TabsTrigger>
         </TabsList>
 
@@ -193,7 +193,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
           </div>
         </TabsContent>
 
-        {['experience', 'mentoring', 'formal'].map(type => (
+        {['experience', 'social', 'formal'].map(type => (
           <TabsContent key={type} value={type} className="space-y-4">
             {actions.filter(a => a.action_type === type).map(action => (
               <ActionCard
