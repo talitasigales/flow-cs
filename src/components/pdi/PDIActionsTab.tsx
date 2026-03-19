@@ -26,7 +26,7 @@ interface PDIActionsTabProps {
 
 const ACTION_TYPE_LABELS: Record<string, string> = {
   experience: '🟢 Experiência',
-  mentoring: '🟡 Mentoria',
+  social: '🟡 Social',
   formal: '🔵 Formal'
 };
 
