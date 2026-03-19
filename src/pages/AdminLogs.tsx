@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, Search, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { generateCSV, downloadCSV } from '@/utils/exportUtils';
 
 interface AuditLog {
   id: string;
