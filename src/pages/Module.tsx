@@ -98,6 +98,13 @@ export default function Module() {
       if (moduleError) throw moduleError;
       setModule(moduleData);
 
+      // Log module access
+      supabase.rpc('log_user_action', {
+        _action: 'MODULE_ACCESS',
+        _table_name: 'modules',
+        _record_id: moduleData.id,
+        _new_data: { module_title: moduleData.title, module_order: moduleData.order_number },
+      });
       // Fetch user progress
       const { data: progressData, error: progressError } = await supabase
         .from('user_progress')
