@@ -156,19 +156,20 @@ export default function Module() {
     }
   };
 
-  const markModuleComplete = () => {
-    updateProgress({
+  const markModuleComplete = async () => {
+    await updateProgress({
       completed: true,
       completed_at: new Date().toISOString()
     });
     // Log the completion for admin audit trail
     if (module) {
-      supabase.rpc('log_user_action', {
+      const { error } = await supabase.rpc('log_user_action', {
         _action: 'MODULE_COMPLETED',
         _table_name: 'modules',
         _record_id: module.id,
         _new_data: { module_title: module.title, module_order: module.order_number },
       });
+      if (error) console.error('Failed to log MODULE_COMPLETED:', error);
     }
   };
 
