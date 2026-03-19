@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, FileCheck } from 'lucide-react';
+import PDIStageTips from '@/components/pdi/PDIStageTips';
 import { toast } from 'sonner';
 import { PDA_AXES } from '@/data/pdiTemplates';
 import PDIJourneyTimeline from '@/components/pdi/PDIJourneyTimeline';
