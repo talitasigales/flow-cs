@@ -325,6 +325,45 @@ const AdminLogs = () => {
 
   if (!isAdmin) return null;
 
+  const getActionLabelText = (action: string): string => {
+    const labels: Record<string, string> = {
+      INSERT: 'Criado', UPDATE: 'Atualizado', DELETE: 'Deletado',
+      MODULE_ACCESS: 'Acessou Módulo', MODULE_COMPLETED: 'Concluiu Módulo',
+      VIDEO_PLAY: 'Assistiu Vídeo', MATERIAL_EXPAND: 'Abriu Material',
+      MATERIAL_DOWNLOAD: 'Baixou Material',
+    };
+    return labels[action] || action;
+  };
+
+  const handleExportCSV = () => {
+    if (filteredLogs.length === 0) {
+      toast.error('Nenhum registro para exportar');
+      return;
+    }
+    const headers = ['Data/Hora', 'Usuário', 'Empresa', 'Ação', 'Recurso', 'Detalhes'];
+    const rows = filteredLogs.map(log => {
+      const data = log.new_data || log.old_data;
+      let details = '';
+      if (data) {
+        if (data.module_title) details = data.module_title;
+        else if (data.material_title) details = data.material_title;
+        else if (data.video_title) details = data.video_title;
+        else details = getRecordLabel(log);
+      }
+      return [
+        new Date(log.created_at).toLocaleString('pt-BR'),
+        log.user_name || '',
+        log.user_company || '',
+        getActionLabelText(log.action),
+        getResourceName(log.table_name),
+        details,
+      ];
+    });
+    const csv = generateCSV(headers, rows);
+    downloadCSV(csv, `logs_sistema_${new Date().toISOString().split('T')[0]}.csv`);
+    toast.success(`${filteredLogs.length} registros exportados`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 max-w-7xl">
@@ -339,6 +378,10 @@ const AdminLogs = () => {
               <p className="text-muted-foreground">Histórico de atividades e auditoria</p>
             </div>
           </div>
+          <Button onClick={handleExportCSV} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
         </div>
 
         <Card className="mb-6">
