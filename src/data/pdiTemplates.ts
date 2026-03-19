@@ -94,7 +94,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Extroversão alta? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Extroversão baixa e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Extroversão baixa e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a sua facilidade de se distrair afeta a qualidade das suas entregas e prazos?',
+      'Em quais situações você percebe que falar mais e escutar menos prejudicou uma relação ou decisão?',
+      'O que lhe motiva a dizer sim quando deveria dizer não? Como isso impacta sua rotina?',
+      'Quais técnicas de concentração e foco você já experimentou? O que funcionou e o que não funcionou?',
+      'Como você poderia ser mais observador(a) nas interações sem perder sua energia e entusiasmo?'
     ],
     oppositeAxis: 'extroversao_baixa'
   },
