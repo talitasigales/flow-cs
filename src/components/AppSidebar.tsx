@@ -125,7 +125,7 @@ export function AppSidebar() {
     { title: 'Logs', icon: FileText, path: '/admin/logs' },
     { title: 'Base de Conhecimento', icon: BookOpen, path: '/admin/knowledge-base' },
     { title: 'Programas', icon: Award, path: '/admin/programs' },
-    { title: 'Pagamentos Bússola', icon: ClipboardList, path: '/admin/payments' },
+    
   ];
 
   const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {

@@ -31,15 +31,12 @@ import PublicProfile from "./pages/PublicProfile";
 import ProgramGeneric from "./pages/ProgramGeneric";
 import ProgramCalendar from "./pages/ProgramCalendar";
 import AdminPrograms from "./pages/AdminPrograms";
-import AdminPayments from "./pages/AdminPayments";
+
 import MyDevelopment from "./pages/MyDevelopment";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
-import BussolaJourney from "./pages/bussola/BussolaJourney";
-import BussolaEncounter from "./pages/bussola/BussolaEncounter";
-import BussolaPainel from "./pages/bussola/BussolaPainel";
 
 const queryClient = new QueryClient();
 
@@ -79,11 +76,7 @@ const App = () => (
           
           <Route path="/programas/:slug" element={<ProgramGeneric />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
-          <Route path="/admin/payments" element={<AdminPayments />} />
           
-          <Route path="/bussola" element={<BussolaJourney />} />
-          <Route path="/bussola/painel" element={<BussolaPainel />} />
-          <Route path="/bussola/encontro/:number" element={<BussolaEncounter />} />
           
           <Route path="/profile" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
