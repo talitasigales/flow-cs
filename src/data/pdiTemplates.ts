@@ -156,7 +156,12 @@ export const PDA_AXES: Record<string, PDAAxis> = {
     reflectiveQuestions: [
       'Descreva situações em que os comportamentos de pontuação mais alta trouxeram prejuízos para sua performance no trabalho.',
       'Você se recorda de alguma situação que conseguiu flexibilizar esses comportamentos relacionados a Paciência alta? O que lhe motivou a ter esse comportamento?',
-      'Liste pessoas próximas que têm um perfil de Paciência baixa e podem ajudar e mentorar você para enfrentar desafios.'
+      'Liste pessoas próximas que têm um perfil de Paciência baixa e podem ajudar e mentorar você para enfrentar desafios.',
+      'Como a resistência à mudança já limitou oportunidades de crescimento na sua carreira?',
+      'Em quais situações a pressão por resultados mais rápidos lhe causou maior desconforto? Como reagiu?',
+      'O que lhe ajudaria a lidar melhor com múltiplas tarefas sem perder a qualidade?',
+      'Quais estratégias poderiam ajudá-lo(a) a se posicionar mais firmemente quando necessário?',
+      'Como você poderia se adaptar melhor a ambientes imprevisíveis sem comprometer sua estabilidade emocional?'
     ],
     oppositeAxis: 'paciencia_baixa'
   },
