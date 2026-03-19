@@ -34,6 +34,40 @@ export default function PDIDetail() {
     }
   }, [user, pdiId]);
 
+  const advanceStage = async (pdiData: any, actionsData: any[], checkinsData: any[], closureData: any) => {
+    let newStatus = pdiData.status;
+    let newStage = pdiData.current_stage;
+
+    if (closureData) {
+      newStatus = 'completed';
+      newStage = 5;
+    } else if (checkinsData.length > 0 && actionsData.length > 0) {
+      if (pdiData.status !== 'acompanhamento' && pdiData.status !== 'fechamento' && pdiData.status !== 'completed') {
+        newStatus = 'acompanhamento';
+        newStage = 4;
+      }
+    } else if (actionsData.length > 0) {
+      if (pdiData.status === 'devolutiva' || pdiData.status === 'active') {
+        newStatus = 'construcao';
+        newStage = 3;
+      }
+    }
+
+    if (newStatus !== pdiData.status || newStage !== pdiData.current_stage) {
+      const { error } = await supabase
+        .from('pdis')
+        .update({ status: newStatus, current_stage: newStage })
+        .eq('id', pdiData.id);
+
+      if (!error) {
+        pdiData.status = newStatus;
+        pdiData.current_stage = newStage;
+      }
+    }
+
+    return pdiData;
+  };
+
   const fetchPDIData = async () => {
     try {
       const { data: pdiData, error: pdiError } = await supabase
@@ -44,7 +78,6 @@ export default function PDIDetail() {
         .single();
 
       if (pdiError) throw pdiError;
-      setPdi(pdiData);
 
       const { data: actionsData, error: actionsError } = await supabase
         .from('pdi_actions')
@@ -72,6 +105,9 @@ export default function PDIDetail() {
 
       if (closureError) throw closureError;
       setClosure(closureData);
+
+      const updatedPdi = await advanceStage(pdiData, actionsData || [], checkinsData || [], closureData);
+      setPdi(updatedPdi);
 
     } catch (error) {
       console.error('Erro ao carregar PDI:', error);
