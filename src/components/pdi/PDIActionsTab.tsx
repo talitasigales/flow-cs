@@ -121,7 +121,7 @@ export default function PDIActionsTab({ pdiId, actions, onRefresh }: PDIActionsT
           <TabsTrigger value="all">Todas ({actions.length})</TabsTrigger>
           <TabsTrigger value="kanban">Kanban</TabsTrigger>
           <TabsTrigger value="experience">Experiência</TabsTrigger>
-          <TabsTrigger value="mentoring">Mentoria</TabsTrigger>
+          <TabsTrigger value="social">Social</TabsTrigger>
           <TabsTrigger value="formal">Formal</TabsTrigger>
         </TabsList>
 
