@@ -248,6 +248,13 @@ export default function PDIDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            <PDIStageTips
+              currentStage={pdi.current_stage}
+              status={pdi.status}
+              onAdvanceStage={handleManualAdvance}
+              canAdvance={canManuallyAdvance}
+              isCompleted={!!closure}
+            />
             <PDIProgressCard pdi={pdi} actions={actions} />
 
             {pdi.notes && (
