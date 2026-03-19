@@ -252,7 +252,19 @@ export default function Module() {
             <CardTitle>Vídeo do Módulo</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden">
+            <div
+              className="aspect-video bg-muted rounded-lg mb-4 overflow-hidden relative"
+              onFocus={() => {
+                if (module.video_url) {
+                  supabase.rpc('log_user_action', {
+                    _action: 'VIDEO_PLAY',
+                    _table_name: 'modules',
+                    _record_id: module.id,
+                    _new_data: { module_title: module.title, video_url: module.video_url },
+                  });
+                }
+              }}
+            >
               {module.video_url ? (
                 <iframe
                   src={getYouTubeEmbedUrl(module.video_url)}
