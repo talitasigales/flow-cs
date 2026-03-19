@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, FileCheck } from 'lucide-react';
+import PDIStageTips from '@/components/pdi/PDIStageTips';
 import { toast } from 'sonner';
 import { PDA_AXES } from '@/data/pdiTemplates';
 import PDIJourneyTimeline from '@/components/pdi/PDIJourneyTimeline';
@@ -136,9 +137,38 @@ export default function PDIDetail() {
   const nextCheckinNumber = checkins.length + 1;
   const canClose = checkins.length >= 2 && !closure;
 
+  const STAGE_STATUS_MAP: Record<number, { status: string; stage: number }> = {
+    1: { status: 'devolutiva', stage: 2 },
+    2: { status: 'construcao', stage: 3 },
+    3: { status: 'acompanhamento', stage: 4 },
+    4: { status: 'fechamento', stage: 5 },
+  };
+
+  const handleManualAdvance = async () => {
+    const next = STAGE_STATUS_MAP[pdi.current_stage];
+    if (!next) return;
+
+    try {
+      const { error } = await supabase
+        .from('pdis')
+        .update({ status: next.status, current_stage: next.stage })
+        .eq('id', pdi.id);
+
+      if (error) throw error;
+      toast.success('Etapa avançada com sucesso!');
+      fetchPDIData();
+    } catch (error) {
+      console.error('Erro ao avançar etapa:', error);
+      toast.error('Erro ao avançar etapa');
+    }
+  };
+
+  const canManuallyAdvance = !closure && pdi.current_stage < 5 && pdi.status !== 'completed';
+
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
+      active: 'Ativo',
       devolutiva: 'Devolutiva',
       construcao: 'Construção',
       acompanhamento: 'Acompanhamento',
@@ -218,6 +248,13 @@ export default function PDIDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            <PDIStageTips
+              currentStage={pdi.current_stage}
+              status={pdi.status}
+              onAdvanceStage={handleManualAdvance}
+              canAdvance={canManuallyAdvance}
+              isCompleted={!!closure}
+            />
             <PDIProgressCard pdi={pdi} actions={actions} />
 
             {pdi.notes && (
