@@ -99,11 +99,13 @@ export default function Module() {
       setModule(moduleData);
 
       // Log module access
-      supabase.rpc('log_user_action', {
+      await supabase.rpc('log_user_action', {
         _action: 'MODULE_ACCESS',
         _table_name: 'modules',
         _record_id: moduleData.id,
         _new_data: { module_title: moduleData.title, module_order: moduleData.order_number },
+      }).then(({ error }) => {
+        if (error) console.error('Failed to log MODULE_ACCESS:', error);
       });
       // Fetch user progress
       const { data: progressData, error: progressError } = await supabase
@@ -154,19 +156,20 @@ export default function Module() {
     }
   };
 
-  const markModuleComplete = () => {
-    updateProgress({
+  const markModuleComplete = async () => {
+    await updateProgress({
       completed: true,
       completed_at: new Date().toISOString()
     });
     // Log the completion for admin audit trail
     if (module) {
-      supabase.rpc('log_user_action', {
+      const { error } = await supabase.rpc('log_user_action', {
         _action: 'MODULE_COMPLETED',
         _table_name: 'modules',
         _record_id: module.id,
         _new_data: { module_title: module.title, module_order: module.order_number },
       });
+      if (error) console.error('Failed to log MODULE_COMPLETED:', error);
     }
   };
 
@@ -261,6 +264,8 @@ export default function Module() {
                     _table_name: 'modules',
                     _record_id: module.id,
                     _new_data: { module_title: module.title, video_url: module.video_url },
+                  }).then(({ error }) => {
+                    if (error) console.error('Failed to log VIDEO_PLAY:', error);
                   });
                 }
               }}
