@@ -93,6 +93,10 @@ export default function Auth() {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
+    if (!consentAccepted) {
+      toast.error('Você precisa aceitar os termos de uso e política de privacidade');
+      return;
+    }
     if (password.length < 6) {
       toast.error('A senha deve ter pelo menos 6 caracteres');
       return;
