@@ -7,7 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Shield } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import heroBackground from '@/assets/hero-background.jpg';
 import grouLogo from '@/assets/grou-logo-laranja.png';
 
@@ -20,6 +23,7 @@ export default function Auth() {
   const [company, setCompany] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [mode, setMode] = useState<AuthMode>('login');
+  const [consentAccepted, setConsentAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotCooldown, setForgotCooldown] = useState(0);
@@ -87,6 +91,10 @@ export default function Auth() {
     e.preventDefault();
     if (!fullName || !company || !jobTitle) {
       toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (!consentAccepted) {
+      toast.error('Você precisa aceitar os termos de uso e política de privacidade');
       return;
     }
     if (password.length < 6) {
@@ -193,7 +201,158 @@ export default function Auth() {
             <Label htmlFor="jobTitle">Cargo *</Label>
             <Input id="jobTitle" placeholder="Seu cargo" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} required disabled={loading} />
           </div>
-          <Button type="submit" className="w-full gradient-primary" disabled={loading}>
+
+          {/* Data consent & privacy */}
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-3">
+            <div className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Seus dados pessoais (nome, email, empresa e cargo) serão utilizados exclusivamente para 
+                identificação na plataforma, personalização da experiência e análises de desenvolvimento profissional, 
+                conforme a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
+              </p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="consent-accept"
+                checked={consentAccepted}
+                onCheckedChange={(checked) => setConsentAccepted(checked === true)}
+                className="mt-0.5"
+                disabled={loading}
+              />
+              <label htmlFor="consent-accept" className="text-xs cursor-pointer leading-relaxed text-muted-foreground">
+                Li e concordo com os{' '}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button type="button" className="text-primary hover:underline font-medium">
+                      Termos de Uso
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle>Termos de Uso e Política de Privacidade</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-[60vh] pr-4">
+                      <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+                        <h3 className="text-base font-semibold text-foreground">1. Dados Coletados</h3>
+                        <p>A plataforma Grou coleta e armazena os seguintes dados pessoais:</p>
+                        <ul className="list-disc pl-6 space-y-1">
+                          <li>Nome completo e e-mail corporativo</li>
+                          <li>Empresa e cargo profissional</li>
+                          <li>Dados de perfil comportamental (REPNA)</li>
+                          <li>Avaliações de desempenho e potencial (Matriz 9Box)</li>
+                          <li>Planos de Desenvolvimento Individual (PDI)</li>
+                          <li>Progresso em módulos de capacitação</li>
+                        </ul>
+
+                        <h3 className="text-base font-semibold text-foreground">2. Finalidade do Tratamento</h3>
+                        <p>Os dados são utilizados exclusivamente para:</p>
+                        <ul className="list-disc pl-6 space-y-1">
+                          <li>Gestão e acompanhamento do desenvolvimento profissional</li>
+                          <li>Análise e evolução de perfil comportamental</li>
+                          <li>Elaboração e monitoramento de planos de desenvolvimento</li>
+                          <li>Geração de insights personalizados via inteligência artificial</li>
+                          <li>Avaliação de desempenho e potencial no contexto organizacional</li>
+                        </ul>
+
+                        <h3 className="text-base font-semibold text-foreground">3. Segurança da Informação</h3>
+                        <ul className="list-disc pl-6 space-y-1">
+                          <li>Criptografia em trânsito e em repouso</li>
+                          <li>Controle de acesso baseado em autenticação individual</li>
+                          <li>Isolamento de dados por usuário (Row Level Security)</li>
+                          <li>Registros de auditoria para rastreabilidade</li>
+                        </ul>
+
+                        <h3 className="text-base font-semibold text-foreground">4. Compartilhamento</h3>
+                        <p>
+                          Seus dados <strong className="text-foreground">não são compartilhados</strong> com terceiros, 
+                          exceto para funcionamento da plataforma (infraestrutura em nuvem com contratos de confidencialidade).
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">5. Direitos do Titular</h3>
+                        <p>Conforme a LGPD, você tem direito a:</p>
+                        <ul className="list-disc pl-6 space-y-1">
+                          <li>Acessar seus dados pessoais a qualquer momento</li>
+                          <li>Solicitar correção de dados incompletos</li>
+                          <li>Solicitar a exclusão de seus dados</li>
+                          <li>Revogar este consentimento a qualquer momento</li>
+                          <li>Solicitar portabilidade dos seus dados</li>
+                        </ul>
+
+                        <h3 className="text-base font-semibold text-foreground">6. Retenção dos Dados</h3>
+                        <p>
+                          Os dados serão mantidos enquanto houver relação ativa com a plataforma. 
+                          Após o término, serão eliminados ou anonimizados conforme obrigações legais.
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">7. Contato</h3>
+                        <p>
+                          Para exercer seus direitos ou esclarecer dúvidas, entre em contato com o 
+                          Encarregado de Proteção de Dados (DPO) da organização responsável.
+                        </p>
+                      </div>
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+                {' '}e a{' '}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button type="button" className="text-primary hover:underline font-medium">
+                      Política de Privacidade
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle>Política de Privacidade</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-[60vh] pr-4">
+                      <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+                        <h3 className="text-base font-semibold text-foreground">Controlador dos Dados</h3>
+                        <p>
+                          A Grou Pessoas e Projetos é a controladora dos dados pessoais coletados através desta plataforma, 
+                          em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">Base Legal</h3>
+                        <p>
+                          O tratamento dos dados é realizado com base no consentimento do titular (Art. 7º, I da LGPD) 
+                          e para execução de contrato ou procedimentos preliminares (Art. 7º, V da LGPD).
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">Cookies e Tecnologias</h3>
+                        <p>
+                          Utilizamos cookies essenciais para autenticação e funcionamento da plataforma. 
+                          Não utilizamos cookies de rastreamento de terceiros ou publicidade.
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">Transferência Internacional</h3>
+                        <p>
+                          Seus dados podem ser armazenados em servidores localizados fora do Brasil, 
+                          sempre com garantias de proteção adequadas conforme exigido pela LGPD.
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">Incidentes de Segurança</h3>
+                        <p>
+                          Em caso de incidente de segurança que possa acarretar risco ou dano relevante, 
+                          comunicaremos a Autoridade Nacional de Proteção de Dados (ANPD) e os titulares afetados.
+                        </p>
+
+                        <h3 className="text-base font-semibold text-foreground">Alterações nesta Política</h3>
+                        <p>
+                          Esta política pode ser atualizada periodicamente. Mudanças significativas serão 
+                          comunicadas por meio da plataforma.
+                        </p>
+                      </div>
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+                , autorizando o tratamento dos meus dados pessoais conforme a LGPD.
+              </label>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full gradient-primary" disabled={loading || !consentAccepted}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar Conta
           </Button>
