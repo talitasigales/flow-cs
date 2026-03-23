@@ -23,6 +23,7 @@ export default function Auth() {
   const [company, setCompany] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [mode, setMode] = useState<AuthMode>('login');
+  const [consentAccepted, setConsentAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotCooldown, setForgotCooldown] = useState(0);
