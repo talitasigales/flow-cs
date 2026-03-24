@@ -105,6 +105,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     return schedules.find((s: any) => s.id === smEntry.schedule_id) || null;
   };
 
+  const { data: materials = [] } = useQuery({
     queryKey: ['dev-program-materials', programId],
     enabled: !!programId,
     queryFn: async () => {
