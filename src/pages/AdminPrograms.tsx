@@ -908,18 +908,24 @@ export default function AdminPrograms() {
             <Input value={scheduleTitle} onChange={e => setScheduleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
           </div>
           <div className="space-y-2">
-            <Label>Módulo vinculado (opcional)</Label>
-            <Select value={scheduleModuleId} onValueChange={setScheduleModuleId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sem módulo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem módulo</SelectItem>
-                {modules.map((m: any) => (
-                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Módulos vinculados (opcional)</Label>
+            <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+              {modules.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum módulo cadastrado</p>
+              ) : modules.map((m: any) => (
+                <label key={m.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <Checkbox
+                    checked={scheduleModuleIds.includes(m.id)}
+                    onCheckedChange={(checked) => {
+                      setScheduleModuleIds(prev =>
+                        checked ? [...prev, m.id] : prev.filter(id => id !== m.id)
+                      );
+                    }}
+                  />
+                  {m.title}
+                </label>
+              ))}
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Data</Label>
