@@ -645,6 +645,34 @@ export default function AdminPrograms() {
     }
   };
 
+  const handleEditMaterial = (m: any) => {
+    setEditingMaterial(m);
+    setMaterialTitle(m.title || '');
+    setMaterialDescription(m.description || '');
+    setMaterialFileUrl(m.file_url || '');
+    setMaterialFileType(m.file_type || 'link');
+    setMaterialModuleId(m.module_id || '');
+    setMaterialCategory(m.category || 'material');
+    setMaterialFile(null);
+    setMaterialVideoEntries(
+      Array.isArray(m.video_urls) && m.video_urls.length > 0
+        ? m.video_urls.map((v: any) => ({ url: v.url || '', title: v.title || '' }))
+        : [{ url: '', title: '' }]
+    );
+  };
+
+  const handleCancelEditMaterial = () => {
+    setEditingMaterial(null);
+    setMaterialTitle('');
+    setMaterialDescription('');
+    setMaterialFileUrl('');
+    setMaterialFileType('link');
+    setMaterialModuleId('');
+    setMaterialCategory('material');
+    setMaterialFile(null);
+    setMaterialVideoEntries([{ url: '', title: '' }]);
+  };
+
   const handleDeleteMaterial = async (id: string) => {
     const { error } = await supabase.from('program_materials').delete().eq('id', id);
     if (error) {
