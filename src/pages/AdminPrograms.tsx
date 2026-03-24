@@ -1568,6 +1568,66 @@ export default function AdminPrograms() {
               </Card>
             </TabsContent>
 
+            {/* PENDENTES TAB */}
+            <TabsContent value="pending" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Pré-matrículas Pendentes
+                  </CardTitle>
+                  <CardDescription>
+                    Alunos que ainda não criaram conta. Ao se cadastrarem com um destes emails, o acesso será liberado automaticamente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {pendingEnrollments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">Nenhuma pré-matrícula pendente.</p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Turma</TableHead>
+                          <TableHead>Data de cadastro</TableHead>
+                          <TableHead className="w-[80px]">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingEnrollments.map((pe: any) => {
+                          const cls = classes.find((c: any) => c.id === pe.class_id);
+                          return (
+                            <TableRow key={pe.id}>
+                              <TableCell className="font-medium">{pe.email}</TableCell>
+                              <TableCell>{cls?.name || '—'}</TableCell>
+                              <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={async () => {
+                                    const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
+                                    if (error) {
+                                      toast.error('Erro ao remover pré-matrícula');
+                                    } else {
+                                      toast.success('Pré-matrícula removida');
+                                      refetchPending();
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* RESPOSTAS TAB */}
             <TabsContent value="responses" className="mt-4 space-y-4">
               {/* Workshop responses */}
