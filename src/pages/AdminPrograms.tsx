@@ -111,7 +111,7 @@ export default function AdminPrograms() {
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [scheduleStartTime, setScheduleStartTime] = useState('');
   const [scheduleEndTime, setScheduleEndTime] = useState('');
-  const [scheduleModuleId, setScheduleModuleId] = useState('');
+  const [scheduleModuleIds, setScheduleModuleIds] = useState<string[]>([]);
   const [savingSchedule, setSavingSchedule] = useState(false);
   const [scheduleClassFilter, setScheduleClassFilter] = useState('all');
 
