@@ -1807,9 +1807,16 @@ export default function AdminPrograms() {
                     <Label>Descrição (opcional)</Label>
                     <Textarea value={materialDescription} onChange={e => setMaterialDescription(e.target.value)} placeholder="Breve descrição do material..." className="min-h-[80px]" />
                   </div>
-                  <Button onClick={handleSaveMaterial} disabled={savingMaterial}>
-                    {savingMaterial ? 'Salvando...' : 'Adicionar Material'}
-                  </Button>
+                   <div className="flex gap-2">
+                     {editingMaterial && (
+                       <Button variant="outline" onClick={handleCancelEditMaterial}>
+                         Cancelar Edição
+                       </Button>
+                     )}
+                     <Button onClick={handleSaveMaterial} disabled={savingMaterial}>
+                       {savingMaterial ? 'Salvando...' : editingMaterial ? 'Salvar Alterações' : 'Adicionar Material'}
+                     </Button>
+                   </div>
                 </CardContent>
               </Card>
 
