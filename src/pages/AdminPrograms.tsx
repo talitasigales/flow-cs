@@ -111,7 +111,7 @@ export default function AdminPrograms() {
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [scheduleStartTime, setScheduleStartTime] = useState('');
   const [scheduleEndTime, setScheduleEndTime] = useState('');
-  const [scheduleModuleId, setScheduleModuleId] = useState('');
+  const [scheduleModuleIds, setScheduleModuleIds] = useState<string[]>([]);
   const [savingSchedule, setSavingSchedule] = useState(false);
   const [scheduleClassFilter, setScheduleClassFilter] = useState('all');
 
@@ -275,6 +275,24 @@ export default function AdminPrograms() {
       return data || [];
     },
   });
+
+  const scheduleIds = schedules.map((s: any) => s.id);
+  const scheduleIdsKey = scheduleIds.sort().join(',');
+
+  const { data: scheduleModulesData = [], refetch: refetchScheduleModules } = useQuery({
+    queryKey: ['schedule-modules-admin', scheduleIdsKey],
+    enabled: scheduleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('schedule_modules')
+        .select('*')
+        .in('schedule_id', scheduleIds);
+      return data || [];
+    },
+  });
+
+  const getScheduleModuleIds = (scheduleId: string): string[] =>
+    scheduleModulesData.filter((sm: any) => sm.schedule_id === scheduleId).map((sm: any) => sm.module_id);
 
   // --- Handlers ---
 
@@ -637,7 +655,7 @@ export default function AdminPrograms() {
       setScheduleDate(schedule.schedule_date ? new Date(schedule.schedule_date + 'T12:00:00') : undefined);
       setScheduleStartTime(schedule.start_time?.slice(0, 5) || '');
       setScheduleEndTime(schedule.end_time?.slice(0, 5) || '');
-      setScheduleModuleId(schedule.module_id || 'none');
+      setScheduleModuleIds(getScheduleModuleIds(schedule.id));
     } else {
       setEditingSchedule(null);
       setScheduleClassId('');
@@ -645,7 +663,7 @@ export default function AdminPrograms() {
       setScheduleDate(undefined);
       setScheduleStartTime('');
       setScheduleEndTime('');
-      setScheduleModuleId('');
+      setScheduleModuleIds([]);
     }
     setScheduleDialogOpen(true);
   };
@@ -659,30 +677,40 @@ export default function AdminPrograms() {
     try {
       const payload: any = {
         class_id: scheduleClassId,
-        module_id: scheduleModuleId && scheduleModuleId !== 'none' ? scheduleModuleId : null,
         title: scheduleTitle.trim(),
         schedule_date: format(scheduleDate, 'yyyy-MM-dd'),
         start_time: scheduleStartTime || null,
         end_time: scheduleEndTime || null,
       };
+      let scheduleId: string;
       if (editingSchedule) {
         const { error } = await supabase.from('class_schedules').update(payload).eq('id', editingSchedule.id);
         if (error) throw error;
-        toast.success('Etapa atualizada');
+        scheduleId = editingSchedule.id;
+        // Remove old module links
+        await (supabase as any).from('schedule_modules').delete().eq('schedule_id', scheduleId);
       } else {
         payload.order_number = schedules.filter((s: any) => s.class_id === scheduleClassId).length;
-        const { error } = await supabase.from('class_schedules').insert(payload);
+        const { data: inserted, error } = await supabase.from('class_schedules').insert(payload).select('id').single();
         if (error) throw error;
-        toast.success('Etapa adicionada ao cronograma');
+        scheduleId = inserted.id;
       }
+      // Insert new module links
+      if (scheduleModuleIds.length > 0) {
+        const links = scheduleModuleIds.map(mid => ({ schedule_id: scheduleId, module_id: mid }));
+        const { error: linkErr } = await (supabase as any).from('schedule_modules').insert(links);
+        if (linkErr) throw linkErr;
+      }
+      toast.success(editingSchedule ? 'Etapa atualizada' : 'Etapa adicionada ao cronograma');
       setScheduleTitle('');
       setScheduleDate(undefined);
       setScheduleStartTime('');
       setScheduleEndTime('');
-      setScheduleModuleId('');
+      setScheduleModuleIds([]);
       setEditingSchedule(null);
       setScheduleDialogOpen(false);
       refetchSchedules();
+      refetchScheduleModules();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar');
     } finally {
@@ -880,18 +908,24 @@ export default function AdminPrograms() {
             <Input value={scheduleTitle} onChange={e => setScheduleTitle(e.target.value)} placeholder="Ex: Módulo 1 — Autoconhecimento" />
           </div>
           <div className="space-y-2">
-            <Label>Módulo vinculado (opcional)</Label>
-            <Select value={scheduleModuleId} onValueChange={setScheduleModuleId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sem módulo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem módulo</SelectItem>
-                {modules.map((m: any) => (
-                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Módulos vinculados (opcional)</Label>
+            <div className="border rounded-md p-3 max-h-48 overflow-y-auto space-y-2">
+              {modules.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum módulo cadastrado</p>
+              ) : modules.map((m: any) => (
+                <label key={m.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <Checkbox
+                    checked={scheduleModuleIds.includes(m.id)}
+                    onCheckedChange={(checked) => {
+                      setScheduleModuleIds(prev =>
+                        checked ? [...prev, m.id] : prev.filter(id => id !== m.id)
+                      );
+                    }}
+                  />
+                  {m.title}
+                </label>
+              ))}
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Data</Label>

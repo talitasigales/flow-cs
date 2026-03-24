@@ -1650,6 +1650,42 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule_modules: {
+        Row: {
+          created_at: string
+          id: string
+          module_id: string
+          schedule_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_id: string
+          schedule_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_id?: string
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "program_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_modules_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "class_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       specialists: {
         Row: {
           avatar_url: string | null

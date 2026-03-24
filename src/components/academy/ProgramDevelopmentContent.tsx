@@ -84,6 +84,27 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     },
   });
 
+  const scheduleIds = schedules.map((s: any) => s.id);
+  const scheduleIdsKey = scheduleIds.sort().join(',');
+
+  const { data: scheduleModulesData = [] } = useQuery({
+    queryKey: ['dev-schedule-modules', scheduleIdsKey],
+    enabled: scheduleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('schedule_modules')
+        .select('*')
+        .in('schedule_id', scheduleIds);
+      return data || [];
+    },
+  });
+
+  const getScheduleForModule = (moduleId: string) => {
+    const smEntry = scheduleModulesData.find((sm: any) => sm.module_id === moduleId);
+    if (!smEntry) return null;
+    return schedules.find((s: any) => s.id === smEntry.schedule_id) || null;
+  };
+
   const { data: materials = [] } = useQuery({
     queryKey: ['dev-program-materials', programId],
     enabled: !!programId,
@@ -310,7 +331,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                   <CardContent className="space-y-2">
                     {programModules.map((mod: any, idx: number) => {
                       const isActive = activeModule === mod.id;
-                      const modSchedule = schedules.find((s: any) => s.module_id === mod.id);
+                      const modSchedule = getScheduleForModule(mod.id);
                       const isCompleted = modSchedule && modSchedule.schedule_date < today;
                       const isCurrent = modSchedule && modSchedule.schedule_date === today;
                       // Module is unlocked if: no schedule exists (always open), or date is today or past
