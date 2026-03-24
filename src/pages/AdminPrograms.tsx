@@ -619,9 +619,16 @@ export default function AdminPrograms() {
         insertData.video_urls = validVideos.map(v => ({ url: v.url.trim(), title: v.title.trim() || null }));
       }
 
-      const { error } = await supabase.from('program_materials').insert(insertData);
-      if (error) throw error;
-      toast.success('Material adicionado');
+      if (editingMaterial) {
+        const { error } = await supabase.from('program_materials').update(insertData).eq('id', editingMaterial.id);
+        if (error) throw error;
+        toast.success('Material atualizado');
+        setEditingMaterial(null);
+      } else {
+        const { error } = await supabase.from('program_materials').insert(insertData);
+        if (error) throw error;
+        toast.success('Material adicionado');
+      }
       setMaterialTitle('');
       setMaterialDescription('');
       setMaterialFileUrl('');
