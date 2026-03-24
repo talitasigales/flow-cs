@@ -1,36 +1,59 @@
 
 
-## Problem
+## Problema
 
-The `reset-password` edge function fails with "Token inválido" because on line 49:
+A Edge Function `import-enrollments` não insere registros em `pending_enrollments` quando o email do aluno não tem conta na plataforma. Ela simplesmente marca como "não encontrado". O fluxo de pré-matrícula (que já funciona no `register-user`) nunca é acionado porque os dados pendentes nunca são criados.
+
+## Solução
+
+Modificar `supabase/functions/import-enrollments/index.ts` para que, quando um email não for encontrado em `profiles`, insira um registro em `pending_enrollments` em vez de apenas adicioná-lo à lista `notFound`.
+
+### Mudança no `import-enrollments/index.ts`
+
+Onde hoje faz:
 ```typescript
-await supabaseAuth.auth.getUser(token)
-```
-When you pass the token directly to `getUser()`, it bypasses the Authorization header and attempts to resolve a local session, which doesn't exist in edge functions — hence `AuthSessionMissingError`.
-
-## Fix
-
-One-line change in `supabase/functions/reset-password/index.ts`:
-
-1. **Remove the `token` variable** (line 42) — it's no longer needed.
-2. **Call `getUser()` without arguments** (line 49) — this makes the client use the `Authorization` header from the global config to validate the user.
-
-```typescript
-// Before (broken):
-const token = authHeader.replace('Bearer ', '');
-const supabaseAuth = createClient(supabaseUrl, anonKey, {
-  global: { headers: { Authorization: authHeader } },
-  auth: { autoRefreshToken: false, persistSession: false }
-});
-const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
-
-// After (fixed):
-const supabaseAuth = createClient(supabaseUrl, anonKey, {
-  global: { headers: { Authorization: authHeader } },
-  auth: { autoRefreshToken: false, persistSession: false }
-});
-const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
+if (!profile) {
+  notFound.push(email);
+  continue;
+}
 ```
 
-3. **Deploy and test** by calling the function from the admin page.
+Passará a fazer:
+```typescript
+if (!profile) {
+  // Insert into pending_enrollments for auto-enrollment on future registration
+  const pendingData = { email, program_id, class_id: (class_id && class_id !== 'none') ? class_id : null };
+  const { error: pendingErr } = await supabase
+    .from('pending_enrollments')
+    .insert(pendingData);
+  if (pendingErr && pendingErr.code === '23505') {
+    alreadyEnrolled.push(email);
+  } else {
+    enrolled.push(email); // or a new "pending" counter
+  }
+  continue;
+}
+```
+
+### Resposta da API
+
+Adicionar um campo `pending` ao retorno para informar quantos emails foram pré-matriculados (sem conta ainda), distinguindo de matrículas imediatas. O retorno ficará:
+
+```json
+{
+  "enrolled": 3,
+  "pending": 2,
+  "alreadyEnrolled": 1,
+  "notFound": [],
+  "total": 6
+}
+```
+
+### UI no Admin
+
+No `AdminPrograms.tsx`, atualizar a mensagem de resultado da importação para incluir a contagem de pré-matrículas pendentes, algo como: "2 alunos pré-matriculados (serão ativados no primeiro cadastro)".
+
+### Unique constraint
+
+Adicionar uma migration com unique constraint em `pending_enrollments(email, program_id)` para evitar duplicatas, caso ainda não exista.
 
