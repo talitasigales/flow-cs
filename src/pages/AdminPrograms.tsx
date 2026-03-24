@@ -194,6 +194,19 @@ export default function AdminPrograms() {
     },
   });
 
+  const { data: pendingEnrollments = [], refetch: refetchPending } = useQuery({
+    queryKey: ['pending-enrollments', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('pending_enrollments')
+        .select('*')
+        .eq('program_id', selectedProgram)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
   const { data: responses = [] } = useQuery({
     queryKey: ['all-responses', selectedProgram],
     enabled: !!selectedProgram,
@@ -1115,6 +1128,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="schedule" className="gap-1.5"><Clock className="w-4 h-4" /> Cronograma</TabsTrigger>
               <TabsTrigger value="modules" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos ({modules.length})</TabsTrigger>
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
+              <TabsTrigger value="pending" className="gap-1.5"><Clock className="w-4 h-4" /> Pendentes ({pendingEnrollments.length})</TabsTrigger>
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length + exerciseResponses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
               <TabsTrigger value="welcome" className="gap-1.5"><MessageSquare className="w-4 h-4" /> Boas-vindas</TabsTrigger>
@@ -1550,6 +1564,66 @@ export default function AdminPrograms() {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* PENDENTES TAB */}
+            <TabsContent value="pending" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Pré-matrículas Pendentes
+                  </CardTitle>
+                  <CardDescription>
+                    Alunos que ainda não criaram conta. Ao se cadastrarem com um destes emails, o acesso será liberado automaticamente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {pendingEnrollments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">Nenhuma pré-matrícula pendente.</p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Turma</TableHead>
+                          <TableHead>Data de cadastro</TableHead>
+                          <TableHead className="w-[80px]">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingEnrollments.map((pe: any) => {
+                          const cls = classes.find((c: any) => c.id === pe.class_id);
+                          return (
+                            <TableRow key={pe.id}>
+                              <TableCell className="font-medium">{pe.email}</TableCell>
+                              <TableCell>{cls?.name || '—'}</TableCell>
+                              <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={async () => {
+                                    const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
+                                    if (error) {
+                                      toast.error('Erro ao remover pré-matrícula');
+                                    } else {
+                                      toast.success('Pré-matrícula removida');
+                                      refetchPending();
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
