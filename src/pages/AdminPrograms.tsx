@@ -94,6 +94,7 @@ export default function AdminPrograms() {
   const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [materialVideoEntries, setMaterialVideoEntries] = useState<{url: string; title: string}[]>([{ url: '', title: '' }]);
   const [savingMaterial, setSavingMaterial] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<any>(null);
 
   // Modules state
   const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
@@ -618,9 +619,16 @@ export default function AdminPrograms() {
         insertData.video_urls = validVideos.map(v => ({ url: v.url.trim(), title: v.title.trim() || null }));
       }
 
-      const { error } = await supabase.from('program_materials').insert(insertData);
-      if (error) throw error;
-      toast.success('Material adicionado');
+      if (editingMaterial) {
+        const { error } = await supabase.from('program_materials').update(insertData).eq('id', editingMaterial.id);
+        if (error) throw error;
+        toast.success('Material atualizado');
+        setEditingMaterial(null);
+      } else {
+        const { error } = await supabase.from('program_materials').insert(insertData);
+        if (error) throw error;
+        toast.success('Material adicionado');
+      }
       setMaterialTitle('');
       setMaterialDescription('');
       setMaterialFileUrl('');
@@ -635,6 +643,34 @@ export default function AdminPrograms() {
     } finally {
       setSavingMaterial(false);
     }
+  };
+
+  const handleEditMaterial = (m: any) => {
+    setEditingMaterial(m);
+    setMaterialTitle(m.title || '');
+    setMaterialDescription(m.description || '');
+    setMaterialFileUrl(m.file_url || '');
+    setMaterialFileType(m.file_type || 'link');
+    setMaterialModuleId(m.module_id || '');
+    setMaterialCategory(m.category || 'material');
+    setMaterialFile(null);
+    setMaterialVideoEntries(
+      Array.isArray(m.video_urls) && m.video_urls.length > 0
+        ? m.video_urls.map((v: any) => ({ url: v.url || '', title: v.title || '' }))
+        : [{ url: '', title: '' }]
+    );
+  };
+
+  const handleCancelEditMaterial = () => {
+    setEditingMaterial(null);
+    setMaterialTitle('');
+    setMaterialDescription('');
+    setMaterialFileUrl('');
+    setMaterialFileType('link');
+    setMaterialModuleId('');
+    setMaterialCategory('material');
+    setMaterialFile(null);
+    setMaterialVideoEntries([{ url: '', title: '' }]);
   };
 
   const handleDeleteMaterial = async (id: string) => {
@@ -1653,7 +1689,7 @@ export default function AdminPrograms() {
             <TabsContent value="materials" className="mt-4 space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Adicionar Material</CardTitle>
+                  <CardTitle className="text-lg">{editingMaterial ? 'Editar Material' : 'Adicionar Material'}</CardTitle>
                   <CardDescription>Adicione links, PDFs ou documentos para os alunos. Vincule a um módulo e categorize como Pre-work, Material ou Exercício.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1771,9 +1807,16 @@ export default function AdminPrograms() {
                     <Label>Descrição (opcional)</Label>
                     <Textarea value={materialDescription} onChange={e => setMaterialDescription(e.target.value)} placeholder="Breve descrição do material..." className="min-h-[80px]" />
                   </div>
-                  <Button onClick={handleSaveMaterial} disabled={savingMaterial}>
-                    {savingMaterial ? 'Salvando...' : 'Adicionar Material'}
-                  </Button>
+                   <div className="flex gap-2">
+                     {editingMaterial && (
+                       <Button variant="outline" onClick={handleCancelEditMaterial}>
+                         Cancelar Edição
+                       </Button>
+                     )}
+                     <Button onClick={handleSaveMaterial} disabled={savingMaterial}>
+                       {savingMaterial ? 'Salvando...' : editingMaterial ? 'Salvar Alterações' : 'Adicionar Material'}
+                     </Button>
+                   </div>
                 </CardContent>
               </Card>
 
@@ -1802,11 +1845,16 @@ export default function AdminPrograms() {
                             </Badge>
                           </TableCell>
                           <TableCell><Badge variant="secondary">{m.file_type || '—'}</Badge></TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex gap-1">
+                               <Button variant="ghost" size="icon" onClick={() => handleEditMaterial(m)}>
+                                 <Pencil className="w-4 h-4" />
+                               </Button>
+                               <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
+                                 <Trash2 className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
