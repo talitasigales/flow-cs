@@ -331,7 +331,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                   <CardContent className="space-y-2">
                     {programModules.map((mod: any, idx: number) => {
                       const isActive = activeModule === mod.id;
-                      const modSchedule = schedules.find((s: any) => s.module_id === mod.id);
+                      const modSchedule = getScheduleForModule(mod.id);
                       const isCompleted = modSchedule && modSchedule.schedule_date < today;
                       const isCurrent = modSchedule && modSchedule.schedule_date === today;
                       // Module is unlocked if: no schedule exists (always open), or date is today or past
