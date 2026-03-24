@@ -44,11 +44,24 @@ Deno.serve(async (req) => {
     const enrolled: string[] = [];
     const notFound: string[] = [];
     const alreadyEnrolled: string[] = [];
+    const pending: string[] = [];
 
     for (const email of emailList) {
       const { data: profile } = await supabase.from('profiles').select('user_id').eq('email', email).maybeSingle();
       if (!profile) {
-        notFound.push(email);
+        // Insert into pending_enrollments for auto-enrollment on future registration
+        const pendingData: any = { email, program_id };
+        if (class_id && class_id !== 'none') {
+          pendingData.class_id = class_id;
+        }
+        const { error: pendingErr } = await supabase.from('pending_enrollments').insert(pendingData);
+        if (pendingErr && pendingErr.code === '23505') {
+          alreadyEnrolled.push(email);
+        } else if (pendingErr) {
+          notFound.push(email);
+        } else {
+          pending.push(email);
+        }
         continue;
       }
       const insertData: any = { program_id, user_id: profile.user_id };
@@ -67,7 +80,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ enrolled: enrolled.length, alreadyEnrolled: alreadyEnrolled.length, notFound, total: emailList.length }), {
+    return new Response(JSON.stringify({ enrolled: enrolled.length, pending: pending.length, alreadyEnrolled: alreadyEnrolled.length, notFound, total: emailList.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
