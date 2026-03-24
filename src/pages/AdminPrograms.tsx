@@ -418,6 +418,12 @@ export default function AdminPrograms() {
           msg += ` Senha temporária: ${inviteData.tempPassword}`;
         }
         toast.success(msg, { duration: 15000 });
+      } else if (data.pending > 0) {
+        let msg = `${individualName} pré-matriculado(a). Será ativado no primeiro cadastro.`;
+        if (inviteData?.tempPassword) {
+          msg += ` Senha temporária: ${inviteData.tempPassword}`;
+        }
+        toast.success(msg, { duration: 15000 });
       } else if (data.alreadyEnrolled > 0) {
         toast.info('Aluno já está matriculado neste programa.');
       } else {
