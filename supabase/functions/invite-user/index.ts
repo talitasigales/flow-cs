@@ -149,12 +149,19 @@ serve(async (req) => {
           }
         }
       } else {
-        // Remove admin role if demoting
-        await supabaseAdmin
+        // Role is 'user' — ensure user role exists but do NOT remove existing admin role
+        const { data: existingUserRole } = await supabaseAdmin
           .from('user_roles')
-          .delete()
+          .select('id')
           .eq('user_id', existingAuthUser.id)
-          .eq('role', 'admin');
+          .eq('role', 'user')
+          .maybeSingle();
+
+        if (!existingUserRole) {
+          await supabaseAdmin
+            .from('user_roles')
+            .insert({ user_id: existingAuthUser.id, role: 'user' });
+        }
       }
 
       return new Response(
