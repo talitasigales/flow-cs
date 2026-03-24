@@ -1689,7 +1689,7 @@ export default function AdminPrograms() {
             <TabsContent value="materials" className="mt-4 space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Adicionar Material</CardTitle>
+                  <CardTitle className="text-lg">{editingMaterial ? 'Editar Material' : 'Adicionar Material'}</CardTitle>
                   <CardDescription>Adicione links, PDFs ou documentos para os alunos. Vincule a um módulo e categorize como Pre-work, Material ou Exercício.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
