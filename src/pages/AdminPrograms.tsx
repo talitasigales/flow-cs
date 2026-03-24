@@ -418,6 +418,12 @@ export default function AdminPrograms() {
           msg += ` Senha temporária: ${inviteData.tempPassword}`;
         }
         toast.success(msg, { duration: 15000 });
+      } else if (data.pending > 0) {
+        let msg = `${individualName} pré-matriculado(a). Será ativado no primeiro cadastro.`;
+        if (inviteData?.tempPassword) {
+          msg += ` Senha temporária: ${inviteData.tempPassword}`;
+        }
+        toast.success(msg, { duration: 15000 });
       } else if (data.alreadyEnrolled > 0) {
         toast.info('Aluno já está matriculado neste programa.');
       } else {
@@ -446,9 +452,14 @@ export default function AdminPrograms() {
         body: { emails: csvText, program_id: selectedProgram, class_id: importClassId || null },
       });
       if (error) throw error;
-      toast.success(`Importação concluída: ${data.enrolled} matriculados, ${data.alreadyEnrolled} já existentes`);
+      let resultMsg = `Importação concluída: ${data.enrolled} matriculados`;
+      if (data.pending > 0) {
+        resultMsg += `, ${data.pending} pré-matriculados (serão ativados no primeiro cadastro)`;
+      }
+      resultMsg += `, ${data.alreadyEnrolled} já existentes`;
+      toast.success(resultMsg);
       if (data.notFound?.length > 0) {
-        toast.warning(`E-mails não encontrados: ${data.notFound.join(', ')}`);
+        toast.warning(`E-mails com erro: ${data.notFound.join(', ')}`);
       }
       setCsvText('');
       refetchEnrollments();
