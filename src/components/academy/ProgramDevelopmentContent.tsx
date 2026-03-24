@@ -84,7 +84,27 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     },
   });
 
-  const { data: materials = [] } = useQuery({
+  const scheduleIds = schedules.map((s: any) => s.id);
+  const scheduleIdsKey = scheduleIds.sort().join(',');
+
+  const { data: scheduleModulesData = [] } = useQuery({
+    queryKey: ['dev-schedule-modules', scheduleIdsKey],
+    enabled: scheduleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('schedule_modules')
+        .select('*')
+        .in('schedule_id', scheduleIds);
+      return data || [];
+    },
+  });
+
+  const getScheduleForModule = (moduleId: string) => {
+    const smEntry = scheduleModulesData.find((sm: any) => sm.module_id === moduleId);
+    if (!smEntry) return null;
+    return schedules.find((s: any) => s.id === smEntry.schedule_id) || null;
+  };
+
     queryKey: ['dev-program-materials', programId],
     enabled: !!programId,
     queryFn: async () => {
