@@ -677,30 +677,40 @@ export default function AdminPrograms() {
     try {
       const payload: any = {
         class_id: scheduleClassId,
-        module_id: scheduleModuleId && scheduleModuleId !== 'none' ? scheduleModuleId : null,
         title: scheduleTitle.trim(),
         schedule_date: format(scheduleDate, 'yyyy-MM-dd'),
         start_time: scheduleStartTime || null,
         end_time: scheduleEndTime || null,
       };
+      let scheduleId: string;
       if (editingSchedule) {
         const { error } = await supabase.from('class_schedules').update(payload).eq('id', editingSchedule.id);
         if (error) throw error;
-        toast.success('Etapa atualizada');
+        scheduleId = editingSchedule.id;
+        // Remove old module links
+        await (supabase as any).from('schedule_modules').delete().eq('schedule_id', scheduleId);
       } else {
         payload.order_number = schedules.filter((s: any) => s.class_id === scheduleClassId).length;
-        const { error } = await supabase.from('class_schedules').insert(payload);
+        const { data: inserted, error } = await supabase.from('class_schedules').insert(payload).select('id').single();
         if (error) throw error;
-        toast.success('Etapa adicionada ao cronograma');
+        scheduleId = inserted.id;
       }
+      // Insert new module links
+      if (scheduleModuleIds.length > 0) {
+        const links = scheduleModuleIds.map(mid => ({ schedule_id: scheduleId, module_id: mid }));
+        const { error: linkErr } = await (supabase as any).from('schedule_modules').insert(links);
+        if (linkErr) throw linkErr;
+      }
+      toast.success(editingSchedule ? 'Etapa atualizada' : 'Etapa adicionada ao cronograma');
       setScheduleTitle('');
       setScheduleDate(undefined);
       setScheduleStartTime('');
       setScheduleEndTime('');
-      setScheduleModuleId('');
+      setScheduleModuleIds([]);
       setEditingSchedule(null);
       setScheduleDialogOpen(false);
       refetchSchedules();
+      refetchScheduleModules();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao salvar');
     } finally {
