@@ -1,0 +1,1 @@
+ALTER TABLE public.pending_enrollments ADD CONSTRAINT pending_enrollments_email_program_unique UNIQUE (email, program_id);
