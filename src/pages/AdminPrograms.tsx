@@ -94,6 +94,7 @@ export default function AdminPrograms() {
   const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [materialVideoEntries, setMaterialVideoEntries] = useState<{url: string; title: string}[]>([{ url: '', title: '' }]);
   const [savingMaterial, setSavingMaterial] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<any>(null);
 
   // Modules state
   const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
