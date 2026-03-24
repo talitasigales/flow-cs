@@ -194,6 +194,19 @@ export default function AdminPrograms() {
     },
   });
 
+  const { data: pendingEnrollments = [], refetch: refetchPending } = useQuery({
+    queryKey: ['pending-enrollments', selectedProgram],
+    enabled: !!selectedProgram,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('pending_enrollments')
+        .select('*')
+        .eq('program_id', selectedProgram)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
   const { data: responses = [] } = useQuery({
     queryKey: ['all-responses', selectedProgram],
     enabled: !!selectedProgram,
