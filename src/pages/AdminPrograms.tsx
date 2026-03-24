@@ -276,6 +276,24 @@ export default function AdminPrograms() {
     },
   });
 
+  const scheduleIds = schedules.map((s: any) => s.id);
+  const scheduleIdsKey = scheduleIds.sort().join(',');
+
+  const { data: scheduleModulesData = [], refetch: refetchScheduleModules } = useQuery({
+    queryKey: ['schedule-modules-admin', scheduleIdsKey],
+    enabled: scheduleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('schedule_modules')
+        .select('*')
+        .in('schedule_id', scheduleIds);
+      return data || [];
+    },
+  });
+
+  const getScheduleModuleIds = (scheduleId: string): string[] =>
+    scheduleModulesData.filter((sm: any) => sm.schedule_id === scheduleId).map((sm: any) => sm.module_id);
+
   // --- Handlers ---
 
   const openClassDialog = async (cls?: any) => {
