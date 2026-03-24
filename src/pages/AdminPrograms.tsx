@@ -1845,11 +1845,16 @@ export default function AdminPrograms() {
                             </Badge>
                           </TableCell>
                           <TableCell><Badge variant="secondary">{m.file_type || '—'}</Badge></TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
+                           <TableCell>
+                             <div className="flex gap-1">
+                               <Button variant="ghost" size="icon" onClick={() => handleEditMaterial(m)}>
+                                 <Pencil className="w-4 h-4" />
+                               </Button>
+                               <Button variant="ghost" size="icon" onClick={() => handleDeleteMaterial(m.id)} className="text-destructive hover:text-destructive">
+                                 <Trash2 className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
