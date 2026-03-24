@@ -655,7 +655,7 @@ export default function AdminPrograms() {
       setScheduleDate(schedule.schedule_date ? new Date(schedule.schedule_date + 'T12:00:00') : undefined);
       setScheduleStartTime(schedule.start_time?.slice(0, 5) || '');
       setScheduleEndTime(schedule.end_time?.slice(0, 5) || '');
-      setScheduleModuleId(schedule.module_id || 'none');
+      setScheduleModuleIds(getScheduleModuleIds(schedule.id));
     } else {
       setEditingSchedule(null);
       setScheduleClassId('');
@@ -663,7 +663,7 @@ export default function AdminPrograms() {
       setScheduleDate(undefined);
       setScheduleStartTime('');
       setScheduleEndTime('');
-      setScheduleModuleId('');
+      setScheduleModuleIds([]);
     }
     setScheduleDialogOpen(true);
   };
