@@ -3,7 +3,6 @@ import jsPDF from 'jspdf';
 // Platform colors (from index.css HSL tokens converted to RGB)
 const ORANGE: [number, number, number] = [242, 122, 36];   // HSL 20 90% 52%
 const NAVY: [number, number, number] = [20, 29, 47];       // HSL 220 40% 13%
-const NAVY_LIGHT: [number, number, number] = [30, 42, 64];
 const WHITE: [number, number, number] = [255, 255, 255];
 const LIGHT_GRAY: [number, number, number] = [180, 185, 195];
 
