@@ -210,7 +210,7 @@ export async function generateCertificatePdf(data: {
   // ─── CERTIFICATE CODE (tiny, bottom-center) ───
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6);
-  doc.setTextColor(NAVY_LIGHT[0], NAVY_LIGHT[1], NAVY_LIGHT[2]);
+  doc.setTextColor(100, 110, 130);
   doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, H - 6, { align: 'center' });
 
   // ─── Decorative dots bottom-left ───
