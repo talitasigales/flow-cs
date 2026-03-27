@@ -233,7 +233,7 @@ export function CertificateManager({ programId, classes }: Props) {
             <CardDescription>Selecione os alunos que concluíram o programa</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+            <Select value={selectedClassId} onValueChange={handleClassChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filtrar por turma" />
               </SelectTrigger>
