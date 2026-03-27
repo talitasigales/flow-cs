@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   BookOpen, CalendarDays, GraduationCap, CheckCircle,
-  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList, Lock, Unlock
+  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList, Lock, Unlock, Award
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { generateCertificatePdf } from '@/utils/certificateUtils';
 
 function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
   const { data: exercises = [] } = useQuery({
