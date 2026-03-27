@@ -14,7 +14,7 @@ async function loadFont(url: string): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
-function loadImageDataUrl(url: string): Promise<string> {
+function loadImageWithDimensions(url: string): Promise<{ dataUrl: string; width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -25,11 +25,19 @@ function loadImageDataUrl(url: string): Promise<string> {
       const ctx = canvas.getContext('2d');
       if (!ctx) return reject('No canvas context');
       ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
+      resolve({
+        dataUrl: canvas.toDataURL('image/png'),
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
     };
     img.onerror = reject;
     img.src = url;
   });
+}
+
+function loadImageDataUrl(url: string): Promise<string> {
+  return loadImageWithDimensions(url).then(r => r.dataUrl);
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -74,10 +82,26 @@ export async function generateCertificatePdf(data: {
     console.warn('Font loading failed, using defaults:', e);
   }
 
-  // ─── TEMPLATE BACKGROUND (stretch to fill A4 landscape) ───
+  // ─── TEMPLATE BACKGROUND (cover-fit to preserve aspect ratio) ───
   try {
-    const templateData = await loadImageDataUrl('/certificate-template.png');
-    doc.addImage(templateData, 'PNG', 0, 0, W, H);
+    const template = await loadImageWithDimensions('/certificate-template.png');
+    const imgRatio = template.width / template.height;
+    const pageRatio = W / H;
+    let drawW: number, drawH: number, drawX: number, drawY: number;
+    if (imgRatio > pageRatio) {
+      // Image is wider → fit height, crop sides
+      drawH = H;
+      drawW = H * imgRatio;
+      drawX = (W - drawW) / 2;
+      drawY = 0;
+    } else {
+      // Image is taller → fit width, crop top/bottom
+      drawW = W;
+      drawH = W / imgRatio;
+      drawX = 0;
+      drawY = (H - drawH) / 2;
+    }
+    doc.addImage(template.dataUrl, 'PNG', drawX, drawY, drawW, drawH);
   } catch (e) {
     console.error('Failed to load certificate template:', e);
     doc.setFillColor(20, 29, 47);
