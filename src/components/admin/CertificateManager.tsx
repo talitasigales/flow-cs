@@ -178,11 +178,11 @@ export function CertificateManager({ programId, classes }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Nome da Diretora</Label>
+              <Label>Nome do(a) Especialista</Label>
               <Input
                 value={directorName}
                 onChange={e => setDirectorName(e.target.value)}
-                placeholder="Ex: Ana Silva"
+                placeholder="Ex: Léo Manero"
               />
             </div>
             <div className="space-y-2">
