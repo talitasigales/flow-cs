@@ -36,6 +36,7 @@ import MyDevelopment from "./pages/MyDevelopment";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
+import SecurityOverview from "./pages/SecurityOverview";
 
 
 const queryClient = new QueryClient();
