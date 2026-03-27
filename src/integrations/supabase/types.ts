@@ -221,6 +221,79 @@ export type Database = {
           },
         ]
       }
+      certificates: {
+        Row: {
+          certificate_code: string
+          class_id: string | null
+          course_dates: string
+          course_hours: number
+          created_at: string
+          director_name: string
+          director_signature_url: string | null
+          enabled_at: string
+          enabled_by: string
+          enrollment_id: string
+          generated_at: string | null
+          id: string
+          program_id: string
+          user_id: string
+        }
+        Insert: {
+          certificate_code: string
+          class_id?: string | null
+          course_dates?: string
+          course_hours?: number
+          created_at?: string
+          director_name?: string
+          director_signature_url?: string | null
+          enabled_at?: string
+          enabled_by: string
+          enrollment_id: string
+          generated_at?: string | null
+          id?: string
+          program_id: string
+          user_id: string
+        }
+        Update: {
+          certificate_code?: string
+          class_id?: string | null
+          course_dates?: string
+          course_hours?: number
+          created_at?: string
+          director_name?: string
+          director_signature_url?: string | null
+          enabled_at?: string
+          enabled_by?: string
+          enrollment_id?: string
+          generated_at?: string | null
+          id?: string
+          program_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "program_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_conversations: {
         Row: {
           created_at: string
