@@ -1,12 +1,23 @@
 import jsPDF from 'jspdf';
 
+// Platform colors (from index.css HSL tokens converted to RGB)
+const ORANGE: [number, number, number] = [242, 122, 36];   // HSL 20 90% 52%
+const NAVY: [number, number, number] = [20, 29, 47];       // HSL 220 40% 13%
+const WHITE: [number, number, number] = [255, 255, 255];
+const LIGHT_GRAY: [number, number, number] = [180, 185, 195];
+
 export function generateCertificateCode(): string {
   const year = new Date().getFullYear();
   const hex = crypto.randomUUID().replace(/-/g, '').substring(0, 6).toUpperCase();
   return `GROU-${year}-${hex}`;
 }
 
-async function loadImageAsDataUrl(url: string): Promise<string> {
+async function loadFont(url: string): Promise<ArrayBuffer> {
+  const res = await fetch(url);
+  return res.arrayBuffer();
+}
+
+function loadImage(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -24,6 +35,15 @@ async function loadImageAsDataUrl(url: string): Promise<string> {
   });
 }
 
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export async function generateCertificatePdf(data: {
   studentName: string;
   programName: string;
@@ -33,150 +53,173 @@ export async function generateCertificatePdf(data: {
   directorName: string;
   directorSignatureUrl?: string | null;
 }) {
-  const doc = new jsPDF('l', 'mm', 'a4'); // landscape
-  const pageW = doc.internal.pageSize.getWidth();  // 297
-  const pageH = doc.internal.pageSize.getHeight(); // 210
+  const doc = new jsPDF('l', 'mm', 'a4');
+  const W = doc.internal.pageSize.getWidth();   // 297
+  const H = doc.internal.pageSize.getHeight();  // 210
 
-  // --- Background gradient image ---
+  // Load and register fonts
   try {
-    const bgData = await loadImageAsDataUrl('/certificate-bg.png');
-    doc.addImage(bgData, 'PNG', 0, 0, pageW, pageH);
-  } catch {
-    // Fallback: solid dark background
-    doc.setFillColor(40, 30, 50);
-    doc.rect(0, 0, pageW, pageH, 'F');
+    const [poppinsBold, poppinsRegular, poppinsSemiBold, montserrat] = await Promise.all([
+      loadFont('/fonts/Poppins-Bold.ttf'),
+      loadFont('/fonts/Poppins-Regular.ttf'),
+      loadFont('/fonts/Poppins-SemiBold.ttf'),
+      loadFont('/fonts/Montserrat-Regular.ttf'),
+    ]);
+    doc.addFileToVFS('Poppins-Bold.ttf', arrayBufferToBase64(poppinsBold));
+    doc.addFont('Poppins-Bold.ttf', 'Poppins', 'bold');
+    doc.addFileToVFS('Poppins-Regular.ttf', arrayBufferToBase64(poppinsRegular));
+    doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
+    doc.addFileToVFS('Poppins-SemiBold.ttf', arrayBufferToBase64(poppinsSemiBold));
+    doc.addFont('Poppins-SemiBold.ttf', 'Poppins', 'italic'); // use italic slot for semibold
+    doc.addFileToVFS('Montserrat-Regular.ttf', arrayBufferToBase64(montserrat));
+    doc.addFont('Montserrat-Regular.ttf', 'Montserrat', 'normal');
+  } catch (e) {
+    console.warn('Font loading failed, using defaults:', e);
   }
 
-  // --- Decorative concentric arcs on the right side (orange) ---
-  doc.setDrawColor(230, 100, 40);
-  doc.setLineWidth(0.8);
-  const arcCenterX = pageW + 20;
-  const arcCenterY = pageH / 2;
-  for (let r = 40; r <= 120; r += 12) {
-    // Draw quarter-circle arcs using lines
-    const steps = 40;
-    for (let i = 0; i < steps; i++) {
-      const a1 = Math.PI * 0.5 + (Math.PI * i) / steps;
-      const a2 = Math.PI * 0.5 + (Math.PI * (i + 1)) / steps;
-      const x1 = arcCenterX + r * Math.cos(a1);
-      const y1 = arcCenterY + r * Math.sin(a1);
-      const x2 = arcCenterX + r * Math.cos(a2);
-      const y2 = arcCenterY + r * Math.sin(a2);
-      if (x1 < pageW + 5 || x2 < pageW + 5) {
-        doc.line(x1, y1, x2, y2);
-      }
+  // ─── BACKGROUND ───
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, W, H, 'F');
+
+  // ─── LEFT ACCENT STRIP ───
+  doc.setFillColor(...ORANGE);
+  doc.rect(0, 0, 4, H, 'F');
+
+  // ─── TOP HORIZONTAL ACCENT LINE ───
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.6);
+  doc.line(20, 18, W - 20, 18);
+
+  // ─── DECORATIVE: corner geometric dots (top-right) ───
+  doc.setFillColor(ORANGE[0], ORANGE[1], ORANGE[2]);
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      doc.circle(W - 30 + col * 5, 28 + row * 5, 0.6, 'F');
     }
   }
 
-  const marginL = 25;
+  // ─── GROU LOGO (white, top-left) ───
+  try {
+    const logoData = await loadImage('/grou-logo-white.png');
+    doc.addImage(logoData, 'PNG', 20, 23, 35, 14);
+  } catch {
+    doc.setFont('Poppins', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(...WHITE);
+    doc.text('grou', 20, 34);
+  }
 
-  // --- "CERTIFICADO DE CONCLUSÃO" subtitle ---
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(255, 255, 255);
-  doc.text('CERTIFICADO DE CONCLUSÃO', marginL, 30);
-
-  // --- Category badge (optional - uses program type) ---
-  // Orange rounded rect with text
-  const badgeY = 38;
-  const badgeText = 'PROGRAMA';
-  doc.setFillColor(230, 100, 40);
-  const badgeW = 42;
-  const badgeH = 10;
-  doc.roundedRect(marginL, badgeY - 7, badgeW, badgeH, 3, 3, 'F');
+  // ─── "CERTIFICADO DE CONCLUSÃO" ───
+  const labelY = 52;
+  doc.setFont('Montserrat', 'normal');
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text(badgeText, marginL + badgeW / 2, badgeY, { align: 'center' });
+  doc.setTextColor(...ORANGE);
+  doc.text('CERTIFICADO DE CONCLUSÃO', 20, labelY);
 
-  // --- Large program name ---
-  doc.setFontSize(42);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  const maxNameWidth = pageW - marginL - 80;
-  const nameLines = doc.splitTextToSize(data.programName, maxNameWidth);
-  let nameY = 65;
-  nameLines.forEach((line: string) => {
-    doc.text(line, marginL, nameY);
-    nameY += 18;
+  // ─── PROGRAM NAME (large, white, Poppins Bold) ───
+  doc.setFont('Poppins', 'bold');
+  doc.setFontSize(36);
+  doc.setTextColor(...WHITE);
+  const maxTitleW = W - 60;
+  const titleLines: string[] = doc.splitTextToSize(data.programName, maxTitleW);
+  let titleY = 68;
+  titleLines.forEach((line: string) => {
+    doc.text(line, 20, titleY);
+    titleY += 15;
   });
 
-  // --- Description paragraph ---
-  const descY = Math.max(nameY + 10, 115);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(220, 220, 220);
+  // ─── SMALL ORANGE BAR under title ───
+  const barY = titleY + 2;
+  doc.setFillColor(...ORANGE);
+  doc.rect(20, barY, 40, 1.5, 'F');
 
-  const descText = `Certificamos a conclusão com êxito no programa "${data.programName}", com carga horária de ${data.courseHours}h, no período de ${data.courseDates}.`;
-  const descLines = doc.splitTextToSize(descText, maxNameWidth);
+  // ─── DESCRIPTION (Montserrat) ───
+  const descY = barY + 12;
+  doc.setFont('Montserrat', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...LIGHT_GRAY);
+
+  const descText = `Certificamos a conclusão com êxito no workshop "${data.programName}", com carga horária de ${data.courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
+  const descLines: string[] = doc.splitTextToSize(descText, maxTitleW);
   descLines.forEach((line: string, i: number) => {
-    doc.text(line, marginL, descY + i * 5);
+    doc.text(line, 20, descY + i * 5);
   });
 
-  // --- Signature area ---
-  const sigY = pageH - 35;
-  const sigLineW = 70;
+  // ─── SIGNATURE AREA ───
+  const sigY = H - 38;
+  const sigLineLen = 65;
 
-  // Student signature line (left)
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(marginL, sigY, marginL + sigLineW, sigY);
+  // ── ALUNO (left) ──
+  doc.setFont('Poppins', 'italic'); // semibold
+  doc.setFontSize(10);
+  doc.setTextColor(...WHITE);
+  doc.text(data.studentName, 20 + sigLineLen / 2, sigY - 3, { align: 'center' });
+
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.5);
+  doc.line(20, sigY, 20 + sigLineLen, sigY);
+
+  doc.setFont('Montserrat', 'normal');
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(180, 180, 180);
-  doc.text('ALUNO', marginL + sigLineW / 2, sigY + 5, { align: 'center' });
+  doc.setTextColor(...LIGHT_GRAY);
+  doc.text('ALUNO', 20 + sigLineLen / 2, sigY + 5, { align: 'center' });
 
-  // Student name below line
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text(data.studentName, marginL + sigLineW / 2, sigY - 4, { align: 'center' });
+  // ── ESPECIALISTA (right) ──
+  const sigRX = 120;
 
-  // Director signature line (center-right)
-  const sigRightX = marginL + sigLineW + 40;
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(sigRightX, sigY, sigRightX + sigLineW, sigY);
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(180, 180, 180);
-  doc.text('ESPECIALISTA', sigRightX + sigLineW / 2, sigY + 5, { align: 'center' });
-
-  // Director signature image
+  // Director signature image (if available)
   if (data.directorSignatureUrl) {
     try {
-      const sigImg = await loadImageAsDataUrl(data.directorSignatureUrl);
-      const sigImgW = 50;
-      const sigImgH = 15;
-      doc.addImage(sigImg, 'PNG', sigRightX + (sigLineW - sigImgW) / 2, sigY - sigImgH - 3, sigImgW, sigImgH);
+      const sigImg = await loadImage(data.directorSignatureUrl);
+      doc.addImage(sigImg, 'PNG', sigRX + (sigLineLen - 45) / 2, sigY - 18, 45, 14);
     } catch (e) {
       console.warn('Could not load signature image:', e);
     }
   }
 
-  // Director name
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text(data.directorName, sigRightX + sigLineW / 2, sigY - 4, { align: 'center' });
+  doc.setFont('Poppins', 'italic');
+  doc.setFontSize(10);
+  doc.setTextColor(...WHITE);
+  doc.text(data.directorName, sigRX + sigLineLen / 2, sigY - 3, { align: 'center' });
 
-  // --- Grou logo bottom right ---
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.5);
+  doc.line(sigRX, sigY, sigRX + sigLineLen, sigY);
+
+  doc.setFont('Montserrat', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...LIGHT_GRAY);
+  doc.text('ESPECIALISTA', sigRX + sigLineLen / 2, sigY + 5, { align: 'center' });
+
+  // ─── GROU LOGO (orange, bottom-right) ───
   try {
-    const logoData = await loadImageAsDataUrl('/grou-logo.png');
-    doc.addImage(logoData, 'PNG', pageW - 45, pageH - 28, 30, 12);
+    const logoOrange = await loadImage('/grou-logo.png');
+    doc.addImage(logoOrange, 'PNG', W - 48, H - 25, 30, 12);
   } catch {
-    // Fallback text
+    doc.setFont('Poppins', 'bold');
     doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(230, 100, 40);
-    doc.text('grou', pageW - 35, pageH - 18);
+    doc.setTextColor(...ORANGE);
+    doc.text('grou', W - 40, H - 16);
   }
 
-  // --- Certificate code (small, bottom left) ---
+  // ─── BOTTOM ACCENT LINE ───
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.6);
+  doc.line(20, H - 10, W - 20, H - 10);
+
+  // ─── CERTIFICATE CODE (tiny, bottom-center) ───
+  doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(120, 120, 120);
-  doc.text(`Código: ${data.certificateCode}`, marginL, pageH - 10);
+  doc.setTextColor(100, 110, 130);
+  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, H - 6, { align: 'center' });
+
+  // ─── Decorative dots bottom-left ───
+  doc.setFillColor(ORANGE[0], ORANGE[1], ORANGE[2]);
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      doc.circle(22 + col * 4, H - 28 + row * 4, 0.5, 'F');
+    }
+  }
 
   doc.save(`certificado-${data.studentName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 }
