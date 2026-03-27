@@ -1,77 +1,83 @@
 
 
-## Plano: Camada Completa de Segurança e Governança de Dados
+## Plano: Certificados de Conclusão para Alunos
 
-### Visão Geral
+### Resumo
 
-Duas frentes: (1) correções técnicas de segurança reais no código/banco, e (2) geração de documentação profissional em PDF + página pública de Security Overview no app.
-
----
-
-### Parte 1 — Correções Técnicas de Segurança
-
-**Migration SQL** para corrigir vulnerabilidades:
-
-1. **Revisar RLS policies com `true`** em INSERT/UPDATE/DELETE — avaliar caso a caso e restringir
-2. **Ativar Leaked Password Protection**: Orientar o usuário a ativar no dashboard Supabase
-3. **Edge Functions**: Verificar validação de input consistente e headers CORS em todas as functions
-
-**Frontend**:
-- Nenhum uso de `dangerouslySetInnerHTML` com dados de usuário — ok
-- Rate limiting já tratado no frontend para login
+Criar sistema onde admins marcam quais alunos podem gerar certificado, e alunos elegíveis visualizam um botao para gerar um PDF profissional com dados do curso, carga horaria, codigo unico e espaco para assinatura da diretora.
 
 ---
 
-### Parte 2 — 4 PDFs Profissionais (salvos em `/mnt/documents/`)
+### Parte 1 — Banco de Dados
 
-#### PDF 1: Políticas de Governança de Dados (~8 páginas)
-- Política de coleta, armazenamento e tratamento
-- Classificação de dados (público, interno, sensível, confidencial)
-- Política de retenção e exclusão (LGPD art. 15-16)
-- RBAC (admin/user via `user_roles` + `has_role()`)
-- Auditoria via `audit_logs`
-- Conformidade LGPD: consentimento explícito, direito de exclusão, minimização
+**Nova tabela `certificates`**:
+- `id` (uuid, PK)
+- `enrollment_id` (uuid, FK para `program_enrollments`)
+- `user_id` (uuid, referencia auth.users)
+- `program_id` (uuid, FK para `programs`)
+- `class_id` (uuid, nullable, FK para `program_classes`)
+- `certificate_code` (text, unique) — codigo unico gerado (ex: `GROU-2026-XXXX`)
+- `course_hours` (integer) — carga horaria em horas
+- `course_dates` (text) — datas do curso (ex: "10/03/2026 a 14/03/2026")
+- `director_name` (text) — nome da diretora que assina
+- `director_signature_url` (text, nullable) — URL da imagem de assinatura
+- `enabled_by` (uuid) — admin que habilitou
+- `enabled_at` (timestamptz, default now())
+- `generated_at` (timestamptz, nullable) — quando o aluno baixou
+- `created_at` (timestamptz, default now())
 
-#### PDF 2: Arquitetura de Segurança (~6 páginas)
-- HTTPS/TLS + AES-256 em repouso (Supabase)
-- Autenticação: Supabase Auth, troca forçada no primeiro acesso
-- OWASP Top 10: XSS, SQLi (SDK parametrizado), CSRF (token-based)
-- Rate limiting, RLS por `user_id`, backups automáticos
-
-#### PDF 3: Relatório de Pentest Simulado (~10 páginas)
-- Escopo: app web + Edge Functions + banco
-- Metodologia: OWASP Testing Guide v4.2
-- Vulnerabilidades encontradas com severidade
-- Recomendações e status de correção
-
-#### PDF 4: Security Overview Comercial (~4 páginas)
-- Linguagem não-técnica para vendas B2B
-- Proteção de dados, padrões seguidos, monitoramento, privacidade
+**RLS**:
+- Admins: ALL (via `has_role`)
+- Alunos: SELECT onde `user_id = auth.uid()`
 
 ---
 
-### Parte 3 — Página Security Overview no App
+### Parte 2 — Admin: Gestao de Certificados
 
-Criar `/security` (página pública, sem login):
-- Cards visuais: Criptografia, Autenticação, RBAC, Auditoria, LGPD
-- Badges de compliance
-- Design alinhado com branding existente
+**Onde**: Nova aba "Certificados" dentro de `AdminPrograms.tsx` (ao lado das abas existentes).
 
-**Arquivos**: `src/pages/SecurityOverview.tsx` + rota no `App.tsx`
-
----
-
-### Parte 4 — Checklist Contínuo
-
-Seção final do PDF de Governança + tab na página Security:
-- Revisão de acessos (mensal), dependências (semanal), vulnerabilidades (trimestral), rotação de credenciais, logs e alertas
+**Funcionalidades**:
+1. Selecionar programa e turma
+2. Ver lista de alunos matriculados com checkbox
+3. Campos globais para a turma: carga horaria, datas do curso, nome da diretora
+4. Upload de imagem de assinatura (usar bucket `program-materials`)
+5. Botao "Habilitar Certificado" que cria registros na tabela `certificates` para os alunos selecionados
+6. Visualizar quais alunos ja tem certificado habilitado/gerado
 
 ---
 
-### Sequência
+### Parte 3 — Aluno: Gerar Certificado
 
-1. Correções de segurança (migrations)
-2. Gerar 4 PDFs
-3. Criar página SecurityOverview
-4. QA visual dos PDFs
+**Onde**: Dentro da pagina do programa (`ProgramGeneric` / `ProgramDevelopmentContent`), exibir um card/botao "Gerar Certificado" quando existir registro em `certificates` para aquele aluno/programa.
+
+**PDF gerado no frontend** (jsPDF, padrao ja existente no projeto):
+- Header com branding Grou (padrão existente em `pdfExportUtils.ts`)
+- Titulo: "Certificado de Conclusão"
+- Nome completo do aluno
+- Nome do programa/curso
+- Carga horaria
+- Datas do curso
+- Codigo unico de verificacao
+- Espaco para assinatura (imagem da assinatura da diretora + nome)
+- Layout paisagem (landscape) para formato de certificado profissional
+
+---
+
+### Parte 4 — Arquivos a Criar/Editar
+
+| Arquivo | Acao |
+|---|---|
+| Migration SQL | Criar tabela `certificates` + RLS |
+| `src/pages/AdminPrograms.tsx` | Adicionar aba "Certificados" |
+| `src/components/academy/ProgramDevelopmentContent.tsx` | Adicionar card de certificado para aluno |
+| `src/utils/certificateUtils.ts` | Novo — funcao de geracao do PDF do certificado |
+
+---
+
+### Detalhes Tecnicos
+
+- **Codigo unico**: Gerado no momento da habilitacao pelo admin, formato `GROU-{ANO}-{6 chars alfanumericos}` (gerado no frontend com `crypto.randomUUID()` truncado)
+- **Assinatura**: Imagem PNG/JPG enviada pelo admin, armazenada no bucket `program-materials`, inserida no PDF via `doc.addImage()`
+- **PDF landscape A4**: `new jsPDF('l', 'mm', 'a4')` com design de certificado formal
+- **Storage bucket**: Reutilizar `program-materials` (ja publico) para imagens de assinatura
 
