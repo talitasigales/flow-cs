@@ -284,6 +284,9 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
       {/* PDA Report Upload */}
       {programId && <PdaReportUpload programId={programId} programName={program?.name} />}
 
+      {/* Certificate Card */}
+      <CertificateCard programId={programId} programName={program?.name} studentName={undefined} />
+
       {/* Two-column layout: Journey + Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {schedules.length > 0 && (
