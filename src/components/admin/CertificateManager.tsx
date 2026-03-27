@@ -31,6 +31,17 @@ export function CertificateManager({ programId, classes }: Props) {
   const [signatureUrl, setSignatureUrl] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Auto-populate specialist name when class changes
+  const handleClassChange = (classId: string) => {
+    setSelectedClassId(classId);
+    if (classId !== 'all') {
+      const cls = classes.find((c: any) => c.id === classId);
+      if (cls?.specialist && !directorName) {
+        setDirectorName(cls.specialist);
+      }
+    }
+  };
+
   // Fetch enrollments for this program
   const { data: enrollments = [] } = useQuery({
     queryKey: ['cert-enrollments', programId, selectedClassId],
@@ -222,7 +233,7 @@ export function CertificateManager({ programId, classes }: Props) {
             <CardDescription>Selecione os alunos que concluíram o programa</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+            <Select value={selectedClassId} onValueChange={handleClassChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filtrar por turma" />
               </SelectTrigger>
