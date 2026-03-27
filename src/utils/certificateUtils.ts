@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 
 const WHITE: [number, number, number] = [255, 255, 255];
-const LIGHT_GRAY: [number, number, number] = [180, 185, 195];
+const LIGHT_GRAY: [number, number, number] = [200, 205, 215];
 
 export function generateCertificateCode(): string {
   const year = new Date().getFullYear();
@@ -36,22 +36,8 @@ function loadImage(url: string): Promise<{ dataUrl: string; width: number; heigh
   });
 }
 
-function loadImageSimple(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return reject('No canvas context');
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+function loadImageDataUrl(url: string): Promise<string> {
+  return loadImage(url).then(r => r.dataUrl);
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -63,33 +49,24 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-/**
- * Calculates cover-fit dimensions (like CSS object-fit: cover)
- * to fill the target area without distortion.
- */
 function coverFit(
   imgW: number, imgH: number,
   targetW: number, targetH: number
 ): { x: number; y: number; w: number; h: number } {
   const imgRatio = imgW / imgH;
   const targetRatio = targetW / targetH;
-
   let w: number, h: number, x: number, y: number;
-
   if (imgRatio > targetRatio) {
-    // Image is wider than target — fit height, crop sides
     h = targetH;
     w = targetH * imgRatio;
     x = (targetW - w) / 2;
     y = 0;
   } else {
-    // Image is taller than target — fit width, crop top/bottom
     w = targetW;
     h = targetW / imgRatio;
     x = 0;
     y = (targetH - h) / 2;
   }
-
   return { x, y, w, h };
 }
 
@@ -119,14 +96,14 @@ export async function generateCertificatePdf(data: {
     doc.addFileToVFS('Poppins-Regular.ttf', arrayBufferToBase64(poppinsRegular));
     doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
     doc.addFileToVFS('Poppins-SemiBold.ttf', arrayBufferToBase64(poppinsSemiBold));
-    doc.addFont('Poppins-SemiBold.ttf', 'Poppins', 'italic'); // semibold slot
+    doc.addFont('Poppins-SemiBold.ttf', 'Poppins', 'italic');
     doc.addFileToVFS('Montserrat-Regular.ttf', arrayBufferToBase64(montserrat));
     doc.addFont('Montserrat-Regular.ttf', 'Montserrat', 'normal');
   } catch (e) {
     console.warn('Font loading failed, using defaults:', e);
   }
 
-  // ─── TEMPLATE BACKGROUND (cover-fit, no distortion) ───
+  // ─── TEMPLATE BACKGROUND (cover-fit) ───
   try {
     const template = await loadImage('/certificate-template.png');
     const fit = coverFit(template.width, template.height, W, H);
@@ -137,62 +114,61 @@ export async function generateCertificatePdf(data: {
     doc.rect(0, 0, W, H, 'F');
   }
 
-  // ─── DYNAMIC TEXT OVERLAYS ───
-  // The template already contains: background, "CERTIFICADO DE CONCLUSÃO",
-  // badge "WORKSHOP", arcs, logo, signature lines, "ALUNO"/"ESPECIALISTA" labels.
-  //
-  // Dynamic fields placed over the blank areas of the template:
-
-  // ─── PROGRAM NAME ───
+  // ─── PROGRAM NAME (large white title) ───
+  // Positioned in the large blank area below the WORKSHOP badge
   doc.setFont('Poppins', 'bold');
-  doc.setFontSize(32);
+  doc.setFontSize(36);
   doc.setTextColor(...WHITE);
-  const maxTitleW = W - 60;
+  const maxTitleW = W * 0.7;
   const titleLines: string[] = doc.splitTextToSize(data.programName, maxTitleW);
-  let titleY = 88;
+  let titleY = 78;
   titleLines.forEach((line: string) => {
     doc.text(line, 20, titleY);
-    titleY += 13;
+    titleY += 15;
   });
 
   // ─── DESCRIPTION ───
-  const descY = titleY + 8;
+  const descY = titleY + 6;
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(9.5);
   doc.setTextColor(...LIGHT_GRAY);
   const descText = `Certificamos a conclusão com êxito no workshop "${data.programName}", com carga horária de ${data.courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
   const descLines: string[] = doc.splitTextToSize(descText, maxTitleW);
   descLines.forEach((line: string, i: number) => {
-    doc.text(line, 20, descY + i * 5);
+    doc.text(line, 20, descY + i * 5.5);
   });
 
-  // ─── STUDENT NAME ───
-  doc.setFont('Poppins', 'italic'); // semibold
-  doc.setFontSize(10);
+  // ─── STUDENT NAME (above the "ALUNO" line) ───
+  // Template line is at roughly x:55-130mm, label "ALUNO" centered at ~92mm x
+  const studentLineCenter = 52;
+  doc.setFont('Poppins', 'italic');
+  doc.setFontSize(11);
   doc.setTextColor(...WHITE);
-  doc.text(data.studentName, 65, 175, { align: 'center' });
+  doc.text(data.studentName, studentLineCenter, 158, { align: 'center' });
 
-  // ─── SPECIALIST SIGNATURE IMAGE ───
+  // ─── SPECIALIST NAME (above the "ESPECIALISTA" line) ───
+  // Template line is at roughly x:140-230mm, label centered at ~185mm x
+  const specialistLineCenter = 132;
+  doc.setFont('Poppins', 'italic');
+  doc.setFontSize(11);
+  doc.setTextColor(...WHITE);
+  doc.text(data.directorName, specialistLineCenter, 158, { align: 'center' });
+
+  // ─── SPECIALIST SIGNATURE IMAGE (above the specialist line) ───
   if (data.directorSignatureUrl) {
     try {
-      const sigImg = await loadImageSimple(data.directorSignatureUrl);
-      doc.addImage(sigImg, 'PNG', 130, 158, 45, 14);
+      const sigImg = await loadImageDataUrl(data.directorSignatureUrl);
+      doc.addImage(sigImg, 'PNG', specialistLineCenter - 22, 140, 45, 14);
     } catch (e) {
       console.warn('Could not load signature image:', e);
     }
   }
 
-  // ─── SPECIALIST NAME ───
-  doc.setFont('Poppins', 'italic');
-  doc.setFontSize(10);
-  doc.setTextColor(...WHITE);
-  doc.text(data.directorName, 197, 175, { align: 'center' });
-
-  // ─── CERTIFICATE CODE ───
+  // ─── CERTIFICATE CODE (bottom center) ───
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6);
-  doc.setTextColor(100, 110, 130);
-  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, H - 6, { align: 'center' });
+  doc.setTextColor(120, 125, 140);
+  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, H - 8, { align: 'center' });
 
   doc.save(`certificado-${data.studentName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 }
