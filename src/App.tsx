@@ -36,6 +36,7 @@ import MyDevelopment from "./pages/MyDevelopment";
 
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
+import SecurityOverview from "./pages/SecurityOverview";
 
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ const App = () => (
           
           
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/security" element={<SecurityOverview />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
