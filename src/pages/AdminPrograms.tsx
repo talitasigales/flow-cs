@@ -1955,6 +1955,11 @@ export default function AdminPrograms() {
               <ProgramWelcomeManager programId={selectedProgram} />
             </TabsContent>
 
+            {/* CERTIFICADOS TAB */}
+            <TabsContent value="certificates" className="mt-4">
+              <CertificateManager programId={selectedProgram} classes={classes} />
+            </TabsContent>
+
             {/* VISÃO DO ALUNO TAB */}
             <TabsContent value="student-view" className="mt-4">
               {(() => {
