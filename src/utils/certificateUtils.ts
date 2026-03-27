@@ -14,7 +14,7 @@ async function loadFont(url: string): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
-function loadImage(url: string): Promise<{ dataUrl: string; width: number; height: number }> {
+function loadImageDataUrl(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -25,19 +25,11 @@ function loadImage(url: string): Promise<{ dataUrl: string; width: number; heigh
       const ctx = canvas.getContext('2d');
       if (!ctx) return reject('No canvas context');
       ctx.drawImage(img, 0, 0);
-      resolve({
-        dataUrl: canvas.toDataURL('image/png'),
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      });
+      resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = reject;
     img.src = url;
   });
-}
-
-function loadImageDataUrl(url: string): Promise<string> {
-  return loadImage(url).then(r => r.dataUrl);
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -47,27 +39,6 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
     binary += String.fromCharCode(bytes[i]);
   }
   return btoa(binary);
-}
-
-function coverFit(
-  imgW: number, imgH: number,
-  targetW: number, targetH: number
-): { x: number; y: number; w: number; h: number } {
-  const imgRatio = imgW / imgH;
-  const targetRatio = targetW / targetH;
-  let w: number, h: number, x: number, y: number;
-  if (imgRatio > targetRatio) {
-    h = targetH;
-    w = targetH * imgRatio;
-    x = (targetW - w) / 2;
-    y = 0;
-  } else {
-    w = targetW;
-    h = targetW / imgRatio;
-    x = 0;
-    y = (targetH - h) / 2;
-  }
-  return { x, y, w, h };
 }
 
 export async function generateCertificatePdf(data: {
@@ -103,68 +74,67 @@ export async function generateCertificatePdf(data: {
     console.warn('Font loading failed, using defaults:', e);
   }
 
-  // ─── TEMPLATE BACKGROUND (cover-fit) ───
+  // ─── TEMPLATE BACKGROUND (stretch to fill A4 landscape) ───
   try {
-    const template = await loadImage('/certificate-template.png');
-    const fit = coverFit(template.width, template.height, W, H);
-    doc.addImage(template.dataUrl, 'PNG', fit.x, fit.y, fit.w, fit.h);
+    const templateData = await loadImageDataUrl('/certificate-template.png');
+    doc.addImage(templateData, 'PNG', 0, 0, W, H);
   } catch (e) {
     console.error('Failed to load certificate template:', e);
     doc.setFillColor(20, 29, 47);
     doc.rect(0, 0, W, H, 'F');
   }
 
-  // ─── PROGRAM NAME (large white title) ───
-  // Positioned in the large blank area below the WORKSHOP badge
+  // ─── PROGRAM NAME ───
+  // Below the WORKSHOP badge, in the large blank area
   doc.setFont('Poppins', 'bold');
-  doc.setFontSize(36);
+  doc.setFontSize(34);
   doc.setTextColor(...WHITE);
-  const maxTitleW = W * 0.7;
+  const maxTitleW = W * 0.65;
   const titleLines: string[] = doc.splitTextToSize(data.programName, maxTitleW);
-  let titleY = 78;
+  let titleY = 75;
   titleLines.forEach((line: string) => {
-    doc.text(line, 20, titleY);
-    titleY += 15;
+    doc.text(line, 22, titleY);
+    titleY += 14;
   });
 
   // ─── DESCRIPTION ───
-  const descY = titleY + 6;
+  const descY = titleY + 8;
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(9.5);
+  doc.setFontSize(9);
   doc.setTextColor(...LIGHT_GRAY);
   const descText = `Certificamos a conclusão com êxito no workshop "${data.programName}", com carga horária de ${data.courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
   const descLines: string[] = doc.splitTextToSize(descText, maxTitleW);
   descLines.forEach((line: string, i: number) => {
-    doc.text(line, 20, descY + i * 5.5);
+    doc.text(line, 22, descY + i * 5);
   });
 
-  // ─── STUDENT NAME (above the "ALUNO" line) ───
-  // Template line is at roughly x:55-130mm, label "ALUNO" centered at ~92mm x
-  const studentLineCenter = 52;
+  // ─── STUDENT NAME (above "ALUNO" signature line) ───
+  // The template has signature line + "ALUNO" label at ~x:50, y:170
+  const alunoLineX = 50;
   doc.setFont('Poppins', 'italic');
   doc.setFontSize(11);
   doc.setTextColor(...WHITE);
-  doc.text(data.studentName, studentLineCenter, 158, { align: 'center' });
+  doc.text(data.studentName, alunoLineX, 155, { align: 'center' });
 
-  // ─── SPECIALIST NAME (above the "ESPECIALISTA" line) ───
-  // Template line is at roughly x:140-230mm, label centered at ~185mm x
-  const specialistLineCenter = 132;
+  // ─── SPECIALIST NAME (above "ESPECIALISTA" signature line) ───
+  // The template has signature line + "ESPECIALISTA" label at ~x:130, y:170
+  const espLineX = 130;
   doc.setFont('Poppins', 'italic');
   doc.setFontSize(11);
   doc.setTextColor(...WHITE);
-  doc.text(data.directorName, specialistLineCenter, 158, { align: 'center' });
+  doc.text(data.directorName, espLineX, 155, { align: 'center' });
 
-  // ─── SPECIALIST SIGNATURE IMAGE (above the specialist line) ───
+  // ─── SPECIALIST SIGNATURE IMAGE ───
   if (data.directorSignatureUrl) {
     try {
       const sigImg = await loadImageDataUrl(data.directorSignatureUrl);
-      doc.addImage(sigImg, 'PNG', specialistLineCenter - 22, 140, 45, 14);
+      doc.addImage(sigImg, 'PNG', espLineX - 25, 138, 50, 15);
     } catch (e) {
       console.warn('Could not load signature image:', e);
     }
   }
 
-  // ─── CERTIFICATE CODE (bottom center) ───
+  // ─── CERTIFICATE CODE ───
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6);
   doc.setTextColor(120, 125, 140);
