@@ -1,38 +1,37 @@
 
 
-## Plano: Certificado com Layout Fixo (Template de Imagem)
+## Plano: Certificado com Template de Imagem Fixa
 
 ### Abordagem
 
-Em vez de desenhar o certificado inteiro via código jsPDF (formas, cores, linhas), usar uma **imagem de fundo fixa** (PNG de alta resolução) e apenas posicionar os textos dinâmicos por cima.
+Usar a imagem PNG enviada como fundo fixo do certificado. Remover toda a lógica de desenho (retângulos, linhas, dots, gradientes) e substituir por:
 
-### O que você precisa fazer
+1. Carregar o PNG como background cobrindo toda a página A4 landscape
+2. Sobrepor apenas os campos dinâmicos nas posições corretas
 
-1. **Exportar o layout do certificado como imagem PNG** (sem os textos dinâmicos — nome do aluno, programa, datas, código, nome do especialista). Isso pode ser feito no Canva, Figma, Illustrator ou Photoshop:
-   - Resolução recomendada: 3508x2480px (A4 paisagem a 300dpi)
-   - Deixar os espaços onde os textos dinâmicos entram **em branco** (sem texto, só o fundo/decoração)
-   - Salvar como PNG
+### Campos dinâmicos a posicionar sobre o template
 
-2. **Fazer upload dessa imagem** aqui no chat
+Com base no layout da imagem (que já contém: fundo gradiente laranja→azul, "CERTIFICADO DE CONCLUSÃO", badge "WORKSHOP", arcos decorativos, logo Grou):
 
-### O que eu faço depois
+| Campo | Conteúdo | Posição aproximada (mm) |
+|---|---|---|
+| Nome do programa | `data.programName` (grande, branco, Poppins Bold) | x:20, y:95 — título grande |
+| Descrição | Texto com nome do programa e carga horária (Montserrat) | x:20, y:135 |
+| Nome do aluno | `data.studentName` sob linha "ALUNO" | x:65, y:175 |
+| Assinatura | Imagem + nome do especialista | x:155, y:170 |
+| Código | `data.certificateCode` (discreto, canto inferior) | x:148, y:205 |
 
-- Substituo toda a lógica de desenho do `certificateUtils.ts` por:
-  1. Carregar a imagem PNG como fundo (`doc.addImage` cobrindo toda a página)
-  2. Posicionar apenas os textos dinâmicos nas coordenadas exatas (nome, programa, carga horária, datas, código, assinatura)
-- Ajusto as coordenadas X/Y de cada campo para casar com o template
+### Arquivos
 
-### Resultado
-
-- Layout pixel-perfect, idêntico ao design original
-- Apenas 6-8 campos de texto sobrepostos via jsPDF
-- Qualquer mudança visual futura = trocar a imagem PNG, sem mexer em código
-
-### Resumo de passos
-
-| Passo | Responsável |
+| Arquivo | Ação |
 |---|---|
-| Criar PNG do template sem textos dinâmicos | Você (designer/Canva) |
-| Upload da imagem aqui | Você |
-| Integrar como fundo + posicionar campos | Eu |
+| `public/certificate-template.png` | Copiar a imagem enviada |
+| `src/utils/certificateUtils.ts` | Reescrever: remover toda lógica de desenho, usar `doc.addImage` para o template + posicionar textos dinâmicos |
+
+### Detalhes técnicos
+
+- O template PNG já contém: background, "CERTIFICADO DE CONCLUSÃO", badge "WORKSHOP", arcos decorativos, logo Grou, linhas de assinatura e labels "ALUNO"/"ESPECIALISTA"
+- O código só precisa inserir: nome do programa, parágrafo descritivo, nome do aluno, assinatura do especialista, nome do especialista e código de verificação
+- Fontes Poppins e Montserrat já estão disponíveis em `public/fonts/`
+- As coordenadas serão ajustadas com base na proporção A4 landscape (297×210mm)
 
