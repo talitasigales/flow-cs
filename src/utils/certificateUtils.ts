@@ -14,7 +14,7 @@ async function loadFont(url: string): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
-function loadImageDataUrl(url: string): Promise<string> {
+function loadImageWithDimensions(url: string): Promise<{ dataUrl: string; width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -25,11 +25,19 @@ function loadImageDataUrl(url: string): Promise<string> {
       const ctx = canvas.getContext('2d');
       if (!ctx) return reject('No canvas context');
       ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
+      resolve({
+        dataUrl: canvas.toDataURL('image/png'),
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
     };
     img.onerror = reject;
     img.src = url;
   });
+}
+
+function loadImageDataUrl(url: string): Promise<string> {
+  return loadImageWithDimensions(url).then(r => r.dataUrl);
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
