@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award } from 'lucide-react';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
 import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager';
@@ -33,6 +33,7 @@ import { ProgramMaterials } from '@/components/academy/ProgramMaterials';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
 import { ProgramWelcomeManager } from '@/components/admin/ProgramWelcomeManager';
+import { CertificateManager } from '@/components/admin/CertificateManager';
 import * as XLSX from 'xlsx';
 
 const QUESTION_LABELS: Record<string, string> = {
@@ -1132,6 +1133,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length + exerciseResponses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
               <TabsTrigger value="welcome" className="gap-1.5"><MessageSquare className="w-4 h-4" /> Boas-vindas</TabsTrigger>
+              <TabsTrigger value="certificates" className="gap-1.5"><Award className="w-4 h-4" /> Certificados</TabsTrigger>
               <TabsTrigger value="student-view" className="gap-1.5"><Eye className="w-4 h-4" /> Visão do Aluno</TabsTrigger>
             </TabsList>
 
@@ -1951,6 +1953,11 @@ export default function AdminPrograms() {
             {/* BOAS-VINDAS TAB */}
             <TabsContent value="welcome" className="mt-4">
               <ProgramWelcomeManager programId={selectedProgram} />
+            </TabsContent>
+
+            {/* CERTIFICADOS TAB */}
+            <TabsContent value="certificates" className="mt-4">
+              <CertificateManager programId={selectedProgram} classes={classes} />
             </TabsContent>
 
             {/* VISÃO DO ALUNO TAB */}

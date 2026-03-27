@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   BookOpen, CalendarDays, GraduationCap, CheckCircle,
-  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList, Lock, Unlock
+  Layers, Video, ChevronRight, ChevronDown, FolderOpen, ClipboardList, Lock, Unlock, Award
 } from 'lucide-react';
 import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { generateCertificatePdf } from '@/utils/certificateUtils';
 
 function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMaterials: boolean }) {
   const { data: exercises = [] } = useQuery({
@@ -38,6 +39,84 @@ function ModuleEmptyState({ moduleId, hasMaterials }: { moduleId: string; hasMat
   });
   if (hasMaterials || exercises.length > 0 || featureLinks.length > 0) return null;
   return <p className="text-xs text-muted-foreground text-center py-3">Nenhum material neste módulo.</p>;
+}
+
+function CertificateCard({ programId, programName, studentName }: { programId?: string; programName?: string; studentName?: string }) {
+  const { user } = useAuth();
+  const [generating, setGenerating] = useState(false);
+
+  const { data: certificate } = useQuery({
+    queryKey: ['my-certificate', programId, user?.id],
+    enabled: !!programId && !!user,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('certificates')
+        .select('*')
+        .eq('program_id', programId)
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  if (!certificate) return null;
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      // Get student name from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user!.id)
+        .single();
+
+      await generateCertificatePdf({
+        studentName: profile?.full_name || 'Aluno',
+        programName: programName || 'Programa',
+        courseHours: certificate.course_hours,
+        courseDates: certificate.course_dates,
+        certificateCode: certificate.certificate_code,
+        directorName: certificate.director_name,
+        directorSignatureUrl: certificate.director_signature_url,
+      });
+
+      // Mark as generated
+      await (supabase as any)
+        .from('certificates')
+        .update({ generated_at: new Date().toISOString() })
+        .eq('id', certificate.id);
+
+      toast.success('Certificado gerado com sucesso!');
+    } catch (err) {
+      toast.error('Erro ao gerar certificado');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
+      <CardContent className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Award className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Certificado de Conclusão</p>
+            <p className="text-xs text-muted-foreground">
+              {certificate.course_hours}h • {certificate.course_dates}
+              {certificate.generated_at && ' • Já gerado'}
+            </p>
+          </div>
+        </div>
+        <Button size="sm" onClick={handleGenerate} disabled={generating} className="gap-2">
+          <Award className="w-4 h-4" />
+          {generating ? 'Gerando...' : 'Gerar Certificado'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
 }
 
 interface Props {
@@ -282,6 +361,9 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
 
       {/* PDA Report Upload */}
       {programId && <PdaReportUpload programId={programId} programName={program?.name} />}
+
+      {/* Certificate Card */}
+      <CertificateCard programId={programId} programName={program?.name} studentName={undefined} />
 
       {/* Two-column layout: Journey + Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
