@@ -1133,6 +1133,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length + exerciseResponses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
               <TabsTrigger value="welcome" className="gap-1.5"><MessageSquare className="w-4 h-4" /> Boas-vindas</TabsTrigger>
+              <TabsTrigger value="certificates" className="gap-1.5"><Award className="w-4 h-4" /> Certificados</TabsTrigger>
               <TabsTrigger value="student-view" className="gap-1.5"><Eye className="w-4 h-4" /> Visão do Aluno</TabsTrigger>
             </TabsList>
 
