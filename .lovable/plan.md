@@ -1,59 +1,77 @@
 
 
-## Problema
+## Plano: Camada Completa de Segurança e Governança de Dados
 
-A Edge Function `import-enrollments` não insere registros em `pending_enrollments` quando o email do aluno não tem conta na plataforma. Ela simplesmente marca como "não encontrado". O fluxo de pré-matrícula (que já funciona no `register-user`) nunca é acionado porque os dados pendentes nunca são criados.
+### Visão Geral
 
-## Solução
+Duas frentes: (1) correções técnicas de segurança reais no código/banco, e (2) geração de documentação profissional em PDF + página pública de Security Overview no app.
 
-Modificar `supabase/functions/import-enrollments/index.ts` para que, quando um email não for encontrado em `profiles`, insira um registro em `pending_enrollments` em vez de apenas adicioná-lo à lista `notFound`.
+---
 
-### Mudança no `import-enrollments/index.ts`
+### Parte 1 — Correções Técnicas de Segurança
 
-Onde hoje faz:
-```typescript
-if (!profile) {
-  notFound.push(email);
-  continue;
-}
-```
+**Migration SQL** para corrigir vulnerabilidades:
 
-Passará a fazer:
-```typescript
-if (!profile) {
-  // Insert into pending_enrollments for auto-enrollment on future registration
-  const pendingData = { email, program_id, class_id: (class_id && class_id !== 'none') ? class_id : null };
-  const { error: pendingErr } = await supabase
-    .from('pending_enrollments')
-    .insert(pendingData);
-  if (pendingErr && pendingErr.code === '23505') {
-    alreadyEnrolled.push(email);
-  } else {
-    enrolled.push(email); // or a new "pending" counter
-  }
-  continue;
-}
-```
+1. **Revisar RLS policies com `true`** em INSERT/UPDATE/DELETE — avaliar caso a caso e restringir
+2. **Ativar Leaked Password Protection**: Orientar o usuário a ativar no dashboard Supabase
+3. **Edge Functions**: Verificar validação de input consistente e headers CORS em todas as functions
 
-### Resposta da API
+**Frontend**:
+- Nenhum uso de `dangerouslySetInnerHTML` com dados de usuário — ok
+- Rate limiting já tratado no frontend para login
 
-Adicionar um campo `pending` ao retorno para informar quantos emails foram pré-matriculados (sem conta ainda), distinguindo de matrículas imediatas. O retorno ficará:
+---
 
-```json
-{
-  "enrolled": 3,
-  "pending": 2,
-  "alreadyEnrolled": 1,
-  "notFound": [],
-  "total": 6
-}
-```
+### Parte 2 — 4 PDFs Profissionais (salvos em `/mnt/documents/`)
 
-### UI no Admin
+#### PDF 1: Políticas de Governança de Dados (~8 páginas)
+- Política de coleta, armazenamento e tratamento
+- Classificação de dados (público, interno, sensível, confidencial)
+- Política de retenção e exclusão (LGPD art. 15-16)
+- RBAC (admin/user via `user_roles` + `has_role()`)
+- Auditoria via `audit_logs`
+- Conformidade LGPD: consentimento explícito, direito de exclusão, minimização
 
-No `AdminPrograms.tsx`, atualizar a mensagem de resultado da importação para incluir a contagem de pré-matrículas pendentes, algo como: "2 alunos pré-matriculados (serão ativados no primeiro cadastro)".
+#### PDF 2: Arquitetura de Segurança (~6 páginas)
+- HTTPS/TLS + AES-256 em repouso (Supabase)
+- Autenticação: Supabase Auth, troca forçada no primeiro acesso
+- OWASP Top 10: XSS, SQLi (SDK parametrizado), CSRF (token-based)
+- Rate limiting, RLS por `user_id`, backups automáticos
 
-### Unique constraint
+#### PDF 3: Relatório de Pentest Simulado (~10 páginas)
+- Escopo: app web + Edge Functions + banco
+- Metodologia: OWASP Testing Guide v4.2
+- Vulnerabilidades encontradas com severidade
+- Recomendações e status de correção
 
-Adicionar uma migration com unique constraint em `pending_enrollments(email, program_id)` para evitar duplicatas, caso ainda não exista.
+#### PDF 4: Security Overview Comercial (~4 páginas)
+- Linguagem não-técnica para vendas B2B
+- Proteção de dados, padrões seguidos, monitoramento, privacidade
+
+---
+
+### Parte 3 — Página Security Overview no App
+
+Criar `/security` (página pública, sem login):
+- Cards visuais: Criptografia, Autenticação, RBAC, Auditoria, LGPD
+- Badges de compliance
+- Design alinhado com branding existente
+
+**Arquivos**: `src/pages/SecurityOverview.tsx` + rota no `App.tsx`
+
+---
+
+### Parte 4 — Checklist Contínuo
+
+Seção final do PDF de Governança + tab na página Security:
+- Revisão de acessos (mensal), dependências (semanal), vulnerabilidades (trimestral), rotação de credenciais, logs e alertas
+
+---
+
+### Sequência
+
+1. Correções de segurança (migrations)
+2. Gerar 4 PDFs
+3. Criar página SecurityOverview
+4. QA visual dos PDFs
 
