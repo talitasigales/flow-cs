@@ -107,7 +107,6 @@ export async function generateCertificatePdf(data: {
       drawX = (W - drawW) / 2;
       drawY = 0;
     }
-    scale = drawH / H;
     doc.addImage(template.dataUrl, 'PNG', drawX, drawY, drawW, drawH);
   } catch (e) {
     console.error('Failed to load certificate template:', e);
@@ -115,10 +114,9 @@ export async function generateCertificatePdf(data: {
     doc.rect(0, 0, W, H, 'F');
   }
 
-  // All Y positions are relative to the image area, offset by drawY
+  // All positions are relative to the image area
   const oY = drawY;
   const oX = drawX;
-  const sW = drawW; // scaled image width for text wrapping
 
   // Margin from the left edge of the image
   const marginLeft = oX + 22;
