@@ -146,26 +146,34 @@ export async function generateCertificatePdf(data: {
   doc.line(studentCenterX - signatureLineWidth / 2, signatureLineY, studentCenterX + signatureLineWidth / 2, signatureLineY);
   doc.line(specialistCenterX - signatureLineWidth / 2, signatureLineY, specialistCenterX + signatureLineWidth / 2, signatureLineY);
 
+  // Student name above line
   doc.setFont('Poppins', 'bold');
   doc.setFontSize(10.5);
   doc.setTextColor(255, 255, 255);
-  doc.text(data.studentName, studentCenterX, signatureLineY - rh(0.02), { align: 'center' });
-  doc.text(data.directorName, specialistCenterX, signatureLineY - rh(0.02), { align: 'center' });
+  doc.text(data.studentName, studentCenterX, signatureLineY - 3, { align: 'center' });
 
+  // Specialist: show signature image instead of name text
   if (data.directorSignatureUrl) {
     try {
       const signatureDataUrl = await loadImageAsDataUrl(data.directorSignatureUrl);
-      doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - rw(0.04), signatureLineY - rh(0.08), rw(0.08), rh(0.055));
+      const sigW = rw(0.12);
+      const sigH = sigW * 0.5;
+      doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH - 1, sigW, sigH);
     } catch (e) {
       console.warn('Could not load signature image:', e);
+      // Fallback to name text
+      doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
     }
+  } else {
+    doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
   }
 
+  // Labels below lines - reduced spacing
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(190, 190, 195);
-  doc.text('ALUNO', studentCenterX, signatureLineY + rh(0.04), { align: 'center' });
-  doc.text('ESPECIALISTA', specialistCenterX, signatureLineY + rh(0.04), { align: 'center' });
+  doc.text('ALUNO', studentCenterX, signatureLineY + 5, { align: 'center' });
+  doc.text('ESPECIALISTA', specialistCenterX, signatureLineY + 5, { align: 'center' });
 
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6.5);
