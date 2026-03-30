@@ -174,7 +174,7 @@ export async function generateCertificatePdf(data: {
   doc.setFontSize(7.5);
   doc.setTextColor(190, 190, 195);
   doc.text('ALUNO', studentCenterX, signatureLineY + 5, { align: 'center' });
-  doc.text('ESPECIALISTA', specialistCenterX, signatureLineY + 5, { align: 'center' });
+  doc.text(`ESPECIALISTA — ${data.directorName}`, specialistCenterX, signatureLineY + 5, { align: 'center' });
 
   // Emission date and class period
   doc.setFont('Montserrat', 'normal');
