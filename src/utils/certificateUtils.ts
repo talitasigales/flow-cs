@@ -54,6 +54,8 @@ export async function generateCertificatePdf(data: {
   certificateCode: string;
   directorName: string;
   directorSignatureUrl?: string | null;
+  emissionDate?: string;
+  classDates?: string;
 }) {
   const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
