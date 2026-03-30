@@ -158,7 +158,7 @@ export async function generateCertificatePdf(data: {
   if (data.directorSignatureUrl) {
     try {
       const signatureDataUrl = await loadImageAsDataUrl(data.directorSignatureUrl);
-      const sigW = rw(0.15);
+      const sigW = rw(0.1875);
       const sigH = sigW * 0.5;
       doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH, sigW, sigH);
     } catch (e) {
