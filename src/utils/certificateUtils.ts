@@ -46,6 +46,18 @@ function loadImageAsDataUrl(url: string): Promise<string> {
   return loadImageWithDimensions(url).then((image) => image.dataUrl);
 }
 
+function getCertificateDescription(programName: string, courseHours: number): string {
+  const nameLower = programName.toLowerCase();
+  if (nameLower.includes('nr-1') || nameLower.includes('nr1') || nameLower.includes('riscos psicossociais')) {
+    return `Certificamos a conclusão com êxito no workshop "${programName}", com carga horária de ${courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
+  }
+  if (nameLower.includes('líder 360') || nameLower.includes('lider 360')) {
+    return `Certificamos a conclusão com êxito no workshop "${programName}", com carga horária de ${courseHours}h, adquirindo conhecimentos práticos sobre a autogestão, liderança e ciência comportamental.`;
+  }
+  // Generic fallback for any other program
+  return `Certificamos a conclusão com êxito no programa "${programName}", com carga horária de ${courseHours}h.`;
+}
+
 export async function generateCertificatePdf(data: {
   studentName: string;
   programName: string;
