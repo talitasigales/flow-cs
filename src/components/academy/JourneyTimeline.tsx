@@ -126,7 +126,7 @@ export function JourneyTimeline({ schedules, videoConferenceUrl, specialist, cla
                 </div>
 
                 {/* Action */}
-                {isToday && videoConferenceUrl && (
+                {isToday && videoConferenceUrl && !classEnded && (
                   <Button size="sm" asChild className="shrink-0 gap-1.5 mt-1">
                     <a href={videoConferenceUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-3.5 h-3.5" />
