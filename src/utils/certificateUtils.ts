@@ -1,8 +1,5 @@
 import jsPDF from 'jspdf';
 
-const WHITE: [number, number, number] = [255, 255, 255];
-const LIGHT_GRAY: [number, number, number] = [200, 205, 215];
-
 export function generateCertificateCode(): string {
   const year = new Date().getFullYear();
   const hex = crypto.randomUUID().replace(/-/g, '').substring(0, 6).toUpperCase();
@@ -14,7 +11,16 @@ async function loadFont(url: string): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
-function loadImageWithDimensions(url: string): Promise<{ dataUrl: string; width: number; height: number }> {
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function loadImageAsDataUrl(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -25,28 +31,11 @@ function loadImageWithDimensions(url: string): Promise<{ dataUrl: string; width:
       const ctx = canvas.getContext('2d');
       if (!ctx) return reject('No canvas context');
       ctx.drawImage(img, 0, 0);
-      resolve({
-        dataUrl: canvas.toDataURL('image/png'),
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      });
+      resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = reject;
     img.src = url;
   });
-}
-
-function loadImageDataUrl(url: string): Promise<string> {
-  return loadImageWithDimensions(url).then(r => r.dataUrl);
-}
-
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
 }
 
 export async function generateCertificatePdf(data: {
@@ -59,10 +48,10 @@ export async function generateCertificatePdf(data: {
   directorSignatureUrl?: string | null;
 }) {
   const doc = new jsPDF('l', 'mm', 'a4');
-  const W = doc.internal.pageSize.getWidth();   // 297
-  const H = doc.internal.pageSize.getHeight();  // 210
+  const W = 297;
+  const H = 210;
 
-  // Load and register fonts
+  // ── Load fonts ──
   try {
     const [poppinsBold, poppinsRegular, poppinsSemiBold, montserrat] = await Promise.all([
       loadFont('/fonts/Poppins-Bold.ttf'),
@@ -75,127 +64,102 @@ export async function generateCertificatePdf(data: {
     doc.addFileToVFS('Poppins-Regular.ttf', arrayBufferToBase64(poppinsRegular));
     doc.addFont('Poppins-Regular.ttf', 'Poppins', 'normal');
     doc.addFileToVFS('Poppins-SemiBold.ttf', arrayBufferToBase64(poppinsSemiBold));
-    doc.addFont('Poppins-SemiBold.ttf', 'Poppins', 'italic');
+    doc.addFont('Poppins-SemiBold.ttf', 'Poppins', 'italic'); // semibold mapped to italic style
     doc.addFileToVFS('Montserrat-Regular.ttf', arrayBufferToBase64(montserrat));
     doc.addFont('Montserrat-Regular.ttf', 'Montserrat', 'normal');
   } catch (e) {
     console.warn('Font loading failed, using defaults:', e);
   }
 
-  // ─── TEMPLATE BACKGROUND (contain-fit to show full image without cropping) ───
-  let drawX = 0, drawY = 0, drawW = W, drawH = H;
+  // ── Background template (stretch to fill A4 landscape) ──
   try {
-    const template = await loadImageWithDimensions('/certificate-template.png');
-    const imgRatio = template.width / template.height;
-    const pageRatio = W / H;
-
-    // Fill page with dark background matching template edges
-    doc.setFillColor(28, 17, 11);
-    doc.rect(0, 0, W, H, 'F');
-
-    if (imgRatio > pageRatio) {
-      // Image is wider than page → fit width, center vertically
-      drawW = W;
-      drawH = W / imgRatio;
-      drawX = 0;
-      drawY = (H - drawH) / 2;
-    } else {
-      // Image is taller → fit height, center horizontally
-      drawH = H;
-      drawW = H * imgRatio;
-      drawX = (W - drawW) / 2;
-      drawY = 0;
-    }
-    doc.addImage(template.dataUrl, 'PNG', drawX, drawY, drawW, drawH);
+    const templateDataUrl = await loadImageAsDataUrl('/certificate-template.png');
+    doc.addImage(templateDataUrl, 'PNG', 0, 0, W, H);
   } catch (e) {
     console.error('Failed to load certificate template:', e);
-    doc.setFillColor(20, 29, 47);
+    doc.setFillColor(28, 17, 11);
     doc.rect(0, 0, W, H, 'F');
   }
 
-  // All positions are relative to the image area
-  const oY = drawY;
-  const oX = drawX;
+  // ── Layout constants (all in mm, based on A4 landscape 297×210) ──
+  const LEFT = 22;
+  const TEXT_MAX_W = 185;
 
-  // Margin from the left edge of the image
-  const marginLeft = oX + 22;
-  const maxTitleW = drawW * 0.62;
-
-  // ─── PROGRAM NAME ───
+  // ── Program name (large title) ──
   doc.setFont('Poppins', 'bold');
-  doc.setFontSize(30);
-  doc.setTextColor(...WHITE);
-  const titleLines: string[] = doc.splitTextToSize(data.programName, maxTitleW);
-  let titleY = oY + drawH * 0.36;
+  doc.setFontSize(38);
+  doc.setTextColor(255, 255, 255);
+  const titleLines: string[] = doc.splitTextToSize(data.programName, TEXT_MAX_W);
+  let y = 80;
   titleLines.forEach((line: string) => {
-    doc.text(line, marginLeft, titleY);
-    titleY += 12;
+    doc.text(line, LEFT, y);
+    y += 16;
   });
 
-  // ─── DESCRIPTION ───
-  const descYPos = titleY + 10;
+  // ── Description paragraph ──
+  const descY = y + 8;
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...LIGHT_GRAY);
+  doc.setFontSize(9.5);
+  doc.setTextColor(220, 225, 230);
+
   const descText = `Certificamos a conclusão com êxito no workshop "${data.programName}", com carga horária de ${data.courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
-  const descLines: string[] = doc.splitTextToSize(descText, maxTitleW);
+  const descLines: string[] = doc.splitTextToSize(descText, TEXT_MAX_W);
   descLines.forEach((line: string, i: number) => {
-    doc.text(line, marginLeft, descYPos + i * 5.5);
+    doc.text(line, LEFT, descY + i * 5.5);
   });
 
-  // ─── SIGNATURE SECTION ───
-  const sigSectionY = oY + drawH * 0.78; // vertical position for signature lines
-  const lineWidth = 60;
-  const alunoLineX = marginLeft + 35; // center of student signature
-  const espLineX = marginLeft + 130; // center of specialist signature
+  // ── Signature section ──
+  const sigY = 175;
+  const lineLen = 65;
 
-  // Student name
+  // Student signature (left)
+  const studentCenterX = 75;
   doc.setFont('Poppins', 'italic');
-  doc.setFontSize(10);
-  doc.setTextColor(...WHITE);
-  doc.text(data.studentName, alunoLineX, sigSectionY - 4, { align: 'center' });
+  doc.setFontSize(11);
+  doc.setTextColor(255, 255, 255);
+  doc.text(data.studentName, studentCenterX, sigY - 3, { align: 'center' });
 
-  // Student line
-  doc.setDrawColor(200, 200, 200);
+  doc.setDrawColor(180, 180, 180);
   doc.setLineWidth(0.3);
-  doc.line(alunoLineX - lineWidth / 2, sigSectionY, alunoLineX + lineWidth / 2, sigSectionY);
+  doc.line(studentCenterX - lineLen / 2, sigY, studentCenterX + lineLen / 2, sigY);
 
-  // "ALUNO" label
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...LIGHT_GRAY);
-  doc.text('ALUNO', alunoLineX, sigSectionY + 5, { align: 'center' });
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 185, 195);
+  doc.text('ALUNO', studentCenterX, sigY + 6, { align: 'center' });
 
-  // Specialist name
-  doc.setFont('Poppins', 'italic');
-  doc.setFontSize(10);
-  doc.setTextColor(...WHITE);
-  doc.text(data.directorName, espLineX, sigSectionY - 4, { align: 'center' });
+  // Specialist signature (right)
+  const specialistCenterX = 185;
 
-  // Specialist signature image
+  // Signature image above line
   if (data.directorSignatureUrl) {
     try {
-      const sigImg = await loadImageDataUrl(data.directorSignatureUrl);
-      doc.addImage(sigImg, 'PNG', espLineX - 25, sigSectionY - 22, 50, 16);
+      const sigImg = await loadImageAsDataUrl(data.directorSignatureUrl);
+      doc.addImage(sigImg, 'PNG', specialistCenterX - 25, sigY - 22, 50, 16);
     } catch (e) {
       console.warn('Could not load signature image:', e);
     }
   }
 
-  // Specialist line
-  doc.line(espLineX - lineWidth / 2, sigSectionY, espLineX + lineWidth / 2, sigSectionY);
+  doc.setFont('Poppins', 'italic');
+  doc.setFontSize(11);
+  doc.setTextColor(255, 255, 255);
+  doc.text(data.directorName, specialistCenterX, sigY - 3, { align: 'center' });
 
-  // "ESPECIALISTA" label
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.3);
+  doc.line(specialistCenterX - lineLen / 2, sigY, specialistCenterX + lineLen / 2, sigY);
+
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...LIGHT_GRAY);
-  doc.text('ESPECIALISTA', espLineX, sigSectionY + 5, { align: 'center' });
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 185, 195);
+  doc.text('ESPECIALISTA', specialistCenterX, sigY + 6, { align: 'center' });
 
-  // ─── CERTIFICATE CODE ───
+  // ── Certificate code (bottom center) ──
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6);
   doc.setTextColor(120, 125, 140);
-  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, oY + drawH - 6, { align: 'center' });
+  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, H - 8, { align: 'center' });
 
   doc.save(`certificado-${data.studentName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 }
