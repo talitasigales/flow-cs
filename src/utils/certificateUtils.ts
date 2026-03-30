@@ -176,6 +176,14 @@ export async function generateCertificatePdf(data: {
   doc.text('ALUNO', studentCenterX, signatureLineY + 5, { align: 'center' });
   doc.text('ESPECIALISTA', specialistCenterX, signatureLineY + 5, { align: 'center' });
 
+  // Emission date and class period
+  doc.setFont('Montserrat', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(190, 190, 195);
+  const emissionText = data.emissionDate ? `Emitido em ${data.emissionDate}` : `Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
+  const classDatesText = data.classDates ? ` | Período: ${data.classDates}` : (data.courseDates ? ` | Período: ${data.courseDates}` : '');
+  doc.text(emissionText + classDatesText, pageWidth / 2, ry(0.94), { align: 'center' });
+
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(132, 135, 145);
