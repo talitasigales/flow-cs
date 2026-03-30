@@ -20,9 +20,10 @@ interface JourneyTimelineProps {
   schedules: Schedule[];
   videoConferenceUrl?: string | null;
   specialist?: string | null;
+  classEnded?: boolean;
 }
 
-export function JourneyTimeline({ schedules, videoConferenceUrl, specialist }: JourneyTimelineProps) {
+export function JourneyTimeline({ schedules, videoConferenceUrl, specialist, classEnded }: JourneyTimelineProps) {
   if (schedules.length === 0) return null;
 
   const today = new Date().toISOString().split('T')[0];
