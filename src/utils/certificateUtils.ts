@@ -82,25 +82,32 @@ export async function generateCertificatePdf(data: {
     console.warn('Font loading failed, using defaults:', e);
   }
 
-  // ─── TEMPLATE BACKGROUND (cover-fit to preserve aspect ratio) ───
+  // ─── TEMPLATE BACKGROUND (contain-fit to show full image without cropping) ───
+  let scale = 1;
+  let drawX = 0, drawY = 0, drawW = W, drawH = H;
   try {
     const template = await loadImageWithDimensions('/certificate-template.png');
     const imgRatio = template.width / template.height;
     const pageRatio = W / H;
-    let drawW: number, drawH: number, drawX: number, drawY: number;
+
+    // Fill page with dark background matching template edges
+    doc.setFillColor(28, 17, 11);
+    doc.rect(0, 0, W, H, 'F');
+
     if (imgRatio > pageRatio) {
-      // Image is wider → fit height, crop sides
-      drawH = H;
-      drawW = H * imgRatio;
-      drawX = (W - drawW) / 2;
-      drawY = 0;
-    } else {
-      // Image is taller → fit width, crop top/bottom
+      // Image is wider than page → fit width, center vertically
       drawW = W;
       drawH = W / imgRatio;
       drawX = 0;
       drawY = (H - drawH) / 2;
+    } else {
+      // Image is taller → fit height, center horizontally
+      drawH = H;
+      drawW = H * imgRatio;
+      drawX = (W - drawW) / 2;
+      drawY = 0;
     }
+    scale = drawH / H;
     doc.addImage(template.dataUrl, 'PNG', drawX, drawY, drawW, drawH);
   } catch (e) {
     console.error('Failed to load certificate template:', e);
