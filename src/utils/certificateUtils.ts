@@ -160,7 +160,7 @@ export async function generateCertificatePdf(data: {
       const signatureDataUrl = await loadImageAsDataUrl(data.directorSignatureUrl);
       const sigW = rw(0.15);
       const sigH = sigW * 0.5;
-      doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH - 1, sigW, sigH);
+      doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH, sigW, sigH);
     } catch (e) {
       console.warn('Could not load signature image:', e);
       doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
