@@ -286,6 +286,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
   const programModules = getModules();
   const unassignedMaterials = getUnassignedMaterials();
   const today = new Date().toISOString().split('T')[0];
+  const classEnded = !!(cls?.end_date && cls.end_date < today);
   const specialist = getSpecialist(cls?.specialist);
 
   return (
