@@ -324,7 +324,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                   </span>
                 )}
               </div>
-              {cls?.video_conference_url && (
+              {cls?.video_conference_url && !classEnded && (
                 <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1">
                   <Video className="w-3.5 h-3.5" />
                   {cls.video_conference_url}
