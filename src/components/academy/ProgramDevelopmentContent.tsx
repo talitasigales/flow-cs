@@ -388,6 +388,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                   schedules={schedules}
                   videoConferenceUrl={cls?.video_conference_url}
                   specialist={cls?.specialist}
+                  classEnded={classEnded}
                 />
               </CardContent>
             </Card>
