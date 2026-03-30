@@ -20,9 +20,10 @@ interface JourneyTimelineProps {
   schedules: Schedule[];
   videoConferenceUrl?: string | null;
   specialist?: string | null;
+  classEnded?: boolean;
 }
 
-export function JourneyTimeline({ schedules, videoConferenceUrl, specialist }: JourneyTimelineProps) {
+export function JourneyTimeline({ schedules, videoConferenceUrl, specialist, classEnded }: JourneyTimelineProps) {
   if (schedules.length === 0) return null;
 
   const today = new Date().toISOString().split('T')[0];
@@ -125,7 +126,7 @@ export function JourneyTimeline({ schedules, videoConferenceUrl, specialist }: J
                 </div>
 
                 {/* Action */}
-                {isToday && videoConferenceUrl && (
+                {isToday && videoConferenceUrl && !classEnded && (
                   <Button size="sm" asChild className="shrink-0 gap-1.5 mt-1">
                     <a href={videoConferenceUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-3.5 h-3.5" />

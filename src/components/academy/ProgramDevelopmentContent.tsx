@@ -286,6 +286,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
   const programModules = getModules();
   const unassignedMaterials = getUnassignedMaterials();
   const today = new Date().toISOString().split('T')[0];
+  const classEnded = !!(cls?.end_date && cls.end_date < today);
   const specialist = getSpecialist(cls?.specialist);
 
   return (
@@ -298,6 +299,12 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-xl font-bold">{program?.name || 'Programa'}</h2>
                 <Badge variant="outline" className="text-xs border-primary/40 text-primary">Matriculado</Badge>
+                {classEnded && (
+                  <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Turma encerrada
+                  </Badge>
+                )}
               </div>
               {program?.description && (
                 <p className="text-sm text-muted-foreground max-w-xl">{program.description}</p>
@@ -317,7 +324,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                   </span>
                 )}
               </div>
-              {cls?.video_conference_url && (
+              {cls?.video_conference_url && !classEnded && (
                 <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1">
                   <Video className="w-3.5 h-3.5" />
                   {cls.video_conference_url}
@@ -347,7 +354,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                 </p>
               )}
             </div>
-            {cls?.video_conference_url && (
+            {cls?.video_conference_url && !classEnded && (
               <Button size="sm" asChild className="shrink-0 gap-2">
                 <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer">
                   <Video className="w-4 h-4" />
@@ -381,6 +388,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                   schedules={schedules}
                   videoConferenceUrl={cls?.video_conference_url}
                   specialist={cls?.specialist}
+                  classEnded={classEnded}
                 />
               </CardContent>
             </Card>
