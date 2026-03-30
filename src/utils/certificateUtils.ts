@@ -133,7 +133,7 @@ export async function generateCertificatePdf(data: {
   doc.setTextColor(236, 236, 236);
   const description = `Certificamos a conclusão com êxito no workshop “${data.programName}”, com carga horária de ${data.courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
   const paragraphLines = doc.splitTextToSize(description, rw(0.63));
-  let paragraphY = currentY + rh(0.03);
+  let paragraphY = currentY + rh(0.01);
   paragraphLines.forEach((line: string) => {
     doc.text(line, rx(0.07), paragraphY);
     paragraphY += rh(0.047);
