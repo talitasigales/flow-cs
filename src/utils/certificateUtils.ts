@@ -120,7 +120,7 @@ export async function generateCertificatePdf(data: {
 
   // Margin from the left edge of the image
   const marginLeft = oX + 22;
-  const maxTitleW = sW * 0.62;
+  const maxTitleW = drawW * 0.62;
 
   // ─── PROGRAM NAME ───
   doc.setFont('Poppins', 'bold');
