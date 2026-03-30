@@ -354,7 +354,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                 </p>
               )}
             </div>
-            {cls?.video_conference_url && (
+            {cls?.video_conference_url && !classEnded && (
               <Button size="sm" asChild className="shrink-0 gap-2">
                 <a href={cls.video_conference_url} target="_blank" rel="noopener noreferrer">
                   <Video className="w-4 h-4" />
