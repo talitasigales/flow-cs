@@ -55,7 +55,7 @@ export default function ProgramCalendar() {
       const { data } = await supabase
         .from('program_classes')
         .select('*, programs(name, slug)')
-        .or(`end_date.gte.${today},end_date.is.null,start_date.gte.${today}`)
+        .gt('start_date', today)
         .order('start_date', { ascending: true });
       return data || [];
     },
