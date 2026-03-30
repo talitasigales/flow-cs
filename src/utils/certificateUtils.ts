@@ -140,7 +140,7 @@ export async function generateCertificatePdf(data: {
 
   const studentCenterX = rx(0.22);
   const specialistCenterX = rx(0.58);
-  const signatureLineY = ry(0.89);
+  const signatureLineY = ry(0.83);
   const signatureLineWidth = rw(0.15);
 
   doc.setDrawColor(210, 210, 210);
@@ -169,7 +169,7 @@ export async function generateCertificatePdf(data: {
     doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
   }
 
-  // Labels below lines - reduced spacing
+  // Labels below lines
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(190, 190, 195);
@@ -181,7 +181,7 @@ export async function generateCertificatePdf(data: {
   doc.setFontSize(7);
   doc.setTextColor(190, 190, 195);
   const emissionText = data.emissionDate ? `Emitido em ${data.emissionDate}` : `Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
-  const classDatesText = data.classDates ? ` | Período: ${data.classDates}` : (data.courseDates ? ` | Período: ${data.courseDates}` : '');
+  const classDatesText = data.classDates ? ` | Turma: ${data.classDates}` : (data.courseDates ? ` | Turma: ${data.courseDates}` : '');
   doc.text(emissionText + classDatesText, pageWidth / 2, ry(0.94), { align: 'center' });
 
   doc.setFont('Montserrat', 'normal');
