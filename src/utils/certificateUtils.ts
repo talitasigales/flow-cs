@@ -83,7 +83,6 @@ export async function generateCertificatePdf(data: {
   }
 
   // ─── TEMPLATE BACKGROUND (contain-fit to show full image without cropping) ───
-  let scale = 1;
   let drawX = 0, drawY = 0, drawW = W, drawH = H;
   try {
     const template = await loadImageWithDimensions('/certificate-template.png');
