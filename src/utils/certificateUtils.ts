@@ -158,12 +158,11 @@ export async function generateCertificatePdf(data: {
   if (data.directorSignatureUrl) {
     try {
       const signatureDataUrl = await loadImageAsDataUrl(data.directorSignatureUrl);
-      const sigW = rw(0.12);
+      const sigW = rw(0.15);
       const sigH = sigW * 0.5;
       doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH - 1, sigW, sigH);
     } catch (e) {
       console.warn('Could not load signature image:', e);
-      // Fallback to name text
       doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
     }
   } else {
