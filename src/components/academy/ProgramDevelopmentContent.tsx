@@ -55,6 +55,22 @@ function CertificateCard({ programId, programName, studentName }: { programId?: 
         .eq('program_id', programId)
         .eq('user_id', user!.id)
         .maybeSingle();
+      if (!data) return null;
+
+      // Check if class end_date + 1 day has passed
+      if (data.class_id) {
+        const { data: cls } = await supabase
+          .from('program_classes')
+          .select('end_date')
+          .eq('id', data.class_id)
+          .single();
+        if (cls?.end_date) {
+          const endDate = new Date(cls.end_date + 'T23:59:59');
+          const availableDate = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
+          if (new Date() < availableDate) return null;
+        }
+      }
+
       return data;
     },
   });
