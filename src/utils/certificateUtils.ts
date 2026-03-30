@@ -54,6 +54,8 @@ export async function generateCertificatePdf(data: {
   certificateCode: string;
   directorName: string;
   directorSignatureUrl?: string | null;
+  emissionDate?: string;
+  classDates?: string;
 }) {
   const doc = new jsPDF('l', 'mm', 'a4');
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -156,12 +158,11 @@ export async function generateCertificatePdf(data: {
   if (data.directorSignatureUrl) {
     try {
       const signatureDataUrl = await loadImageAsDataUrl(data.directorSignatureUrl);
-      const sigW = rw(0.12);
+      const sigW = rw(0.15);
       const sigH = sigW * 0.5;
       doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH - 1, sigW, sigH);
     } catch (e) {
       console.warn('Could not load signature image:', e);
-      // Fallback to name text
       doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
     }
   } else {
@@ -174,6 +175,14 @@ export async function generateCertificatePdf(data: {
   doc.setTextColor(190, 190, 195);
   doc.text('ALUNO', studentCenterX, signatureLineY + 5, { align: 'center' });
   doc.text('ESPECIALISTA', specialistCenterX, signatureLineY + 5, { align: 'center' });
+
+  // Emission date and class period
+  doc.setFont('Montserrat', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(190, 190, 195);
+  const emissionText = data.emissionDate ? `Emitido em ${data.emissionDate}` : `Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
+  const classDatesText = data.classDates ? ` | Período: ${data.classDates}` : (data.courseDates ? ` | Período: ${data.courseDates}` : '');
+  doc.text(emissionText + classDatesText, pageWidth / 2, ry(0.94), { align: 'center' });
 
   doc.setFont('Montserrat', 'normal');
   doc.setFontSize(6.5);
