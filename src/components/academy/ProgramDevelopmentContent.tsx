@@ -71,16 +71,21 @@ function CertificateCard({ programId, programName, studentName }: { programId?: 
         .eq('user_id', user!.id)
         .single();
 
-      // Get specialist name from the class linked to the certificate
+      // Get specialist name and class dates from the class linked to the certificate
       let specialistName = certificate.director_name;
+      let classDates = '';
       if (certificate.class_id) {
         const { data: cls } = await supabase
           .from('program_classes')
-          .select('specialist')
+          .select('specialist, start_date, end_date')
           .eq('id', certificate.class_id)
           .single();
         if (cls?.specialist) {
           specialistName = cls.specialist;
+        }
+        if (cls?.start_date && cls?.end_date) {
+          const fmt = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
+          classDates = `${fmt(cls.start_date)} a ${fmt(cls.end_date)}`;
         }
       }
 
@@ -92,6 +97,8 @@ function CertificateCard({ programId, programName, studentName }: { programId?: 
         certificateCode: certificate.certificate_code,
         directorName: specialistName,
         directorSignatureUrl: certificate.director_signature_url,
+        emissionDate: new Date().toLocaleDateString('pt-BR'),
+        classDates,
       });
 
       // Mark as generated
