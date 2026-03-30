@@ -118,13 +118,14 @@ export async function generateCertificatePdf(data: {
   const rh = (value: number) => drawH * value;
 
   doc.setFont('Poppins', 'bold');
-  doc.setFontSize(31);
+  doc.setFontSize(42);
   doc.setTextColor(255, 255, 255);
-  const titleLines = doc.splitTextToSize(data.programName, rw(0.6));
-  let currentY = ry(0.47);
+  // Force title to break into 2 lines by using a narrow max width
+  const titleLines = doc.splitTextToSize(data.programName, rw(0.45));
+  let currentY = ry(0.42);
   titleLines.forEach((line: string) => {
     doc.text(line, rx(0.07), currentY);
-    currentY += rh(0.072);
+    currentY += rh(0.09);
   });
 
   doc.setFont('Montserrat', 'normal');
