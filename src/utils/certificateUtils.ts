@@ -83,7 +83,6 @@ export async function generateCertificatePdf(data: {
   }
 
   // ─── TEMPLATE BACKGROUND (contain-fit to show full image without cropping) ───
-  let scale = 1;
   let drawX = 0, drawY = 0, drawW = W, drawH = H;
   try {
     const template = await loadImageWithDimensions('/certificate-template.png');
@@ -107,7 +106,6 @@ export async function generateCertificatePdf(data: {
       drawX = (W - drawW) / 2;
       drawY = 0;
     }
-    scale = drawH / H;
     doc.addImage(template.dataUrl, 'PNG', drawX, drawY, drawW, drawH);
   } catch (e) {
     console.error('Failed to load certificate template:', e);
@@ -115,63 +113,89 @@ export async function generateCertificatePdf(data: {
     doc.rect(0, 0, W, H, 'F');
   }
 
-  // All Y positions are relative to the image area, offset by drawY
+  // All positions are relative to the image area
   const oY = drawY;
   const oX = drawX;
-  const sW = drawW; // scaled image width for text wrapping
+
+  // Margin from the left edge of the image
+  const marginLeft = oX + 22;
+  const maxTitleW = drawW * 0.62;
 
   // ─── PROGRAM NAME ───
   doc.setFont('Poppins', 'bold');
-  doc.setFontSize(34 * scale);
+  doc.setFontSize(30);
   doc.setTextColor(...WHITE);
-  const maxTitleW = sW * 0.65;
   const titleLines: string[] = doc.splitTextToSize(data.programName, maxTitleW);
-  let titleY = oY + 75 * scale;
+  let titleY = oY + drawH * 0.36;
   titleLines.forEach((line: string) => {
-    doc.text(line, oX + 22 * scale, titleY);
-    titleY += 14 * scale;
+    doc.text(line, marginLeft, titleY);
+    titleY += 12;
   });
 
   // ─── DESCRIPTION ───
-  const descYPos = titleY + 8 * scale;
+  const descYPos = titleY + 10;
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(9 * scale);
+  doc.setFontSize(8.5);
   doc.setTextColor(...LIGHT_GRAY);
   const descText = `Certificamos a conclusão com êxito no workshop "${data.programName}", com carga horária de ${data.courseHours}h, adquirindo conhecimentos práticos sobre a identificação, gestão e prevenção de riscos psicossociais, bem como o desenvolvimento de uma liderança mais consciente, estratégica e alinhada às exigências da NR-1.`;
   const descLines: string[] = doc.splitTextToSize(descText, maxTitleW);
   descLines.forEach((line: string, i: number) => {
-    doc.text(line, oX + 22 * scale, descYPos + i * 5 * scale);
+    doc.text(line, marginLeft, descYPos + i * 5.5);
   });
 
-  // ─── STUDENT NAME (above "ALUNO" signature line) ───
-  const alunoLineX = oX + 50 * scale;
-  doc.setFont('Poppins', 'italic');
-  doc.setFontSize(11 * scale);
-  doc.setTextColor(...WHITE);
-  doc.text(data.studentName, alunoLineX, oY + 155 * scale, { align: 'center' });
+  // ─── SIGNATURE SECTION ───
+  const sigSectionY = oY + drawH * 0.78; // vertical position for signature lines
+  const lineWidth = 60;
+  const alunoLineX = marginLeft + 35; // center of student signature
+  const espLineX = marginLeft + 130; // center of specialist signature
 
-  // ─── SPECIALIST NAME (above "ESPECIALISTA" signature line) ───
-  const espLineX = oX + 130 * scale;
+  // Student name
   doc.setFont('Poppins', 'italic');
-  doc.setFontSize(11 * scale);
+  doc.setFontSize(10);
   doc.setTextColor(...WHITE);
-  doc.text(data.directorName, espLineX, oY + 155 * scale, { align: 'center' });
+  doc.text(data.studentName, alunoLineX, sigSectionY - 4, { align: 'center' });
 
-  // ─── SPECIALIST SIGNATURE IMAGE ───
+  // Student line
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(alunoLineX - lineWidth / 2, sigSectionY, alunoLineX + lineWidth / 2, sigSectionY);
+
+  // "ALUNO" label
+  doc.setFont('Montserrat', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...LIGHT_GRAY);
+  doc.text('ALUNO', alunoLineX, sigSectionY + 5, { align: 'center' });
+
+  // Specialist name
+  doc.setFont('Poppins', 'italic');
+  doc.setFontSize(10);
+  doc.setTextColor(...WHITE);
+  doc.text(data.directorName, espLineX, sigSectionY - 4, { align: 'center' });
+
+  // Specialist signature image
   if (data.directorSignatureUrl) {
     try {
       const sigImg = await loadImageDataUrl(data.directorSignatureUrl);
-      doc.addImage(sigImg, 'PNG', espLineX - 25 * scale, oY + 138 * scale, 50 * scale, 15 * scale);
+      doc.addImage(sigImg, 'PNG', espLineX - 25, sigSectionY - 22, 50, 16);
     } catch (e) {
       console.warn('Could not load signature image:', e);
     }
   }
 
+  // Specialist line
+  doc.line(espLineX - lineWidth / 2, sigSectionY, espLineX + lineWidth / 2, sigSectionY);
+
+  // "ESPECIALISTA" label
+  doc.setFont('Montserrat', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...LIGHT_GRAY);
+  doc.text('ESPECIALISTA', espLineX, sigSectionY + 5, { align: 'center' });
+
   // ─── CERTIFICATE CODE ───
   doc.setFont('Montserrat', 'normal');
-  doc.setFontSize(6 * scale);
+  doc.setFontSize(6);
   doc.setTextColor(120, 125, 140);
-  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, oY + drawH - 8 * scale, { align: 'center' });
+  doc.text(`Código de verificação: ${data.certificateCode}`, W / 2, oY + drawH - 6, { align: 'center' });
 
   doc.save(`certificado-${data.studentName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 }

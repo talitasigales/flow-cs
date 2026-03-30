@@ -71,13 +71,26 @@ function CertificateCard({ programId, programName, studentName }: { programId?: 
         .eq('user_id', user!.id)
         .single();
 
+      // Get specialist name from the class linked to the certificate
+      let specialistName = certificate.director_name;
+      if (certificate.class_id) {
+        const { data: cls } = await supabase
+          .from('program_classes')
+          .select('specialist')
+          .eq('id', certificate.class_id)
+          .single();
+        if (cls?.specialist) {
+          specialistName = cls.specialist;
+        }
+      }
+
       await generateCertificatePdf({
         studentName: profile?.full_name || 'Aluno',
         programName: programName || 'Programa',
         courseHours: certificate.course_hours,
         courseDates: certificate.course_dates,
         certificateCode: certificate.certificate_code,
-        directorName: certificate.director_name,
+        directorName: specialistName,
         directorSignatureUrl: certificate.director_signature_url,
       });
 
