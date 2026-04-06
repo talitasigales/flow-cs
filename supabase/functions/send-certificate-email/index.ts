@@ -97,12 +97,11 @@ Deno.serve(async (req) => {
       `
 
       try {
-        const emailRes = await fetch(`${GATEWAY_URL}/emails`, {
+        const emailRes = await fetch(`${RESEND_API_URL}/emails`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'X-Connection-Api-Key': resendApiKey,
+            'Authorization': `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
             from: 'Grou <onboarding@resend.dev>',
