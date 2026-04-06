@@ -57,7 +57,7 @@ function getCertificateDescription(programName: string, courseHours: number): st
   return `Certificamos a conclusão com êxito no programa "${programName}", com carga horária de ${courseHours}h.`;
 }
 
-export async function generateCertificatePdf(data: {
+async function buildCertificateDoc(data: {
   studentName: string;
   programName: string;
   courseHours: number;
