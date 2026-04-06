@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Award, Upload, Check } from 'lucide-react';
-import { generateCertificateCode } from '@/utils/certificateUtils';
+import { Award, Upload, Check, Download, Mail, Loader2 } from 'lucide-react';
+import { generateCertificateCode, generateCertificatePdf, generateCertificatePdfBlob } from '@/utils/certificateUtils';
 
 interface Props {
   programId: string;
@@ -21,17 +21,18 @@ interface Props {
 
 export function CertificateManager({ programId, classes }: Props) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [selectedClassId, setSelectedClassId] = useState('all');
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [selectedForEmail, setSelectedForEmail] = useState<string[]>([]);
   const [courseHours, setCourseHours] = useState('');
   const [courseDates, setCourseDates] = useState('');
   const [directorName, setDirectorName] = useState('');
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [signatureUrl, setSignatureUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
 
-  // Auto-populate specialist name when class changes
   const handleClassChange = (classId: string) => {
     setSelectedClassId(classId);
     if (classId !== 'all') {
@@ -42,7 +43,15 @@ export function CertificateManager({ programId, classes }: Props) {
     }
   };
 
-  // Fetch enrollments for this program
+  // Fetch program name
+  const { data: program } = useQuery({
+    queryKey: ['cert-program', programId],
+    queryFn: async () => {
+      const { data } = await supabase.from('programs').select('name').eq('id', programId).single();
+      return data;
+    },
+  });
+
   const { data: enrollments = [] } = useQuery({
     queryKey: ['cert-enrollments', programId, selectedClassId],
     queryFn: async () => {
@@ -65,7 +74,6 @@ export function CertificateManager({ programId, classes }: Props) {
     },
   });
 
-  // Fetch existing certificates
   const { data: certificates = [], refetch: refetchCerts } = useQuery({
     queryKey: ['cert-list', programId],
     queryFn: async () => {
@@ -84,7 +92,7 @@ export function CertificateManager({ programId, classes }: Props) {
     if (!signatureFile) return;
     const ext = signatureFile.name.split('.').pop();
     const path = `signatures/director-${Date.now()}.${ext}`;
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('program-materials')
       .upload(path, signatureFile, { upsert: true });
     if (error) {
@@ -102,7 +110,7 @@ export function CertificateManager({ programId, classes }: Props) {
       return;
     }
     if (!courseHours || !courseDates || !directorName) {
-      toast.error('Preencha carga horária, datas e nome da diretora');
+      toast.error('Preencha carga horária, datas e nome do(a) especialista');
       return;
     }
     setSaving(true);
@@ -123,10 +131,7 @@ export function CertificateManager({ programId, classes }: Props) {
         };
       });
 
-      const { error } = await (supabase as any)
-        .from('certificates')
-        .insert(records);
-
+      const { error } = await (supabase as any).from('certificates').insert(records);
       if (error) throw error;
       toast.success(`Certificado habilitado para ${selectedStudents.length} aluno(s)`);
       setSelectedStudents([]);
@@ -138,6 +143,105 @@ export function CertificateManager({ programId, classes }: Props) {
     }
   };
 
+  const buildCertData = (cert: any, studentName: string) => {
+    const cls = cert.class_id ? classes.find((c: any) => c.id === cert.class_id) : null;
+    const classDatesStr = cls?.start_date && cls?.end_date
+      ? `${new Date(cls.start_date).toLocaleDateString('pt-BR')} a ${new Date(cls.end_date).toLocaleDateString('pt-BR')}`
+      : cert.course_dates;
+
+    return {
+      studentName,
+      programName: program?.name || 'Programa',
+      courseHours: cert.course_hours,
+      courseDates: cert.course_dates,
+      certificateCode: cert.certificate_code,
+      directorName: cert.director_name,
+      directorSignatureUrl: cert.director_signature_url,
+      emissionDate: new Date().toLocaleDateString('pt-BR'),
+      classDates: classDatesStr,
+    };
+  };
+
+  const handleDownloadPdf = async (cert: any, studentName: string) => {
+    setGeneratingPdf(cert.id);
+    try {
+      await generateCertificatePdf(buildCertData(cert, studentName));
+      // Mark as generated
+      await (supabase as any).from('certificates').update({ generated_at: new Date().toISOString() }).eq('id', cert.id);
+      refetchCerts();
+      toast.success('Certificado gerado com sucesso');
+    } catch (e: any) {
+      toast.error('Erro ao gerar certificado: ' + e.message);
+    } finally {
+      setGeneratingPdf(null);
+    }
+  };
+
+  const handleSendEmails = async () => {
+    if (selectedForEmail.length === 0) {
+      toast.error('Selecione ao menos um certificado para enviar');
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const certPayloads: any[] = [];
+
+      for (const certId of selectedForEmail) {
+        const cert = certificates.find((c: any) => c.id === certId);
+        if (!cert) continue;
+        const enr = enrollments.find((e: any) => e.id === cert.enrollment_id);
+        const studentName = enr?.profile?.full_name || 'Aluno';
+        const studentEmail = enr?.profile?.email;
+        if (!studentEmail) continue;
+
+        // Generate PDF blob
+        const blob = await generateCertificatePdfBlob(buildCertData(cert, studentName));
+
+        // Upload to storage
+        const pdfPath = `certificates/${cert.certificate_code}.pdf`;
+        await supabase.storage.from('program-materials').upload(pdfPath, blob, {
+          upsert: true,
+          contentType: 'application/pdf',
+        });
+
+        const { data: urlData } = supabase.storage.from('program-materials').getPublicUrl(pdfPath);
+
+        certPayloads.push({
+          certificateId: cert.id,
+          pdfUrl: urlData.publicUrl,
+          studentEmail,
+          studentName,
+          programName: program?.name || 'Programa',
+        });
+      }
+
+      if (certPayloads.length === 0) {
+        toast.error('Nenhum certificado válido para enviar');
+        setSendingEmail(false);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-certificate-email', {
+        body: { certificates: certPayloads },
+      });
+
+      if (error) throw error;
+
+      const successCount = data?.results?.filter((r: any) => r.success).length || 0;
+      const failCount = data?.results?.filter((r: any) => !r.success).length || 0;
+
+      if (successCount > 0) toast.success(`E-mail enviado para ${successCount} aluno(s)`);
+      if (failCount > 0) toast.error(`Falha ao enviar para ${failCount} aluno(s)`);
+
+      setSelectedForEmail([]);
+      refetchCerts();
+    } catch (e: any) {
+      toast.error('Erro ao enviar e-mails: ' + e.message);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const toggleStudent = (enrollmentId: string) => {
     setSelectedStudents(prev =>
       prev.includes(enrollmentId)
@@ -146,15 +250,34 @@ export function CertificateManager({ programId, classes }: Props) {
     );
   };
 
+  const toggleEmailCert = (certId: string) => {
+    setSelectedForEmail(prev =>
+      prev.includes(certId)
+        ? prev.filter(id => id !== certId)
+        : [...prev, certId]
+    );
+  };
+
   const eligibleEnrollments = enrollments.filter(
     (e: any) => !getCertForEnrollment(e.id)
   );
+
+  const enabledCerts = enrollments.filter((e: any) => !!getCertForEnrollment(e.id));
 
   const selectAll = () => {
     if (selectedStudents.length === eligibleEnrollments.length) {
       setSelectedStudents([]);
     } else {
       setSelectedStudents(eligibleEnrollments.map((e: any) => e.id));
+    }
+  };
+
+  const selectAllForEmail = () => {
+    const allCertIds = enabledCerts.map((e: any) => getCertForEnrollment(e.id)?.id).filter(Boolean);
+    if (selectedForEmail.length === allCertIds.length) {
+      setSelectedForEmail([]);
+    } else {
+      setSelectedForEmail(allCertIds);
     }
   };
 
@@ -263,6 +386,13 @@ export function CertificateManager({ programId, classes }: Props) {
                     <TableHead>Nome</TableHead>
                     <TableHead>E-mail</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={selectedForEmail.length === enabledCerts.length && enabledCerts.length > 0}
+                        onCheckedChange={selectAllForEmail}
+                      />
+                    </TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -285,17 +415,45 @@ export function CertificateManager({ programId, classes }: Props) {
                         <TableCell className="text-sm text-muted-foreground">{enr.profile?.email || '—'}</TableCell>
                         <TableCell>
                           {hasCert ? (
-                            <div className="flex items-center gap-2">
-                              <Badge className="bg-primary/10 text-primary border-0">
-                                Habilitado
-                              </Badge>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge className="bg-primary/10 text-primary border-0">Habilitado</Badge>
                               {cert.generated_at && (
                                 <Badge variant="outline" className="text-[10px]">Gerado</Badge>
+                              )}
+                              {cert.emailed_at && (
+                                <Badge variant="outline" className="text-[10px] border-green-500 text-green-600">
+                                  <Mail className="w-3 h-3 mr-1" /> Enviado
+                                </Badge>
                               )}
                               <span className="text-[10px] text-muted-foreground">{cert.certificate_code}</span>
                             </div>
                           ) : (
                             <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {hasCert && (
+                            <Checkbox
+                              checked={selectedForEmail.includes(cert.id)}
+                              onCheckedChange={() => toggleEmailCert(cert.id)}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {hasCert && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPdf(cert, enr.profile?.full_name || 'Aluno')}
+                              disabled={generatingPdf === cert.id}
+                              title="Baixar certificado PDF"
+                            >
+                              {generatingPdf === cert.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
+                            </Button>
                           )}
                         </TableCell>
                       </TableRow>
@@ -304,18 +462,34 @@ export function CertificateManager({ programId, classes }: Props) {
                 </TableBody>
               </Table>
 
-              {eligibleEnrollments.length > 0 && (
-                <div className="flex justify-end mt-4">
+              <div className="flex justify-between mt-4 gap-2 flex-wrap">
+                {enabledCerts.length > 0 && (
+                  <Button
+                    onClick={handleSendEmails}
+                    disabled={sendingEmail || selectedForEmail.length === 0}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    {sendingEmail ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Mail className="w-4 h-4" />
+                    )}
+                    {sendingEmail ? 'Enviando...' : `Enviar por E-mail (${selectedForEmail.length})`}
+                  </Button>
+                )}
+
+                {eligibleEnrollments.length > 0 && (
                   <Button
                     onClick={handleEnableCertificates}
                     disabled={saving || selectedStudents.length === 0 || !courseHours || !courseDates || !directorName}
-                    className="gap-2"
+                    className="gap-2 ml-auto"
                   >
                     <Award className="w-4 h-4" />
                     {saving ? 'Habilitando...' : `Habilitar Certificado (${selectedStudents.length})`}
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </CardContent>
