@@ -1,0 +1,1 @@
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS emailed_at timestamptz;

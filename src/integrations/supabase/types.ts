@@ -230,6 +230,7 @@ export type Database = {
           created_at: string
           director_name: string
           director_signature_url: string | null
+          emailed_at: string | null
           enabled_at: string
           enabled_by: string
           enrollment_id: string
@@ -246,6 +247,7 @@ export type Database = {
           created_at?: string
           director_name?: string
           director_signature_url?: string | null
+          emailed_at?: string | null
           enabled_at?: string
           enabled_by: string
           enrollment_id: string
@@ -262,6 +264,7 @@ export type Database = {
           created_at?: string
           director_name?: string
           director_signature_url?: string | null
+          emailed_at?: string | null
           enabled_at?: string
           enabled_by?: string
           enrollment_id?: string
