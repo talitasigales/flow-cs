@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const GATEWAY_URL = 'https://connector-gateway.lovable.dev/resend'
+const RESEND_API_URL = 'https://api.resend.com'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,10 +17,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
 
-    if (!resendApiKey || !lovableApiKey) {
-      return new Response(JSON.stringify({ error: 'Missing email API keys' }), {
+    if (!resendApiKey) {
+      return new Response(JSON.stringify({ error: 'Missing RESEND_API_KEY' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -98,12 +97,11 @@ Deno.serve(async (req) => {
       `
 
       try {
-        const emailRes = await fetch(`${GATEWAY_URL}/emails`, {
+        const emailRes = await fetch(`${RESEND_API_URL}/emails`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'X-Connection-Api-Key': resendApiKey,
+            'Authorization': `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
             from: 'Grou <onboarding@resend.dev>',
