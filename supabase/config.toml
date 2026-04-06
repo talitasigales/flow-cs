@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.import-enrollments]
 verify_jwt = false
+
+[functions.send-certificate-email]
+verify_jwt = false
