@@ -201,5 +201,15 @@ export async function generateCertificatePdf(data: {
   doc.setTextColor(132, 135, 145);
   doc.text(`Código de verificação: ${data.certificateCode}`, pageWidth / 2, ry(0.97), { align: 'center' });
 
+  return doc;
+}
+
+export async function generateCertificatePdf(data: Parameters<typeof buildCertificateDoc>[0]) {
+  const doc = await buildCertificateDoc(data);
   doc.save(`certificado-${data.studentName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+}
+
+export async function generateCertificatePdfBlob(data: Parameters<typeof buildCertificateDoc>[0]): Promise<Blob> {
+  const doc = await buildCertificateDoc(data);
+  return doc.output('blob');
 }
