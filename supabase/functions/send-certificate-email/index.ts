@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
 
-    if (!resendApiKey || !lovableApiKey) {
-      return new Response(JSON.stringify({ error: 'Missing email API keys' }), {
+    if (!resendApiKey) {
+      return new Response(JSON.stringify({ error: 'Missing RESEND_API_KEY' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
