@@ -113,7 +113,9 @@ export default function Auth() {
 
       const data = response.data;
       if (data?.error) {
-        throw new Error(data.error);
+        toast.error(data.error);
+        setLoading(false);
+        return;
       }
 
       toast.success('Conta criada com sucesso! Faça login.');
