@@ -1485,7 +1485,6 @@ export default function AdminPrograms() {
                         </div>
                         <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
                       </div>
-                      </div>
                       <div className="space-y-2">
                         <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
                         <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com" className="min-h-[150px] font-mono text-sm" />
