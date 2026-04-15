@@ -110,6 +110,8 @@ const AdminLogs = () => {
         return <Badge className="bg-sky-600">Abriu Material</Badge>;
       case 'MATERIAL_DOWNLOAD':
         return <Badge className="bg-amber-600">Baixou Material</Badge>;
+      case 'JOB_CONSTRUCTION':
+        return <Badge className="bg-teal-600">Construção de Cargo</Badge>;
       default:
         return <Badge variant="outline">{action}</Badge>;
     }
@@ -148,6 +150,8 @@ const AdminLogs = () => {
       'user_follows': 'Seguidores',
       'user_invites': 'Convites',
       'workshop_responses': 'Respostas Workshop',
+      'job_constructions': 'Construção de Cargos',
+      'csat_responses': 'CSAT',
     };
     return mapping[tableName] || tableName;
   };
@@ -229,6 +233,8 @@ const AdminLogs = () => {
       case 'user_follows': return 'Seguiu usuário';
       case 'user_invites': return `${data.email || '-'} (${data.status || '-'})`;
       case 'workshop_responses': return 'Resposta workshop';
+      case 'job_constructions': return `${data.job_title || 'Sem título'} (R:${data.r_score ?? '-'} E:${data.e_score ?? '-'} P:${data.p_score ?? '-'} N:${data.n_score ?? '-'} A:${data.a_score ?? '-'})`;
+      case 'csat_responses': return `${data.trigger_type || '-'} — Nota: ${data.rating ?? '-'}`;
       default: {
         const fb = Object.entries(data).find(([k, v]) => typeof v === 'string' && !ignoredFields.includes(k) && (v as string).length > 0);
         return fb ? (fb[1] as string).substring(0, 50) : '';
@@ -331,6 +337,7 @@ const AdminLogs = () => {
       MODULE_ACCESS: 'Acessou Módulo', MODULE_COMPLETED: 'Concluiu Módulo',
       VIDEO_PLAY: 'Assistiu Vídeo', MATERIAL_EXPAND: 'Abriu Material',
       MATERIAL_DOWNLOAD: 'Baixou Material',
+      JOB_CONSTRUCTION: 'Construção de Cargo',
     };
     return labels[action] || action;
   };
