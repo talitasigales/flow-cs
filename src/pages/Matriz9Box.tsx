@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, Download, Upload, ArrowLeft, Users, Search, TrendingUp, Target } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download, Upload, ArrowLeft, Users, Search, TrendingUp, Target, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { exportMatriz9Box } from '@/utils/exportUtils';
+import { exportMatriz9Box, downloadMatriz9BoxTemplate } from '@/utils/exportUtils';
 
 interface Employee {
   id: string;
@@ -267,6 +267,9 @@ const Matriz9Box = () => {
           <div className="flex gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={handleExport}>
               <Download className="w-4 h-4 mr-1" /> Exportar
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => { downloadMatriz9BoxTemplate(); toast.success('Modelo baixado'); }}>
+              <FileDown className="w-4 h-4 mr-1" /> Modelo CSV
             </Button>
             <label>
               <Button size="sm" variant="outline" asChild>
