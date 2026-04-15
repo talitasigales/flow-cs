@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog';
 import { LGPDConsentDialog } from '@/components/LGPDConsentDialog';
 import { usePasswordCheck } from '@/hooks/usePasswordCheck';
+import { useCSATContext } from '@/contexts/CSATContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { ModuleHero } from '@/components/ModuleHero';
 import { ModuleCarousel } from '@/components/ModuleCarousel';
@@ -43,6 +44,14 @@ export default function Dashboard() {
     loading: passwordCheckLoading,
     markPasswordChanged
   } = usePasswordCheck();
+  const { triggerLoginCSAT, loaded: csatLoaded } = useCSATContext();
+
+  // Trigger CSAT after 5th login
+  useEffect(() => {
+    if (user && csatLoaded) {
+      triggerLoginCSAT();
+    }
+  }, [user, csatLoaded, triggerLoginCSAT]);
 
   useEffect(() => {
     if (!authLoading && !user) {
