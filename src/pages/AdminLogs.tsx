@@ -328,7 +328,8 @@ const AdminLogs = () => {
     return matchesSearch && matchesAction && matchesResource && matchesCompany;
   });
 
-  const uniqueResourceTypes = Array.from(new Set(logs.map(log => log.table_name).filter(Boolean))) as string[];
+  const staticResources = ['job_constructions', 'csat_responses'];
+  const uniqueResourceTypes = Array.from(new Set([...logs.map(log => log.table_name).filter(Boolean), ...staticResources])) as string[];
   const uniqueCompanies = Array.from(new Set(logs.map(log => log.user_company).filter(Boolean))) as string[];
 
   if (adminLoading || loading) {
