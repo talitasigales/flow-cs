@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useCSATContext } from '@/contexts/CSATContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +23,7 @@ import {
 
 export default function ProfileEvolution() {
   const navigate = useNavigate();
+  const { triggerFirstUseCSAT } = useCSATContext();
   const {
     profiles,
     filteredProfiles,
@@ -43,6 +46,10 @@ export default function ProfileEvolution() {
     handleDelete,
     fetchProfiles,
   } = useProfileEvolution();
+
+  useEffect(() => {
+    if (userId) triggerFirstUseCSAT('profile_evolution', 'Evolução de Perfil');
+  }, [userId]);
 
   // Prepare radar chart data
   const getRadarData = () => {

@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useCSATContext } from '@/contexts/CSATContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
@@ -108,6 +109,7 @@ function getAvatarColor(name: string): string {
 
 const Matriz9Box = () => {
   const { user, loading } = useAuth();
+  const { triggerFirstUseCSAT } = useCSATContext();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -126,6 +128,10 @@ const Matriz9Box = () => {
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) triggerFirstUseCSAT('matriz_9box', 'Matriz 9Box');
+  }, [user]);
 
   useEffect(() => {
     if (user) fetchEmployees();

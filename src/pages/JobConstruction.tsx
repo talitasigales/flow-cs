@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/AppLayout';
+import { useCSATContext } from '@/contexts/CSATContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,10 +39,12 @@ export default function JobConstruction() {
   const [jobTitle, setJobTitle] = useState('');
   const [history, setHistory] = useState<JobConstructionRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const { triggerFirstUseCSAT } = useCSATContext();
 
   useEffect(() => {
     if (user) {
       fetchHistory();
+      triggerFirstUseCSAT('job_construction', 'Construção de Cargos');
     }
   }, [user]);
 

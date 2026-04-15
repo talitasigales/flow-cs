@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCSATContext } from '@/contexts/CSATContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface PDI {
 export default function PDI() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { triggerFirstUseCSAT } = useCSATContext();
   const [pdis, setPdis] = useState<PDI[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +37,7 @@ export default function PDI() {
   useEffect(() => {
     if (user) {
       fetchPDIs();
+      triggerFirstUseCSAT('pdi', 'Plano de Desenvolvimento Individual');
     }
   }, [user]);
 
