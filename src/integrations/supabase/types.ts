@@ -623,6 +623,45 @@ export type Database = {
           },
         ]
       }
+      job_constructions: {
+        Row: {
+          a_score: number
+          answers: Json
+          created_at: string
+          e_score: number
+          id: string
+          job_title: string | null
+          n_score: number
+          p_score: number
+          r_score: number
+          user_id: string
+        }
+        Insert: {
+          a_score: number
+          answers?: Json
+          created_at?: string
+          e_score: number
+          id?: string
+          job_title?: string | null
+          n_score: number
+          p_score: number
+          r_score: number
+          user_id: string
+        }
+        Update: {
+          a_score?: number
+          answers?: Json
+          created_at?: string
+          e_score?: number
+          id?: string
+          job_title?: string | null
+          n_score?: number
+          p_score?: number
+          r_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       knowledge_base: {
         Row: {
           category: string
