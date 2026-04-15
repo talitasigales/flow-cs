@@ -161,3 +161,30 @@ export function exportJobProfile(scores: JobProfileScores): void {
   const csv = generateCSV(headers, rows);
   downloadCSV(csv, `perfil_cargo_${new Date().toISOString().split('T')[0]}.csv`);
 }
+
+/**
+ * Download CSV template for Matriz 9Box import
+ */
+export function downloadMatriz9BoxTemplate(): void {
+  const headers = ['nome', 'desempenho', 'compatibilidade', 'observacoes'];
+  const exampleRows = [
+    ['João Silva', '75', '80', 'Excelente comunicação'],
+    ['Maria Souza', '60', '45', 'Em desenvolvimento'],
+  ];
+  const csv = generateCSV(headers, exampleRows);
+  downloadCSV(csv, 'modelo_9box.csv');
+}
+
+/**
+ * Download CSV template for enrollment import
+ */
+export function downloadEnrollmentTemplate(): void {
+  const headers = ['email'];
+  const exampleRows = [
+    ['aluno1@empresa.com'],
+    ['aluno2@empresa.com'],
+    ['aluno3@empresa.com'],
+  ];
+  const csv = generateCSV(headers, exampleRows);
+  downloadCSV(csv, 'modelo_matriculas.csv');
+}

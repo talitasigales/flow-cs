@@ -22,7 +22,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award, FileDown } from 'lucide-react';
+import { downloadEnrollmentTemplate } from '@/utils/exportUtils';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
 import { ModuleMaterialManager } from '@/components/admin/ModuleMaterialManager';
@@ -1478,8 +1479,11 @@ export default function AdminPrograms() {
                         <Label>Importar de planilha (.xlsx, .xls, .csv)</Label>
                         <div className="flex items-center gap-3">
                           <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="max-w-sm" />
-                          <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
+                          <Button variant="ghost" size="sm" onClick={() => { downloadEnrollmentTemplate(); toast.success('Modelo baixado'); }}>
+                            <FileDown className="w-4 h-4 mr-1" /> Modelo CSV
+                          </Button>
                         </div>
+                        <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
                       </div>
                       <div className="space-y-2">
                         <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
