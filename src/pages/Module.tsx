@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ArrowRight, CheckCircle2, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { ModuleMaterials } from '@/components/ModuleMaterials';
+import { useCSATContext } from '@/contexts/CSATContext';
 
 // Função para converter URLs do YouTube para formato embed
 const getYouTubeEmbedUrl = (url: string): string => {
@@ -66,6 +67,7 @@ export default function Module() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [allModules, setAllModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
+  const { triggerModuleCSAT } = useCSATContext();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -170,6 +172,9 @@ export default function Module() {
         _new_data: { module_title: module.title, module_order: module.order_number },
       });
       if (error) console.error('Failed to log MODULE_COMPLETED:', error);
+      
+      // Trigger CSAT for module completion
+      triggerModuleCSAT(module.id, module.title);
     }
   };
 
