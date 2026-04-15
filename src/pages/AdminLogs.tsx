@@ -274,6 +274,19 @@ const AdminLogs = () => {
       );
     }
 
+    if (log.action === 'JOB_CONSTRUCTION') {
+      return (
+        <span>
+          <span className="font-medium">{data.job_title || 'Sem título'}</span>
+          {data.scores && (
+            <span className="text-muted-foreground">
+              {' '}— R:{data.scores.R} E:{data.scores.E} P:{data.scores.P} N:{data.scores.N} A:{data.scores.A}
+            </span>
+          )}
+        </span>
+      );
+    }
+
     const label = getRecordLabel(log);
 
     if (log.action === 'UPDATE' && log.old_data && log.new_data) {
