@@ -588,6 +588,39 @@ export type Database = {
         }
         Relationships: []
       }
+      csat_responses: {
+        Row: {
+          comment: string | null
+          created_at: string
+          dismissed: boolean
+          id: string
+          rating: number
+          trigger_reference: string | null
+          trigger_type: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          rating: number
+          trigger_reference?: string | null
+          trigger_type: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          rating?: number
+          trigger_reference?: string | null
+          trigger_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercise_responses: {
         Row: {
           answers: Json

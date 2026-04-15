@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { CSATProvider } from "./contexts/CSATContext";
 import { ChatbotNanda } from "./components/ChatbotNanda";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -47,6 +48,7 @@ const App = () => (
     <Sonner />
     <BrowserRouter>
       <AuthProvider>
+        <CSATProvider>
         <Routes>
           <Route path="/" element={<Auth />} />
           <Route path="/auth" element={<Auth />} />
@@ -85,6 +87,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ChatbotNanda />
+        </CSATProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>
