@@ -592,11 +592,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
-          external_data: Json | null
-          external_id: string | null
-          external_provider: string | null
           id: string
-          last_synced_at: string | null
           name: string
           notes: string | null
           owner_user_id: string | null
@@ -608,11 +604,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
-          external_data?: Json | null
-          external_id?: string | null
-          external_provider?: string | null
           id?: string
-          last_synced_at?: string | null
           name: string
           notes?: string | null
           owner_user_id?: string | null
@@ -624,11 +616,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
-          external_data?: Json | null
-          external_id?: string | null
-          external_provider?: string | null
           id?: string
-          last_synced_at?: string | null
           name?: string
           notes?: string | null
           owner_user_id?: string | null
@@ -644,13 +632,9 @@ export type Database = {
           company_id: string
           created_at: string
           email: string | null
-          external_data: Json | null
-          external_id: string | null
-          external_provider: string | null
           id: string
           influence: string
           is_active: boolean
-          last_synced_at: string | null
           name: string
           phone: string | null
           role_title: string | null
@@ -660,13 +644,9 @@ export type Database = {
           company_id: string
           created_at?: string
           email?: string | null
-          external_data?: Json | null
-          external_id?: string | null
-          external_provider?: string | null
           id?: string
           influence?: string
           is_active?: boolean
-          last_synced_at?: string | null
           name: string
           phone?: string | null
           role_title?: string | null
@@ -676,13 +656,9 @@ export type Database = {
           company_id?: string
           created_at?: string
           email?: string | null
-          external_data?: Json | null
-          external_id?: string | null
-          external_provider?: string | null
           id?: string
           influence?: string
           is_active?: boolean
-          last_synced_at?: string | null
           name?: string
           phone?: string | null
           role_title?: string | null
@@ -697,84 +673,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      cs_integrations: {
-        Row: {
-          config: Json
-          created_at: string
-          id: string
-          is_active: boolean
-          last_delta_sync_at: string | null
-          last_full_sync_at: string | null
-          provider: string
-          sync_frequency_minutes: number
-          updated_at: string
-        }
-        Insert: {
-          config?: Json
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          last_delta_sync_at?: string | null
-          last_full_sync_at?: string | null
-          provider: string
-          sync_frequency_minutes?: number
-          updated_at?: string
-        }
-        Update: {
-          config?: Json
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          last_delta_sync_at?: string | null
-          last_full_sync_at?: string | null
-          provider?: string
-          sync_frequency_minutes?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      cs_sync_logs: {
-        Row: {
-          companies_imported: number
-          contacts_imported: number
-          errors: Json
-          finished_at: string | null
-          id: string
-          provider: string
-          run_type: string
-          started_at: string
-          status: string
-          touchpoints_imported: number
-          triggered_by: string | null
-        }
-        Insert: {
-          companies_imported?: number
-          contacts_imported?: number
-          errors?: Json
-          finished_at?: string | null
-          id?: string
-          provider: string
-          run_type: string
-          started_at?: string
-          status: string
-          touchpoints_imported?: number
-          triggered_by?: string | null
-        }
-        Update: {
-          companies_imported?: number
-          contacts_imported?: number
-          errors?: Json
-          finished_at?: string | null
-          id?: string
-          provider?: string
-          run_type?: string
-          started_at?: string
-          status?: string
-          touchpoints_imported?: number
-          triggered_by?: string | null
-        }
-        Relationships: []
       }
       cs_touchpoint_contacts: {
         Row: {
@@ -812,9 +710,6 @@ export type Database = {
           company_id: string
           created_at: string
           description: string | null
-          external_data: Json | null
-          external_id: string | null
-          external_provider: string | null
           id: string
           occurred_at: string
           owner_user_id: string | null
@@ -829,9 +724,6 @@ export type Database = {
           company_id: string
           created_at?: string
           description?: string | null
-          external_data?: Json | null
-          external_id?: string | null
-          external_provider?: string | null
           id?: string
           occurred_at?: string
           owner_user_id?: string | null
@@ -846,9 +738,6 @@ export type Database = {
           company_id?: string
           created_at?: string
           description?: string | null
-          external_data?: Json | null
-          external_id?: string | null
-          external_provider?: string | null
           id?: string
           occurred_at?: string
           owner_user_id?: string | null
