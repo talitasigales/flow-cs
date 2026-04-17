@@ -152,6 +152,10 @@ const AdminLogs = () => {
       'workshop_responses': 'Respostas Workshop',
       'job_constructions': 'Construção de Cargos',
       'csat_responses': 'CSAT',
+      'cs_companies': 'Empresas CS',
+      'cs_contacts': 'Contatos CS',
+      'cs_touchpoints': 'Touchpoints CS',
+      'cs_user_access': 'Acessos CS',
     };
     return mapping[tableName] || tableName;
   };
@@ -328,7 +332,7 @@ const AdminLogs = () => {
     return matchesSearch && matchesAction && matchesResource && matchesCompany;
   });
 
-  const staticResources = ['job_constructions', 'csat_responses'];
+  const staticResources = ['job_constructions', 'csat_responses', 'cs_companies', 'cs_contacts', 'cs_touchpoints', 'cs_user_access'];
   const uniqueResourceTypes = Array.from(new Set([...logs.map(log => log.table_name).filter(Boolean), ...staticResources])) as string[];
   const uniqueCompanies = Array.from(new Set(logs.map(log => log.user_company).filter(Boolean))) as string[];
 
