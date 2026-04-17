@@ -188,3 +188,29 @@ export function downloadEnrollmentTemplate(): void {
   const csv = generateCSV(headers, exampleRows);
   downloadCSV(csv, 'modelo_matriculas.csv');
 }
+
+/**
+ * CS module — companies CSV template
+ */
+export function downloadCSCompaniesTemplate(): void {
+  const headers = ['name', 'segment', 'status', 'start_date', 'notes'];
+  const exampleRows = [
+    ['Acme Indústria', 'Indústria', 'ativo', '2024-03-15', 'Cliente desde 2024'],
+    ['Beta Serviços', 'Serviços', 'onboarding', '2025-01-10', ''],
+  ];
+  const csv = generateCSV(headers, exampleRows);
+  downloadCSV(csv, 'modelo_cs_empresas.csv');
+}
+
+/**
+ * CS module — contacts CSV template
+ */
+export function downloadCSContactsTemplate(): void {
+  const headers = ['company_name', 'name', 'role_title', 'email', 'phone', 'influence'];
+  const exampleRows = [
+    ['Acme Indústria', 'João Silva', 'Diretor de RH', 'joao@acme.com', '(11) 99999-9999', 'decisor'],
+    ['Acme Indústria', 'Maria Souza', 'Coordenadora', 'maria@acme.com', '', 'influenciador'],
+  ];
+  const csv = generateCSV(headers, exampleRows);
+  downloadCSV(csv, 'modelo_cs_contatos.csv');
+}

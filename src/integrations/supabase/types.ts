@@ -588,6 +588,199 @@ export type Database = {
         }
         Relationships: []
       }
+      cs_companies: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_user_id: string | null
+          segment: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_user_id?: string | null
+          segment?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_user_id?: string | null
+          segment?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cs_contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string | null
+          id: string
+          influence: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          role_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          influence?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          role_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          influence?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          role_title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cs_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "cs_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cs_touchpoint_contacts: {
+        Row: {
+          contact_id: string
+          touchpoint_id: string
+        }
+        Insert: {
+          contact_id: string
+          touchpoint_id: string
+        }
+        Update: {
+          contact_id?: string
+          touchpoint_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cs_touchpoint_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "cs_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cs_touchpoint_contacts_touchpoint_id_fkey"
+            columns: ["touchpoint_id"]
+            isOneToOne: false
+            referencedRelation: "cs_touchpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cs_touchpoints: {
+        Row: {
+          attachments: Json | null
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          occurred_at: string
+          owner_user_id: string | null
+          status: string
+          tags: string[] | null
+          title: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          occurred_at?: string
+          owner_user_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          occurred_at?: string
+          owner_user_id?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cs_touchpoints_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "cs_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cs_user_access: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          cs_role: Database["public"]["Enums"]["cs_role"]
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          cs_role?: Database["public"]["Enums"]["cs_role"]
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          cs_role?: Database["public"]["Enums"]["cs_role"]
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       csat_responses: {
         Row: {
           comment: string | null
@@ -2100,6 +2293,15 @@ export type Database = {
       }
     }
     Functions: {
+      can_cs_edit: { Args: { _user_id: string }; Returns: boolean }
+      has_cs_access: { Args: { _user_id: string }; Returns: boolean }
+      has_cs_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["cs_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2111,6 +2313,7 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_cs_admin: { Args: { _user_id: string }; Returns: boolean }
       log_user_action: {
         Args: {
           _action: string
@@ -2124,6 +2327,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "young" | "psychologist"
+      cs_role: "cs_admin" | "cs_editor" | "cs_viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2252,6 +2456,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "young", "psychologist"],
+      cs_role: ["cs_admin", "cs_editor", "cs_viewer"],
     },
   },
 } as const

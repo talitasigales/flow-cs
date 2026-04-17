@@ -152,6 +152,10 @@ const AdminLogs = () => {
       'workshop_responses': 'Respostas Workshop',
       'job_constructions': 'Construção de Cargos',
       'csat_responses': 'CSAT',
+      'cs_companies': 'Empresas CS',
+      'cs_contacts': 'Contatos CS',
+      'cs_touchpoints': 'Touchpoints CS',
+      'cs_user_access': 'Acessos CS',
     };
     return mapping[tableName] || tableName;
   };
@@ -235,6 +239,10 @@ const AdminLogs = () => {
       case 'workshop_responses': return 'Resposta workshop';
       case 'job_constructions': return `${data.job_title || 'Sem título'} (R:${data.r_score ?? '-'} E:${data.e_score ?? '-'} P:${data.p_score ?? '-'} N:${data.n_score ?? '-'} A:${data.a_score ?? '-'})`;
       case 'csat_responses': return `${data.trigger_type || '-'} — Nota: ${data.rating ?? '-'}`;
+      case 'cs_companies': return `${data.name || '-'} (${data.status || '-'})`;
+      case 'cs_contacts': return `${data.name || '-'}${data.role_title ? ' · ' + data.role_title : ''}`;
+      case 'cs_touchpoints': return `${data.type || '-'} · ${data.status || '-'}${data.title ? ' — ' + data.title : ''}`;
+      case 'cs_user_access': return `Papel: ${data.cs_role || '-'}`;
       default: {
         const fb = Object.entries(data).find(([k, v]) => typeof v === 'string' && !ignoredFields.includes(k) && (v as string).length > 0);
         return fb ? (fb[1] as string).substring(0, 50) : '';
@@ -328,7 +336,7 @@ const AdminLogs = () => {
     return matchesSearch && matchesAction && matchesResource && matchesCompany;
   });
 
-  const staticResources = ['job_constructions', 'csat_responses'];
+  const staticResources = ['job_constructions', 'csat_responses', 'cs_companies', 'cs_contacts', 'cs_touchpoints', 'cs_user_access'];
   const uniqueResourceTypes = Array.from(new Set([...logs.map(log => log.table_name).filter(Boolean), ...staticResources])) as string[];
   const uniqueCompanies = Array.from(new Set(logs.map(log => log.user_company).filter(Boolean))) as string[];
 

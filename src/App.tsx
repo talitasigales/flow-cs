@@ -38,6 +38,9 @@ import MyDevelopment from "./pages/MyDevelopment";
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 import SecurityOverview from "./pages/SecurityOverview";
+import CSDashboard from "./pages/cs/CSDashboard";
+import CompanyDetail from "./pages/cs/CompanyDetail";
+import AdminCSAccess from "./pages/admin/AdminCSAccess";
 
 
 const queryClient = new QueryClient();
@@ -83,6 +86,9 @@ const App = () => (
           
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/security" element={<SecurityOverview />} />
+          <Route path="/cs" element={<CSDashboard />} />
+          <Route path="/cs/empresas/:companyId" element={<CompanyDetail />} />
+          <Route path="/admin/cs-access" element={<AdminCSAccess />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

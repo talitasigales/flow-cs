@@ -4,6 +4,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useEnrolledPrograms } from '@/hooks/useEnrolledPrograms';
+import { useCSAccess } from '@/hooks/useCSAccess';
 import {
   MessageSquare,
   Mail,
@@ -23,6 +24,8 @@ import {
   Video,
   Award,
   CalendarDays,
+  Headset,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -79,6 +82,7 @@ export function AppSidebar() {
   const { unreadCount } = useUnreadMessages();
   const { unreadCount: notifCount } = useNotifications();
   const { enrollments, isEnrolled } = useEnrolledPrograms();
+  const { hasAccess: hasCSAccess, canManage: canManageCS } = useCSAccess();
   const [communityNotActivated, setCommunityNotActivated] = useState(false);
   const [firstName, setFirstName] = useState('');
   const totalCommunityBadge = (unreadCount || 0) + (notifCount || 0);
@@ -125,7 +129,7 @@ export function AppSidebar() {
     { title: 'Logs', icon: FileText, path: '/admin/logs' },
     { title: 'Base de Conhecimento', icon: BookOpen, path: '/admin/knowledge-base' },
     { title: 'Programas', icon: Award, path: '/admin/programs' },
-    
+    { title: 'Acesso CS', icon: ShieldCheck, path: '/admin/cs-access' },
   ];
 
   const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {
@@ -252,7 +256,8 @@ export function AppSidebar() {
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
               {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 3)}
-              {renderTopLevelItem('Meu Perfil', User, '/profile', 4)}
+              {hasCSAccess && renderTopLevelItem('Customer Success', Headset, '/cs', 4)}
+              {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
