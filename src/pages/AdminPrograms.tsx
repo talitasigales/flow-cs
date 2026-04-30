@@ -83,6 +83,7 @@ export default function AdminPrograms() {
   // Individual enrollment state
   const [individualName, setIndividualName] = useState('');
   const [individualEmail, setIndividualEmail] = useState('');
+  const [individualSecondaryEmail, setIndividualSecondaryEmail] = useState('');
   const [individualClassId, setIndividualClassId] = useState('');
   const [enrollingIndividual, setEnrollingIndividual] = useState(false);
 
@@ -422,8 +423,18 @@ export default function AdminPrograms() {
       }
 
       // 3. Enroll
+      const primary = individualEmail.trim().toLowerCase();
+      const secondary = individualSecondaryEmail.trim().toLowerCase();
       const { data, error } = await supabase.functions.invoke('import-enrollments', {
-        body: { emails: individualEmail.trim(), program_id: selectedProgram, class_id: individualClassId || null },
+        body: {
+          entries: [{
+            name: individualName.trim(),
+            email: primary,
+            secondary_email: secondary && secondary !== primary ? secondary : null,
+          }],
+          program_id: selectedProgram,
+          class_id: individualClassId || null,
+        },
       });
       if (error) throw error;
 
@@ -447,6 +458,7 @@ export default function AdminPrograms() {
 
       setIndividualName('');
       setIndividualEmail('');
+      setIndividualSecondaryEmail('');
       setIndividualClassId('');
       refetchEnrollments();
     } catch (err: any) {
@@ -456,15 +468,74 @@ export default function AdminPrograms() {
     }
   };
 
+  const parseEnrollmentCsv = (text: string): { entries: Array<{ name?: string; email: string; secondary_email?: string | null }>; errors: string[] } => {
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const entries: Array<{ name?: string; email: string; secondary_email?: string | null }> = [];
+    const errors: string[] = [];
+    if (lines.length === 0) return { entries, errors };
+
+    // Detect header
+    const splitLine = (l: string) => l.split(/[,;\t]/).map((c) => c.trim());
+    const first = splitLine(lines[0]).map((c) => c.toLowerCase());
+    const looksLikeHeader = first.some((c) => c.includes('email') || c.includes('e-mail') || c === 'nome' || c === 'name');
+    let nameIdx = -1, primaryIdx = -1, secondaryIdx = -1;
+    let dataStart = 0;
+    if (looksLikeHeader) {
+      first.forEach((col, i) => {
+        if (col === 'nome' || col === 'name') nameIdx = i;
+        else if (col.includes('corporativo') || col.includes('corporate') || col.includes('work')) primaryIdx = i;
+        else if (col.includes('pessoal') || col.includes('personal') || col.includes('alternativ')) secondaryIdx = i;
+        else if ((col.includes('email') || col.includes('e-mail')) && primaryIdx === -1) primaryIdx = i;
+        else if ((col.includes('email') || col.includes('e-mail')) && secondaryIdx === -1) secondaryIdx = i;
+      });
+      dataStart = 1;
+    } else {
+      // Fallback: assume single email per line OR "name,email" OR "name,email1,email2"
+      // We'll handle per-line below.
+    }
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (let i = dataStart; i < lines.length; i++) {
+      const cols = splitLine(lines[i]);
+      let name: string | undefined;
+      let email = '';
+      let secondary = '';
+      if (looksLikeHeader) {
+        name = nameIdx >= 0 ? cols[nameIdx] : undefined;
+        email = (primaryIdx >= 0 ? cols[primaryIdx] : '').toLowerCase();
+        secondary = (secondaryIdx >= 0 ? (cols[secondaryIdx] || '') : '').toLowerCase();
+      } else {
+        // No header: try to be permissive
+        const emails = cols.filter((c) => emailRe.test(c));
+        const nonEmails = cols.filter((c) => !emailRe.test(c));
+        email = (emails[0] || '').toLowerCase();
+        secondary = (emails[1] || '').toLowerCase();
+        name = nonEmails[0];
+      }
+      if (!email) { errors.push(`Linha ${i + 1}: e-mail principal vazio`); continue; }
+      if (!emailRe.test(email)) { errors.push(`Linha ${i + 1}: e-mail principal inválido (${email})`); continue; }
+      if (secondary && !emailRe.test(secondary)) { errors.push(`Linha ${i + 1}: e-mail secundário inválido (${secondary})`); continue; }
+      entries.push({ name: name || undefined, email, secondary_email: secondary && secondary !== email ? secondary : null });
+    }
+    return { entries, errors };
+  };
+
   const handleImport = async () => {
     if (!csvText.trim() || !selectedProgram) {
       toast.error('Selecione um programa e insira os e-mails');
       return;
     }
+    const { entries, errors } = parseEnrollmentCsv(csvText);
+    if (errors.length > 0) {
+      toast.error(`Erros no CSV: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '…' : ''}`);
+    }
+    if (entries.length === 0) {
+      return;
+    }
     setImporting(true);
     try {
       const { data, error } = await supabase.functions.invoke('import-enrollments', {
-        body: { emails: csvText, program_id: selectedProgram, class_id: importClassId || null },
+        body: { entries, program_id: selectedProgram, class_id: importClassId || null },
       });
       if (error) throw error;
       let resultMsg = `Importação concluída: ${data.enrolled} matriculados`;
@@ -493,24 +564,23 @@ export default function AdminPrograms() {
       const workbook = XLSX.read(data, { type: 'array' });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-      
-      // Extract emails from all cells
-      const emails: string[] = [];
+
+      // Convert sheet rows to CSV text preserving the tabular structure (name, email, secondary)
+      const lines: string[] = [];
       for (const row of rows) {
-        for (const cell of row) {
-          if (typeof cell === 'string' && cell.includes('@')) {
-            emails.push(cell.trim().toLowerCase());
-          }
-        }
+        if (!row || row.length === 0) continue;
+        const cleaned = row.map((c) => (c == null ? '' : String(c).trim()));
+        if (cleaned.every((c) => c === '')) continue;
+        lines.push(cleaned.join(','));
       }
-      
-      if (emails.length === 0) {
-        toast.error('Nenhum e-mail encontrado na planilha');
+
+      if (lines.length === 0) {
+        toast.error('Planilha vazia');
         return;
       }
-      
-      setCsvText(emails.join('\n'));
-      toast.success(`${emails.length} e-mails encontrados na planilha`);
+
+      setCsvText(lines.join('\n'));
+      toast.success(`${lines.length} linhas carregadas. Confira e clique em Importar.`);
     } catch (err) {
       toast.error('Erro ao ler arquivo. Verifique se é um .xlsx, .xls ou .csv válido.');
     }
@@ -1415,16 +1485,23 @@ export default function AdminPrograms() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Cadastrar Aluno Individual</CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    Informe um e-mail principal e, opcionalmente, um secundário (corporativo + pessoal). O aluno será matriculado se cadastrar com qualquer um dos dois.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Nome completo</Label>
                       <Input placeholder="Nome do aluno" value={individualName} onChange={e => setIndividualName(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">E-mail</Label>
+                      <Label className="text-xs">E-mail principal</Label>
                       <Input type="email" placeholder="aluno@empresa.com" value={individualEmail} onChange={e => setIndividualEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">E-mail secundário (opcional)</Label>
+                      <Input type="email" placeholder="aluno@gmail.com" value={individualSecondaryEmail} onChange={e => setIndividualSecondaryEmail(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Turma</Label>
@@ -1483,11 +1560,13 @@ export default function AdminPrograms() {
                             <FileDown className="w-4 h-4 mr-1" /> Modelo CSV
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
+                        <p className="text-xs text-muted-foreground">
+                          O CSV deve ter 3 colunas com cabeçalho: <code>nome,email_corporativo,email_pessoal</code> (o e-mail pessoal é opcional). Aceita também colar texto abaixo.
+                        </p>
                       </div>
                       <div className="space-y-2">
-                        <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
-                        <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com" className="min-h-[150px] font-mono text-sm" />
+                        <Label>Colar dados (CSV com cabeçalho ou um e-mail por linha)</Label>
+                        <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder={"nome,email_corporativo,email_pessoal\nJoão Silva,joao@empresa.com,joao@gmail.com\nMaria Souza,maria@empresa.com,"} className="min-h-[150px] font-mono text-sm" />
                       </div>
                       <Button onClick={handleImport} disabled={importing || !csvText.trim()}>
                         {importing ? 'Importando...' : 'Importar Matrículas'}
@@ -1593,7 +1672,7 @@ export default function AdminPrograms() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Email</TableHead>
+                          <TableHead>E-mails</TableHead>
                           <TableHead>Turma</TableHead>
                           <TableHead>Data de cadastro</TableHead>
                           <TableHead className="w-[80px]">Ações</TableHead>
@@ -1604,7 +1683,20 @@ export default function AdminPrograms() {
                           const cls = classes.find((c: any) => c.id === pe.class_id);
                           return (
                             <TableRow key={pe.id}>
-                              <TableCell className="font-medium">{pe.email}</TableCell>
+                              <TableCell className="font-medium">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="secondary" className="text-[10px] uppercase">Principal</Badge>
+                                    <span>{pe.email}</span>
+                                  </div>
+                                  {pe.secondary_email && (
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-[10px] uppercase">Secundário</Badge>
+                                      <span className="text-muted-foreground">{pe.secondary_email}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
                               <TableCell>{cls?.name || '—'}</TableCell>
                               <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
                               <TableCell>

@@ -1607,6 +1607,7 @@ export type Database = {
           email: string
           id: string
           program_id: string
+          secondary_email: string | null
         }
         Insert: {
           class_id?: string | null
@@ -1614,6 +1615,7 @@ export type Database = {
           email: string
           id?: string
           program_id: string
+          secondary_email?: string | null
         }
         Update: {
           class_id?: string | null
@@ -1621,6 +1623,7 @@ export type Database = {
           email?: string
           id?: string
           program_id?: string
+          secondary_email?: string | null
         }
         Relationships: [
           {

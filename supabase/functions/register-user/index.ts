@@ -83,11 +83,11 @@ serve(async (req) => {
       console.error('Error updating profile:', profileError);
     }
 
-    // Process pending enrollments for this email
+    // Process pending enrollments for this email (match primary OR secondary)
     const { data: pendingRows, error: pendingError } = await supabaseAdmin
       .from('pending_enrollments')
       .select('id, program_id, class_id')
-      .eq('email', normalizedEmail);
+      .or(`email.eq.${normalizedEmail},secondary_email.eq.${normalizedEmail}`);
 
     if (pendingError) {
       console.error('Error checking pending enrollments:', pendingError);
