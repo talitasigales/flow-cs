@@ -64,6 +64,10 @@ export default function AdminPrograms() {
   const [csvText, setCsvText] = useState('');
   const [importing, setImporting] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState('all');
+  const [enrollmentSearch, setEnrollmentSearch] = useState('');
+  const [pendingClassFilter, setPendingClassFilter] = useState('all');
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [viewByClassId, setViewByClassId] = useState('');
   const [viewingResponse, setViewingResponse] = useState<any>(null);
 
   // New class dialog state
