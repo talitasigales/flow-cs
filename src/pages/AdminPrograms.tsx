@@ -1613,7 +1613,7 @@ export default function AdminPrograms() {
               </Collapsible>
 
               {/* Filter + list */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <Label className="text-sm">Filtrar por turma:</Label>
                 <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
                   <SelectTrigger className="w-[250px]">
@@ -1626,6 +1626,15 @@ export default function AdminPrograms() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Input
+                  value={enrollmentSearch}
+                  onChange={e => setEnrollmentSearch(e.target.value)}
+                  placeholder="Buscar por nome ou e-mail..."
+                  className="max-w-[260px]"
+                />
+                <Badge variant="secondary" className="ml-auto">
+                  {filteredEnrollments.length} matriculado{filteredEnrollments.length === 1 ? '' : 's'}
+                </Badge>
               </div>
               <Card>
                 <CardContent className="p-0">
@@ -1641,9 +1650,9 @@ export default function AdminPrograms() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {enrollments.length === 0 ? (
+                      {filteredEnrollments.length === 0 ? (
                         <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma matrícula encontrada</TableCell></TableRow>
-                      ) : enrollments.map((e: any) => (
+                      ) : filteredEnrollments.map((e: any) => (
                         <TableRow key={e.id}>
                           <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
                           <TableCell>{e.profiles?.email || '—'}</TableCell>
