@@ -179,11 +179,11 @@ export function downloadMatriz9BoxTemplate(): void {
  * Download CSV template for enrollment import
  */
 export function downloadEnrollmentTemplate(): void {
-  const headers = ['email'];
+  const headers = ['nome', 'email_corporativo', 'email_pessoal'];
   const exampleRows = [
-    ['aluno1@empresa.com'],
-    ['aluno2@empresa.com'],
-    ['aluno3@empresa.com'],
+    ['João Silva', 'joao@empresa.com', 'joao@gmail.com'],
+    ['Maria Souza', 'maria@empresa.com', ''],
+    ['Carlos Lima', 'carlos@empresa.com', 'carlos.lima@outlook.com'],
   ];
   const csv = generateCSV(headers, exampleRows);
   downloadCSV(csv, 'modelo_matriculas.csv');
