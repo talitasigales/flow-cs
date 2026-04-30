@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { useEffect } from 'react';
 import { ProgramWelcomePopup } from '@/components/ProgramWelcomePopup';
 import { ProgramDevelopmentContent } from '@/components/academy/ProgramDevelopmentContent';
+import { PreJourneyQuestionnaires } from '@/components/academy/PreJourneyQuestionnaires';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -47,6 +48,7 @@ export default function ProgramGeneric() {
     <AppLayout>
       <ProgramWelcomePopup programId={program.id} />
       <div className="max-w-6xl mx-auto">
+        {slug === 'master-lider' && <PreJourneyQuestionnaires />}
         <ProgramDevelopmentContent programSlug={slug!} />
       </div>
     </AppLayout>
