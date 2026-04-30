@@ -1710,8 +1710,31 @@ export default function AdminPrograms() {
                     Alunos que ainda não criaram conta. Ao se cadastrarem com um destes emails, o acesso será liberado automaticamente.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {pendingEnrollments.length === 0 ? (
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Label className="text-sm">Filtrar por turma:</Label>
+                    <Select value={pendingClassFilter} onValueChange={setPendingClassFilter}>
+                      <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Todas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as turmas</SelectItem>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={pendingSearch}
+                      onChange={e => setPendingSearch(e.target.value)}
+                      placeholder="Buscar por e-mail ou nome..."
+                      className="max-w-[260px]"
+                    />
+                    <Badge variant="secondary" className="ml-auto">
+                      {filteredPending.length} pendente{filteredPending.length === 1 ? '' : 's'}
+                    </Badge>
+                  </div>
+                  {filteredPending.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6">Nenhuma pré-matrícula pendente.</p>
                   ) : (
                     <Table>
@@ -1724,7 +1747,7 @@ export default function AdminPrograms() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {pendingEnrollments.map((pe: any) => {
+                        {filteredPending.map((pe: any) => {
                           const cls = classes.find((c: any) => c.id === pe.class_id);
                           return (
                             <TableRow key={pe.id}>
