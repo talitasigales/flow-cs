@@ -1794,6 +1794,185 @@ export default function AdminPrograms() {
               </Card>
             </TabsContent>
 
+            {/* VISÃO POR TURMA TAB */}
+            <TabsContent value="by-class" className="mt-4 space-y-4">
+              {classes.length === 0 ? (
+                <Card>
+                  <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                    Cadastre uma turma para usar a visão consolidada.
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Label className="text-sm">Turma:</Label>
+                    <Select value={viewByClassId} onValueChange={setViewByClassId}>
+                      <SelectTrigger className="w-[320px]">
+                        <SelectValue placeholder="Selecionar turma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}{c.start_date ? ` — ${format(new Date(c.start_date + 'T12:00:00'), 'dd/MM/yyyy')}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <Card><CardContent className="p-4">
+                      <p className="text-xs uppercase text-muted-foreground">Matriculados</p>
+                      <p className="text-2xl font-bold mt-1">{enrollmentsForViewClass.length}</p>
+                    </CardContent></Card>
+                    <Card><CardContent className="p-4">
+                      <p className="text-xs uppercase text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold mt-1">{pendingForViewClass.length}</p>
+                    </CardContent></Card>
+                    <Card><CardContent className="p-4">
+                      <p className="text-xs uppercase text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold mt-1">{enrollmentsForViewClass.length + pendingForViewClass.length}</p>
+                    </CardContent></Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Users className="w-4 h-4" /> Matriculados na turma ({enrollmentsForViewClass.length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" disabled={enrollmentsForViewClass.length === 0}
+                        onClick={() => {
+                          const rows = [['Nome', 'E-mail', 'Data de matrícula', 'Último acesso']];
+                          enrollmentsForViewClass.forEach((e: any) => {
+                            rows.push([
+                              e.profiles?.full_name || '',
+                              e.profiles?.email || '',
+                              e.enrolled_at ? format(new Date(e.enrolled_at), 'dd/MM/yyyy') : '',
+                              e.profiles?.last_access_at ? format(new Date(e.profiles.last_access_at), 'dd/MM/yyyy HH:mm') : '',
+                            ]);
+                          });
+                          const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                          const a = document.createElement('a');
+                          a.href = URL.createObjectURL(blob);
+                          const cls = classes.find((c: any) => c.id === viewByClassId);
+                          a.download = `matriculados-${cls?.name || 'turma'}.csv`;
+                          a.click();
+                        }}>
+                        <FileDown className="w-4 h-4 mr-1" /> Exportar CSV
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {enrollmentsForViewClass.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">Nenhum aluno matriculado nesta turma.</p>
+                      ) : (
+                        <Table>
+                          <TableHeader><TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>E-mail</TableHead>
+                            <TableHead>Data de Matrícula</TableHead>
+                            <TableHead>Último Acesso</TableHead>
+                            <TableHead className="w-[80px]"></TableHead>
+                          </TableRow></TableHeader>
+                          <TableBody>
+                            {enrollmentsForViewClass.map((e: any) => (
+                              <TableRow key={e.id}>
+                                <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
+                                <TableCell>{e.profiles?.email || '—'}</TableCell>
+                                <TableCell>{format(new Date(e.enrolled_at), 'dd/MM/yyyy')}</TableCell>
+                                <TableCell>
+                                  {e.profiles?.last_access_at
+                                    ? format(new Date(e.profiles.last_access_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+                                    : <span className="text-muted-foreground text-xs">Nunca</span>}
+                                </TableCell>
+                                <TableCell>
+                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Clock className="w-4 h-4" /> Pendentes da turma ({pendingForViewClass.length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" disabled={pendingForViewClass.length === 0}
+                        onClick={() => {
+                          const rows = [['E-mail principal', 'E-mail secundário', 'Data de cadastro']];
+                          pendingForViewClass.forEach((p: any) => {
+                            rows.push([
+                              p.email || '',
+                              p.secondary_email || '',
+                              p.created_at ? format(new Date(p.created_at), 'dd/MM/yyyy HH:mm') : '',
+                            ]);
+                          });
+                          const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                          const a = document.createElement('a');
+                          a.href = URL.createObjectURL(blob);
+                          const cls = classes.find((c: any) => c.id === viewByClassId);
+                          a.download = `pendentes-${cls?.name || 'turma'}.csv`;
+                          a.click();
+                        }}>
+                        <FileDown className="w-4 h-4 mr-1" /> Exportar CSV
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {pendingForViewClass.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">Nenhum pendente nesta turma.</p>
+                      ) : (
+                        <Table>
+                          <TableHeader><TableRow>
+                            <TableHead>E-mails</TableHead>
+                            <TableHead>Data de cadastro</TableHead>
+                            <TableHead className="w-[80px]"></TableHead>
+                          </TableRow></TableHeader>
+                          <TableBody>
+                            {pendingForViewClass.map((pe: any) => (
+                              <TableRow key={pe.id}>
+                                <TableCell className="font-medium">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-[10px] uppercase">Principal</Badge>
+                                      <span>{pe.email}</span>
+                                    </div>
+                                    {pe.secondary_email && (
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-[10px] uppercase">Secundário</Badge>
+                                        <span className="text-muted-foreground">{pe.secondary_email}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                                <TableCell>
+                                  <Button variant="ghost" size="icon"
+                                    onClick={async () => {
+                                      const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
+                                      if (error) toast.error('Erro ao remover pré-matrícula');
+                                      else { toast.success('Pré-matrícula removida'); refetchPending(); }
+                                    }}>
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </TabsContent>
+
             {/* RESPOSTAS TAB */}
             <TabsContent value="responses" className="mt-4 space-y-4">
               {/* Workshop responses */}
