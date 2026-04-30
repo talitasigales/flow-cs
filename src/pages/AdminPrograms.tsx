@@ -83,6 +83,7 @@ export default function AdminPrograms() {
   // Individual enrollment state
   const [individualName, setIndividualName] = useState('');
   const [individualEmail, setIndividualEmail] = useState('');
+  const [individualSecondaryEmail, setIndividualSecondaryEmail] = useState('');
   const [individualClassId, setIndividualClassId] = useState('');
   const [enrollingIndividual, setEnrollingIndividual] = useState(false);
 
