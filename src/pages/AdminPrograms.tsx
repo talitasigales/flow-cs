@@ -214,6 +214,37 @@ export default function AdminPrograms() {
     },
   });
 
+  // Auto-select default class for "Por Turma" view
+  useEffect(() => {
+    if (!viewByClassId && classes.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const future = classes.find((c: any) => c.start_date && c.start_date >= today);
+      setViewByClassId((future || classes[0]).id);
+    } else if (viewByClassId && classes.length > 0 && !classes.some((c: any) => c.id === viewByClassId)) {
+      setViewByClassId(classes[0]?.id || '');
+    }
+  }, [classes, viewByClassId]);
+
+  // Filtered lists (client-side)
+  const filteredEnrollments = enrollments.filter((e: any) => {
+    if (!enrollmentSearch.trim()) return true;
+    const s = enrollmentSearch.trim().toLowerCase();
+    return (e.profiles?.full_name || '').toLowerCase().includes(s)
+      || (e.profiles?.email || '').toLowerCase().includes(s);
+  });
+
+  const filteredPending = pendingEnrollments.filter((p: any) => {
+    if (pendingClassFilter !== 'all' && p.class_id !== pendingClassFilter) return false;
+    if (!pendingSearch.trim()) return true;
+    const s = pendingSearch.trim().toLowerCase();
+    return (p.email || '').toLowerCase().includes(s)
+      || (p.secondary_email || '').toLowerCase().includes(s)
+      || (p.full_name || '').toLowerCase().includes(s);
+  });
+
+  const enrollmentsForViewClass = enrollments.filter((e: any) => e.class_id === viewByClassId);
+  const pendingForViewClass = pendingEnrollments.filter((p: any) => p.class_id === viewByClassId);
+
   const { data: responses = [] } = useQuery({
     queryKey: ['all-responses', selectedProgram],
     enabled: !!selectedProgram,
