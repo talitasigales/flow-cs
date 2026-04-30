@@ -64,6 +64,10 @@ export default function AdminPrograms() {
   const [csvText, setCsvText] = useState('');
   const [importing, setImporting] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState('all');
+  const [enrollmentSearch, setEnrollmentSearch] = useState('');
+  const [pendingClassFilter, setPendingClassFilter] = useState('all');
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [viewByClassId, setViewByClassId] = useState('');
   const [viewingResponse, setViewingResponse] = useState<any>(null);
 
   // New class dialog state
@@ -209,6 +213,37 @@ export default function AdminPrograms() {
       return data || [];
     },
   });
+
+  // Auto-select default class for "Por Turma" view
+  useEffect(() => {
+    if (!viewByClassId && classes.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const future = classes.find((c: any) => c.start_date && c.start_date >= today);
+      setViewByClassId((future || classes[0]).id);
+    } else if (viewByClassId && classes.length > 0 && !classes.some((c: any) => c.id === viewByClassId)) {
+      setViewByClassId(classes[0]?.id || '');
+    }
+  }, [classes, viewByClassId]);
+
+  // Filtered lists (client-side)
+  const filteredEnrollments = enrollments.filter((e: any) => {
+    if (!enrollmentSearch.trim()) return true;
+    const s = enrollmentSearch.trim().toLowerCase();
+    return (e.profiles?.full_name || '').toLowerCase().includes(s)
+      || (e.profiles?.email || '').toLowerCase().includes(s);
+  });
+
+  const filteredPending = pendingEnrollments.filter((p: any) => {
+    if (pendingClassFilter !== 'all' && p.class_id !== pendingClassFilter) return false;
+    if (!pendingSearch.trim()) return true;
+    const s = pendingSearch.trim().toLowerCase();
+    return (p.email || '').toLowerCase().includes(s)
+      || (p.secondary_email || '').toLowerCase().includes(s)
+      || (p.full_name || '').toLowerCase().includes(s);
+  });
+
+  const enrollmentsForViewClass = enrollments.filter((e: any) => e.class_id === viewByClassId);
+  const pendingForViewClass = pendingEnrollments.filter((p: any) => p.class_id === viewByClassId);
 
   const { data: responses = [] } = useQuery({
     queryKey: ['all-responses', selectedProgram],
@@ -1201,6 +1236,7 @@ export default function AdminPrograms() {
               <TabsTrigger value="modules" className="gap-1.5"><Layers className="w-4 h-4" /> Módulos ({modules.length})</TabsTrigger>
               <TabsTrigger value="enrollments" className="gap-1.5"><Users className="w-4 h-4" /> Matrículas ({enrollments.length})</TabsTrigger>
               <TabsTrigger value="pending" className="gap-1.5"><Clock className="w-4 h-4" /> Pendentes ({pendingEnrollments.length})</TabsTrigger>
+              <TabsTrigger value="by-class" className="gap-1.5"><GraduationCap className="w-4 h-4" /> Visão por Turma</TabsTrigger>
               <TabsTrigger value="responses" className="gap-1.5"><FileText className="w-4 h-4" /> Respostas ({responses.length + exerciseResponses.length})</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><PackagePlus className="w-4 h-4" /> Materiais ({materials.length})</TabsTrigger>
               <TabsTrigger value="welcome" className="gap-1.5"><MessageSquare className="w-4 h-4" /> Boas-vindas</TabsTrigger>
@@ -1577,7 +1613,7 @@ export default function AdminPrograms() {
               </Collapsible>
 
               {/* Filter + list */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <Label className="text-sm">Filtrar por turma:</Label>
                 <Select value={selectedClassFilter} onValueChange={setSelectedClassFilter}>
                   <SelectTrigger className="w-[250px]">
@@ -1590,6 +1626,15 @@ export default function AdminPrograms() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Input
+                  value={enrollmentSearch}
+                  onChange={e => setEnrollmentSearch(e.target.value)}
+                  placeholder="Buscar por nome ou e-mail..."
+                  className="max-w-[260px]"
+                />
+                <Badge variant="secondary" className="ml-auto">
+                  {filteredEnrollments.length} matriculado{filteredEnrollments.length === 1 ? '' : 's'}
+                </Badge>
               </div>
               <Card>
                 <CardContent className="p-0">
@@ -1605,9 +1650,9 @@ export default function AdminPrograms() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {enrollments.length === 0 ? (
+                      {filteredEnrollments.length === 0 ? (
                         <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma matrícula encontrada</TableCell></TableRow>
-                      ) : enrollments.map((e: any) => (
+                      ) : filteredEnrollments.map((e: any) => (
                         <TableRow key={e.id}>
                           <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
                           <TableCell>{e.profiles?.email || '—'}</TableCell>
@@ -1665,8 +1710,31 @@ export default function AdminPrograms() {
                     Alunos que ainda não criaram conta. Ao se cadastrarem com um destes emails, o acesso será liberado automaticamente.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {pendingEnrollments.length === 0 ? (
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Label className="text-sm">Filtrar por turma:</Label>
+                    <Select value={pendingClassFilter} onValueChange={setPendingClassFilter}>
+                      <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Todas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as turmas</SelectItem>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={pendingSearch}
+                      onChange={e => setPendingSearch(e.target.value)}
+                      placeholder="Buscar por e-mail ou nome..."
+                      className="max-w-[260px]"
+                    />
+                    <Badge variant="secondary" className="ml-auto">
+                      {filteredPending.length} pendente{filteredPending.length === 1 ? '' : 's'}
+                    </Badge>
+                  </div>
+                  {filteredPending.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6">Nenhuma pré-matrícula pendente.</p>
                   ) : (
                     <Table>
@@ -1679,7 +1747,7 @@ export default function AdminPrograms() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {pendingEnrollments.map((pe: any) => {
+                        {filteredPending.map((pe: any) => {
                           const cls = classes.find((c: any) => c.id === pe.class_id);
                           return (
                             <TableRow key={pe.id}>
@@ -1724,6 +1792,185 @@ export default function AdminPrograms() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* VISÃO POR TURMA TAB */}
+            <TabsContent value="by-class" className="mt-4 space-y-4">
+              {classes.length === 0 ? (
+                <Card>
+                  <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                    Cadastre uma turma para usar a visão consolidada.
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Label className="text-sm">Turma:</Label>
+                    <Select value={viewByClassId} onValueChange={setViewByClassId}>
+                      <SelectTrigger className="w-[320px]">
+                        <SelectValue placeholder="Selecionar turma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}{c.start_date ? ` — ${format(new Date(c.start_date + 'T12:00:00'), 'dd/MM/yyyy')}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <Card><CardContent className="p-4">
+                      <p className="text-xs uppercase text-muted-foreground">Matriculados</p>
+                      <p className="text-2xl font-bold mt-1">{enrollmentsForViewClass.length}</p>
+                    </CardContent></Card>
+                    <Card><CardContent className="p-4">
+                      <p className="text-xs uppercase text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold mt-1">{pendingForViewClass.length}</p>
+                    </CardContent></Card>
+                    <Card><CardContent className="p-4">
+                      <p className="text-xs uppercase text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold mt-1">{enrollmentsForViewClass.length + pendingForViewClass.length}</p>
+                    </CardContent></Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Users className="w-4 h-4" /> Matriculados na turma ({enrollmentsForViewClass.length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" disabled={enrollmentsForViewClass.length === 0}
+                        onClick={() => {
+                          const rows = [['Nome', 'E-mail', 'Data de matrícula', 'Último acesso']];
+                          enrollmentsForViewClass.forEach((e: any) => {
+                            rows.push([
+                              e.profiles?.full_name || '',
+                              e.profiles?.email || '',
+                              e.enrolled_at ? format(new Date(e.enrolled_at), 'dd/MM/yyyy') : '',
+                              e.profiles?.last_access_at ? format(new Date(e.profiles.last_access_at), 'dd/MM/yyyy HH:mm') : '',
+                            ]);
+                          });
+                          const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                          const a = document.createElement('a');
+                          a.href = URL.createObjectURL(blob);
+                          const cls = classes.find((c: any) => c.id === viewByClassId);
+                          a.download = `matriculados-${cls?.name || 'turma'}.csv`;
+                          a.click();
+                        }}>
+                        <FileDown className="w-4 h-4 mr-1" /> Exportar CSV
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {enrollmentsForViewClass.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">Nenhum aluno matriculado nesta turma.</p>
+                      ) : (
+                        <Table>
+                          <TableHeader><TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>E-mail</TableHead>
+                            <TableHead>Data de Matrícula</TableHead>
+                            <TableHead>Último Acesso</TableHead>
+                            <TableHead className="w-[80px]"></TableHead>
+                          </TableRow></TableHeader>
+                          <TableBody>
+                            {enrollmentsForViewClass.map((e: any) => (
+                              <TableRow key={e.id}>
+                                <TableCell className="font-medium">{e.profiles?.full_name || '—'}</TableCell>
+                                <TableCell>{e.profiles?.email || '—'}</TableCell>
+                                <TableCell>{format(new Date(e.enrolled_at), 'dd/MM/yyyy')}</TableCell>
+                                <TableCell>
+                                  {e.profiles?.last_access_at
+                                    ? format(new Date(e.profiles.last_access_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+                                    : <span className="text-muted-foreground text-xs">Nunca</span>}
+                                </TableCell>
+                                <TableCell>
+                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Clock className="w-4 h-4" /> Pendentes da turma ({pendingForViewClass.length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" disabled={pendingForViewClass.length === 0}
+                        onClick={() => {
+                          const rows = [['E-mail principal', 'E-mail secundário', 'Data de cadastro']];
+                          pendingForViewClass.forEach((p: any) => {
+                            rows.push([
+                              p.email || '',
+                              p.secondary_email || '',
+                              p.created_at ? format(new Date(p.created_at), 'dd/MM/yyyy HH:mm') : '',
+                            ]);
+                          });
+                          const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                          const a = document.createElement('a');
+                          a.href = URL.createObjectURL(blob);
+                          const cls = classes.find((c: any) => c.id === viewByClassId);
+                          a.download = `pendentes-${cls?.name || 'turma'}.csv`;
+                          a.click();
+                        }}>
+                        <FileDown className="w-4 h-4 mr-1" /> Exportar CSV
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {pendingForViewClass.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">Nenhum pendente nesta turma.</p>
+                      ) : (
+                        <Table>
+                          <TableHeader><TableRow>
+                            <TableHead>E-mails</TableHead>
+                            <TableHead>Data de cadastro</TableHead>
+                            <TableHead className="w-[80px]"></TableHead>
+                          </TableRow></TableHeader>
+                          <TableBody>
+                            {pendingForViewClass.map((pe: any) => (
+                              <TableRow key={pe.id}>
+                                <TableCell className="font-medium">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-[10px] uppercase">Principal</Badge>
+                                      <span>{pe.email}</span>
+                                    </div>
+                                    {pe.secondary_email && (
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-[10px] uppercase">Secundário</Badge>
+                                        <span className="text-muted-foreground">{pe.secondary_email}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                                <TableCell>
+                                  <Button variant="ghost" size="icon"
+                                    onClick={async () => {
+                                      const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
+                                      if (error) toast.error('Erro ao remover pré-matrícula');
+                                      else { toast.success('Pré-matrícula removida'); refetchPending(); }
+                                    }}>
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </TabsContent>
 
             {/* RESPOSTAS TAB */}
