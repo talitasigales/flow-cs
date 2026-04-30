@@ -1486,16 +1486,23 @@ export default function AdminPrograms() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Cadastrar Aluno Individual</CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    Informe um e-mail principal e, opcionalmente, um secundário (corporativo + pessoal). O aluno será matriculado se cadastrar com qualquer um dos dois.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Nome completo</Label>
                       <Input placeholder="Nome do aluno" value={individualName} onChange={e => setIndividualName(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">E-mail</Label>
+                      <Label className="text-xs">E-mail principal</Label>
                       <Input type="email" placeholder="aluno@empresa.com" value={individualEmail} onChange={e => setIndividualEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">E-mail secundário (opcional)</Label>
+                      <Input type="email" placeholder="aluno@gmail.com" value={individualSecondaryEmail} onChange={e => setIndividualSecondaryEmail(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Turma</Label>
