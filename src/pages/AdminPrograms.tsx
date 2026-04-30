@@ -564,24 +564,23 @@ export default function AdminPrograms() {
       const workbook = XLSX.read(data, { type: 'array' });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-      
-      // Extract emails from all cells
-      const emails: string[] = [];
+
+      // Convert sheet rows to CSV text preserving the tabular structure (name, email, secondary)
+      const lines: string[] = [];
       for (const row of rows) {
-        for (const cell of row) {
-          if (typeof cell === 'string' && cell.includes('@')) {
-            emails.push(cell.trim().toLowerCase());
-          }
-        }
+        if (!row || row.length === 0) continue;
+        const cleaned = row.map((c) => (c == null ? '' : String(c).trim()));
+        if (cleaned.every((c) => c === '')) continue;
+        lines.push(cleaned.join(','));
       }
-      
-      if (emails.length === 0) {
-        toast.error('Nenhum e-mail encontrado na planilha');
+
+      if (lines.length === 0) {
+        toast.error('Planilha vazia');
         return;
       }
-      
-      setCsvText(emails.join('\n'));
-      toast.success(`${emails.length} e-mails encontrados na planilha`);
+
+      setCsvText(lines.join('\n'));
+      toast.success(`${lines.length} linhas carregadas. Confira e clique em Importar.`);
     } catch (err) {
       toast.error('Erro ao ler arquivo. Verifique se é um .xlsx, .xls ou .csv válido.');
     }
