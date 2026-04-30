@@ -1561,11 +1561,13 @@ export default function AdminPrograms() {
                             <FileDown className="w-4 h-4 mr-1" /> Modelo CSV
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">O sistema detecta automaticamente a coluna de e-mails</p>
+                        <p className="text-xs text-muted-foreground">
+                          O CSV deve ter 3 colunas com cabeçalho: <code>nome,email_corporativo,email_pessoal</code> (o e-mail pessoal é opcional). Aceita também colar texto abaixo.
+                        </p>
                       </div>
                       <div className="space-y-2">
-                        <Label>E-mails (um por linha, ou separados por vírgula/ponto e vírgula)</Label>
-                        <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder="aluno1@empresa.com&#10;aluno2@empresa.com&#10;aluno3@empresa.com" className="min-h-[150px] font-mono text-sm" />
+                        <Label>Colar dados (CSV com cabeçalho ou um e-mail por linha)</Label>
+                        <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder={"nome,email_corporativo,email_pessoal\nJoão Silva,joao@empresa.com,joao@gmail.com\nMaria Souza,maria@empresa.com,"} className="min-h-[150px] font-mono text-sm" />
                       </div>
                       <Button onClick={handleImport} disabled={importing || !csvText.trim()}>
                         {importing ? 'Importando...' : 'Importar Matrículas'}
