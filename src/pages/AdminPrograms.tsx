@@ -1673,7 +1673,7 @@ export default function AdminPrograms() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Email</TableHead>
+                          <TableHead>E-mails</TableHead>
                           <TableHead>Turma</TableHead>
                           <TableHead>Data de cadastro</TableHead>
                           <TableHead className="w-[80px]">Ações</TableHead>
@@ -1684,7 +1684,20 @@ export default function AdminPrograms() {
                           const cls = classes.find((c: any) => c.id === pe.class_id);
                           return (
                             <TableRow key={pe.id}>
-                              <TableCell className="font-medium">{pe.email}</TableCell>
+                              <TableCell className="font-medium">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="secondary" className="text-[10px] uppercase">Principal</Badge>
+                                    <span>{pe.email}</span>
+                                  </div>
+                                  {pe.secondary_email && (
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-[10px] uppercase">Secundário</Badge>
+                                      <span className="text-muted-foreground">{pe.secondary_email}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
                               <TableCell>{cls?.name || '—'}</TableCell>
                               <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
                               <TableCell>
