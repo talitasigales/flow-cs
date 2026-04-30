@@ -423,8 +423,18 @@ export default function AdminPrograms() {
       }
 
       // 3. Enroll
+      const primary = individualEmail.trim().toLowerCase();
+      const secondary = individualSecondaryEmail.trim().toLowerCase();
       const { data, error } = await supabase.functions.invoke('import-enrollments', {
-        body: { emails: individualEmail.trim(), program_id: selectedProgram, class_id: individualClassId || null },
+        body: {
+          entries: [{
+            name: individualName.trim(),
+            email: primary,
+            secondary_email: secondary && secondary !== primary ? secondary : null,
+          }],
+          program_id: selectedProgram,
+          class_id: individualClassId || null,
+        },
       });
       if (error) throw error;
 
@@ -448,6 +458,7 @@ export default function AdminPrograms() {
 
       setIndividualName('');
       setIndividualEmail('');
+      setIndividualSecondaryEmail('');
       setIndividualClassId('');
       refetchEnrollments();
     } catch (err: any) {
