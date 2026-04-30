@@ -468,15 +468,74 @@ export default function AdminPrograms() {
     }
   };
 
+  const parseEnrollmentCsv = (text: string): { entries: Array<{ name?: string; email: string; secondary_email?: string | null }>; errors: string[] } => {
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const entries: Array<{ name?: string; email: string; secondary_email?: string | null }> = [];
+    const errors: string[] = [];
+    if (lines.length === 0) return { entries, errors };
+
+    // Detect header
+    const splitLine = (l: string) => l.split(/[,;\t]/).map((c) => c.trim());
+    const first = splitLine(lines[0]).map((c) => c.toLowerCase());
+    const looksLikeHeader = first.some((c) => c.includes('email') || c.includes('e-mail') || c === 'nome' || c === 'name');
+    let nameIdx = -1, primaryIdx = -1, secondaryIdx = -1;
+    let dataStart = 0;
+    if (looksLikeHeader) {
+      first.forEach((col, i) => {
+        if (col === 'nome' || col === 'name') nameIdx = i;
+        else if (col.includes('corporativo') || col.includes('corporate') || col.includes('work')) primaryIdx = i;
+        else if (col.includes('pessoal') || col.includes('personal') || col.includes('alternativ')) secondaryIdx = i;
+        else if ((col.includes('email') || col.includes('e-mail')) && primaryIdx === -1) primaryIdx = i;
+        else if ((col.includes('email') || col.includes('e-mail')) && secondaryIdx === -1) secondaryIdx = i;
+      });
+      dataStart = 1;
+    } else {
+      // Fallback: assume single email per line OR "name,email" OR "name,email1,email2"
+      // We'll handle per-line below.
+    }
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (let i = dataStart; i < lines.length; i++) {
+      const cols = splitLine(lines[i]);
+      let name: string | undefined;
+      let email = '';
+      let secondary = '';
+      if (looksLikeHeader) {
+        name = nameIdx >= 0 ? cols[nameIdx] : undefined;
+        email = (primaryIdx >= 0 ? cols[primaryIdx] : '').toLowerCase();
+        secondary = (secondaryIdx >= 0 ? (cols[secondaryIdx] || '') : '').toLowerCase();
+      } else {
+        // No header: try to be permissive
+        const emails = cols.filter((c) => emailRe.test(c));
+        const nonEmails = cols.filter((c) => !emailRe.test(c));
+        email = (emails[0] || '').toLowerCase();
+        secondary = (emails[1] || '').toLowerCase();
+        name = nonEmails[0];
+      }
+      if (!email) { errors.push(`Linha ${i + 1}: e-mail principal vazio`); continue; }
+      if (!emailRe.test(email)) { errors.push(`Linha ${i + 1}: e-mail principal inválido (${email})`); continue; }
+      if (secondary && !emailRe.test(secondary)) { errors.push(`Linha ${i + 1}: e-mail secundário inválido (${secondary})`); continue; }
+      entries.push({ name: name || undefined, email, secondary_email: secondary && secondary !== email ? secondary : null });
+    }
+    return { entries, errors };
+  };
+
   const handleImport = async () => {
     if (!csvText.trim() || !selectedProgram) {
       toast.error('Selecione um programa e insira os e-mails');
       return;
     }
+    const { entries, errors } = parseEnrollmentCsv(csvText);
+    if (errors.length > 0) {
+      toast.error(`Erros no CSV: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '…' : ''}`);
+    }
+    if (entries.length === 0) {
+      return;
+    }
     setImporting(true);
     try {
       const { data, error } = await supabase.functions.invoke('import-enrollments', {
-        body: { emails: csvText, program_id: selectedProgram, class_id: importClassId || null },
+        body: { entries, program_id: selectedProgram, class_id: importClassId || null },
       });
       if (error) throw error;
       let resultMsg = `Importação concluída: ${data.enrolled} matriculados`;
