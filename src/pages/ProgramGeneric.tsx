@@ -48,7 +48,6 @@ export default function ProgramGeneric() {
     <AppLayout>
       <ProgramWelcomePopup programId={program.id} />
       <div className="max-w-6xl mx-auto">
-        {slug === 'master-lider' && <PreJourneyQuestionnaires />}
         <ProgramDevelopmentContent programSlug={slug!} />
       </div>
     </AppLayout>
