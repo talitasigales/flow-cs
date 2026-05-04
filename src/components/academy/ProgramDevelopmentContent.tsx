@@ -320,6 +320,15 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
   const getSpecialist = (name: string | null) =>
     name ? specialists.find((s: any) => s.name.toLowerCase().trim() === name.toLowerCase().trim()) : null;
 
+  const getModuleSpecialists = (moduleId: string) => {
+    const ids = classModuleSpecialists
+      .filter((r: any) => r.module_id === moduleId)
+      .map((r: any) => r.specialist_id);
+    return ids
+      .map(id => specialists.find((s: any) => s.id === id))
+      .filter(Boolean);
+  };
+
   const getModules = () => {
     const programModules = allModules;
     if (classId) {
