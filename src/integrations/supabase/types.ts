@@ -385,6 +385,33 @@ export type Database = {
           },
         ]
       }
+      class_module_specialists: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          module_id: string
+          order_number: number
+          specialist_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          module_id: string
+          order_number?: number
+          specialist_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          module_id?: string
+          order_number?: number
+          specialist_id?: string
+        }
+        Relationships: []
+      }
       class_modules: {
         Row: {
           class_id: string
