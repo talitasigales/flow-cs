@@ -1070,6 +1070,36 @@ export default function AdminPrograms() {
             <Label>Link da Videoconferência (Zoom/Meet)</Label>
             <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
           </div>
+          <div className="space-y-3 border rounded-lg p-3">
+            <Label className="text-sm font-semibold">Recursos iniciais para os alunos</Label>
+            <p className="text-xs text-muted-foreground -mt-1">Escolha o que será exibido na tela inicial desta turma.</p>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="cls-pda-report"
+                checked={classPdaReportEnabled}
+                onCheckedChange={(c) => setClassPdaReportEnabled(!!c)}
+              />
+              <label htmlFor="cls-pda-report" className="text-sm cursor-pointer">
+                Habilitar upload do Relatório PDA Individual
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Link do Questionário de Resiliência</Label>
+              <Input
+                value={classResilienceUrl}
+                onChange={e => setClassResilienceUrl(e.target.value)}
+                placeholder="https://... (deixe vazio para ocultar)"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Link do Questionário Dilemas de Gestão</Label>
+              <Input
+                value={classDilemmasUrl}
+                onChange={e => setClassDilemmasUrl(e.target.value)}
+                placeholder="https://... (deixe vazio para ocultar)"
+              />
+            </div>
+          </div>
           {modules.length > 0 && (
             <div className="space-y-2">
               <Label>Módulos desta Turma</Label>
