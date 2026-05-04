@@ -362,6 +362,9 @@ export default function AdminPrograms() {
       setClassEndDate(cls.end_date ? new Date(cls.end_date + 'T12:00:00') : undefined);
       setClassVideoUrl(cls.video_conference_url || '');
       setClassSpecialist(cls.specialist || '');
+      setClassPdaReportEnabled(!!cls.pda_report_enabled);
+      setClassResilienceUrl(cls.resilience_url || '');
+      setClassDilemmasUrl(cls.dilemmas_url || '');
       // Load existing class modules
       const { data: cm } = await (supabase as any).from('class_modules').select('module_id').eq('class_id', cls.id);
       setClassModuleIds((cm || []).map((r: any) => r.module_id));
@@ -383,6 +386,9 @@ export default function AdminPrograms() {
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      setClassPdaReportEnabled(false);
+      setClassResilienceUrl('');
+      setClassDilemmasUrl('');
       // Default: select all modules
       setClassModuleIds(modules.map((m: any) => m.id));
       setClassModuleSpecialists({});
