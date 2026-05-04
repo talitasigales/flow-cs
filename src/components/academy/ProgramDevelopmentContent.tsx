@@ -172,7 +172,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('program_enrollments')
-        .select('id, enrolled_at, class_id, programs!inner(id, name, slug, description), program_classes(id, name, start_date, end_date, video_conference_url, specialist)')
+        .select('id, enrolled_at, class_id, programs!inner(id, name, slug, description), program_classes(id, name, start_date, end_date, video_conference_url, specialist, pda_report_enabled, resilience_url, dilemmas_url)')
         .eq('user_id', user!.id)
         .eq('programs.slug', programSlug)
         .maybeSingle();
