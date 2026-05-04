@@ -81,6 +81,9 @@ export default function AdminPrograms() {
   const [classModuleIds, setClassModuleIds] = useState<string[]>([]);
   // module_id -> array de specialist_ids
   const [classModuleSpecialists, setClassModuleSpecialists] = useState<Record<string, string[]>>({});
+  const [classPdaReportEnabled, setClassPdaReportEnabled] = useState(false);
+  const [classResilienceUrl, setClassResilienceUrl] = useState('');
+  const [classDilemmasUrl, setClassDilemmasUrl] = useState('');
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
