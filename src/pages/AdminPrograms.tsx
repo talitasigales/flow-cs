@@ -409,6 +409,9 @@ export default function AdminPrograms() {
         end_date: classEndDate ? format(classEndDate, 'yyyy-MM-dd') : null,
         video_conference_url: classVideoUrl.trim() || null,
         specialist: classSpecialist || null,
+        pda_report_enabled: classPdaReportEnabled,
+        resilience_url: classResilienceUrl.trim() || null,
+        dilemmas_url: classDilemmasUrl.trim() || null,
       };
       let classId: string;
       if (editingClass) {
