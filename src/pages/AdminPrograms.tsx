@@ -111,6 +111,7 @@ export default function AdminPrograms() {
   const [moduleTitle, setModuleTitle] = useState('');
   const [moduleDescription, setModuleDescription] = useState('');
   const [moduleOrder, setModuleOrder] = useState(0);
+  const [moduleSpecialistIds, setModuleSpecialistIds] = useState<string[]>([]);
   const [savingModule, setSavingModule] = useState(false);
 
   // Schedule state
@@ -673,17 +674,25 @@ export default function AdminPrograms() {
   };
 
   // Module handlers
-  const openModuleDialog = (mod?: any) => {
+  const openModuleDialog = async (mod?: any) => {
     if (mod) {
       setEditingModule(mod);
       setModuleTitle(mod.title);
       setModuleDescription(mod.description || '');
       setModuleOrder(mod.order_number || 0);
+      // Load default specialists for this module
+      const { data: mds } = await (supabase as any)
+        .from('module_default_specialists')
+        .select('specialist_id, order_number')
+        .eq('module_id', mod.id)
+        .order('order_number');
+      setModuleSpecialistIds((mds || []).map((r: any) => r.specialist_id));
     } else {
       setEditingModule(null);
       setModuleTitle('');
       setModuleDescription('');
       setModuleOrder(modules.length);
+      setModuleSpecialistIds([]);
     }
     setModuleDialogOpen(true);
   };
@@ -695,6 +704,7 @@ export default function AdminPrograms() {
     }
     setSavingModule(true);
     try {
+      let moduleId = editingModule?.id;
       if (editingModule) {
         const { error } = await supabase.from('program_modules').update({
           title: moduleTitle.trim(),
@@ -704,15 +714,31 @@ export default function AdminPrograms() {
         if (error) throw error;
         toast.success('Módulo atualizado');
       } else {
-        const { error } = await supabase.from('program_modules').insert({
+        const { data: inserted, error } = await supabase.from('program_modules').insert({
           program_id: selectedProgram,
           title: moduleTitle.trim(),
           description: moduleDescription.trim() || null,
           order_number: moduleOrder,
-        });
+        }).select('id').single();
         if (error) throw error;
+        moduleId = inserted?.id;
         toast.success('Módulo criado');
       }
+
+      // Sync default specialists for this module (replicates to all classes via DB trigger)
+      if (moduleId) {
+        await (supabase as any).from('module_default_specialists').delete().eq('module_id', moduleId);
+        if (moduleSpecialistIds.length > 0) {
+          const rows = moduleSpecialistIds.map((sid, idx) => ({
+            module_id: moduleId,
+            specialist_id: sid,
+            order_number: idx,
+          }));
+          const { error: sErr } = await (supabase as any).from('module_default_specialists').insert(rows);
+          if (sErr) throw sErr;
+        }
+      }
+
       setModuleDialogOpen(false);
       refetchModules();
     } catch (err: any) {
@@ -1577,6 +1603,42 @@ export default function AdminPrograms() {
                     <div className="space-y-2">
                       <Label>Ordem</Label>
                       <Input type="number" value={moduleOrder} onChange={e => setModuleOrder(Number(e.target.value))} min={0} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Especialistas do Módulo</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Selecione quem ministra este módulo. Será aplicado automaticamente a todas as turmas (atuais e futuras) que usarem este módulo.
+                      </p>
+                      {specialists.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Nenhuma especialista cadastrada ainda.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {specialists.map((s: any) => {
+                            const selected = moduleSpecialistIds.includes(s.id);
+                            return (
+                              <button
+                                type="button"
+                                key={s.id}
+                                onClick={() =>
+                                  setModuleSpecialistIds(prev =>
+                                    selected ? prev.filter(x => x !== s.id) : [...prev, s.id]
+                                  )
+                                }
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition-colors ${
+                                  selected
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-muted/30 border-border hover:bg-muted/60'
+                                }`}
+                              >
+                                {s.avatar_url && (
+                                  <img src={s.avatar_url} alt={s.name} className="w-5 h-5 rounded-full object-cover" />
+                                )}
+                                <span>{s.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <DialogFooter>
