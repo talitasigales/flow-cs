@@ -281,6 +281,19 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     },
   });
 
+  const { data: classModuleSpecialists = [] } = useQuery({
+    queryKey: ['class-module-specialists', classId],
+    enabled: !!classId,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('class_module_specialists')
+        .select('module_id, specialist_id, order_number')
+        .eq('class_id', classId)
+        .order('order_number');
+      return data || [];
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
