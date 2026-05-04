@@ -1015,7 +1015,6 @@ export default function AdminPrograms() {
             </div>
           </div>
           <div className="space-y-2">
-          <div className="space-y-2">
             <Label>Especialista Responsável (padrão da turma)</Label>
             <Select value={classSpecialist} onValueChange={setClassSpecialist}>
               <SelectTrigger>
