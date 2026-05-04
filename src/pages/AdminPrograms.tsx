@@ -1015,7 +1015,8 @@ export default function AdminPrograms() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Especialista Responsável</Label>
+          <div className="space-y-2">
+            <Label>Especialista Responsável (padrão da turma)</Label>
             <Select value={classSpecialist} onValueChange={setClassSpecialist}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a especialista" />
@@ -1026,6 +1027,7 @@ export default function AdminPrograms() {
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">Usado quando um módulo não tem especialistas específicos definidos abaixo.</p>
           </div>
           <div className="space-y-2">
             <Label>Link da Videoconferência (Zoom/Meet)</Label>
