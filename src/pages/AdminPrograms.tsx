@@ -1604,6 +1604,42 @@ export default function AdminPrograms() {
                       <Label>Ordem</Label>
                       <Input type="number" value={moduleOrder} onChange={e => setModuleOrder(Number(e.target.value))} min={0} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Especialistas do Módulo</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Selecione quem ministra este módulo. Será aplicado automaticamente a todas as turmas (atuais e futuras) que usarem este módulo.
+                      </p>
+                      {specialists.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Nenhuma especialista cadastrada ainda.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {specialists.map((s: any) => {
+                            const selected = moduleSpecialistIds.includes(s.id);
+                            return (
+                              <button
+                                type="button"
+                                key={s.id}
+                                onClick={() =>
+                                  setModuleSpecialistIds(prev =>
+                                    selected ? prev.filter(x => x !== s.id) : [...prev, s.id]
+                                  )
+                                }
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs transition-colors ${
+                                  selected
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-muted/30 border-border hover:bg-muted/60'
+                                }`}
+                              >
+                                {s.avatar_url && (
+                                  <img src={s.avatar_url} alt={s.name} className="w-5 h-5 rounded-full object-cover" />
+                                )}
+                                <span>{s.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button onClick={handleSaveModule} disabled={savingModule}>
