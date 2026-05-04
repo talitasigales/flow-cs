@@ -422,12 +422,26 @@ export default function AdminPrograms() {
         );
       }
 
+      // Sync class_module_specialists (somente para módulos selecionados)
+      await (supabase as any).from('class_module_specialists').delete().eq('class_id', classId);
+      const cmsRows: any[] = [];
+      classModuleIds.forEach(mid => {
+        const specIds = classModuleSpecialists[mid] || [];
+        specIds.forEach((sid, idx) => {
+          cmsRows.push({ class_id: classId, module_id: mid, specialist_id: sid, order_number: idx });
+        });
+      });
+      if (cmsRows.length > 0) {
+        await (supabase as any).from('class_module_specialists').insert(cmsRows);
+      }
+
       setClassName('');
       setClassStartDate(undefined);
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
       setClassModuleIds([]);
+      setClassModuleSpecialists({});
       setEditingClass(null);
       setClassDialogOpen(false);
       refetchClasses();
