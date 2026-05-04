@@ -1089,6 +1089,30 @@ export type Database = {
         }
         Relationships: []
       }
+      module_default_specialists: {
+        Row: {
+          created_at: string
+          id: string
+          module_id: string
+          order_number: number
+          specialist_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_id: string
+          order_number?: number
+          specialist_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_id?: string
+          order_number?: number
+          specialist_id?: string
+        }
+        Relationships: []
+      }
       module_exercises: {
         Row: {
           created_at: string
