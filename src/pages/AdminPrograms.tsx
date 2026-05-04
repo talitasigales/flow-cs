@@ -1069,6 +1069,50 @@ export default function AdminPrograms() {
               </div>
             </div>
           )}
+          {classModuleIds.length > 0 && specialists.length > 0 && (
+            <div className="space-y-2">
+              <Label>Especialistas por Módulo</Label>
+              <p className="text-xs text-muted-foreground">Para cada módulo selecionado, escolha um ou mais especialistas. Se nenhum for selecionado, será usado o especialista padrão da turma.</p>
+              <div className="border rounded-lg p-3 space-y-3 max-h-[260px] overflow-y-auto">
+                {modules.filter((m: any) => classModuleIds.includes(m.id)).map((m: any) => {
+                  const selected = classModuleSpecialists[m.id] || [];
+                  return (
+                    <div key={m.id} className="space-y-1.5">
+                      <p className="text-sm font-medium">
+                        {m.order_number != null ? `${m.order_number}. ` : ''}{m.title}
+                      </p>
+                      <div className="flex flex-wrap gap-2 pl-1">
+                        {specialists.map((s: any) => {
+                          const checked = selected.includes(s.id);
+                          return (
+                            <button
+                              type="button"
+                              key={s.id}
+                              onClick={() => {
+                                setClassModuleSpecialists(prev => {
+                                  const cur = prev[m.id] || [];
+                                  const next = checked ? cur.filter(id => id !== s.id) : [...cur, s.id];
+                                  return { ...prev, [m.id]: next };
+                                });
+                              }}
+                              className={cn(
+                                "px-2.5 py-1 rounded-full text-xs border transition-colors",
+                                checked
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background hover:bg-muted border-border"
+                              )}
+                            >
+                              {s.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button onClick={handleSaveClass} disabled={savingClass}>
