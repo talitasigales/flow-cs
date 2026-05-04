@@ -424,8 +424,38 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
         </div>
       </Card>
 
-      {/* PDA Report Upload */}
-      {programId && <PdaReportUpload programId={programId} programName={program?.name} />}
+      {/* PDA Report Upload (controlado pelo admin no nível da turma) */}
+      {programId && cls?.pda_report_enabled && <PdaReportUpload programId={programId} programName={program?.name} />}
+
+      {/* Questionários configurados pela turma */}
+      {(cls?.resilience_url || cls?.dilemmas_url) && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-primary" />
+              <p className="text-sm font-semibold">Questionários da turma</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {cls?.resilience_url && (
+                <Button asChild variant="outline" className="justify-between h-auto py-3">
+                  <a href={cls.resilience_url} target="_blank" rel="noopener noreferrer">
+                    <span className="text-sm font-medium">Avaliação de Resiliência</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              )}
+              {cls?.dilemmas_url && (
+                <Button asChild variant="outline" className="justify-between h-auto py-3">
+                  <a href={cls.dilemmas_url} target="_blank" rel="noopener noreferrer">
+                    <span className="text-sm font-medium">Dilemas de Gestão</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Certificate Card */}
       <CertificateCard programId={programId} programName={program?.name} studentName={undefined} />
