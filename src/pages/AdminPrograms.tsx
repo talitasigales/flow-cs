@@ -79,6 +79,8 @@ export default function AdminPrograms() {
   const [classVideoUrl, setClassVideoUrl] = useState('');
   const [classSpecialist, setClassSpecialist] = useState('');
   const [classModuleIds, setClassModuleIds] = useState<string[]>([]);
+  // module_id -> array de specialist_ids
+  const [classModuleSpecialists, setClassModuleSpecialists] = useState<Record<string, string[]>>({});
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
