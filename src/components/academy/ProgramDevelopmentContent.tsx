@@ -575,6 +575,31 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
                                 <p className="text-sm text-muted-foreground">{mod.description}</p>
                               )}
 
+                              {/* Module specialists */}
+                              {(() => {
+                                const modSpecs = getModuleSpecialists(mod.id);
+                                if (modSpecs.length === 0) return null;
+                                return (
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {modSpecs.length === 1 ? 'Especialista:' : 'Especialistas:'}
+                                    </span>
+                                    {modSpecs.map((s: any) => (
+                                      <div key={s.id} className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 border border-border/50">
+                                        {s.avatar_url ? (
+                                          <img src={s.avatar_url} alt={s.name} className="w-5 h-5 rounded-full object-cover" />
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
+                                            <BookOpen className="w-3 h-3 text-muted-foreground" />
+                                          </div>
+                                        )}
+                                        <span className="text-xs font-medium">{s.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+
                               {/* Module videos */}
                               {(() => {
                                 const moduleVideos = moduleMaterials.filter((m: any) => m.file_type === 'video' && m.file_url);
