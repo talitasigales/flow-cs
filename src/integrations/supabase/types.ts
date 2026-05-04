@@ -1843,30 +1843,39 @@ export type Database = {
       program_classes: {
         Row: {
           created_at: string
+          dilemmas_url: string | null
           end_date: string | null
           id: string
           name: string
+          pda_report_enabled: boolean
           program_id: string
+          resilience_url: string | null
           specialist: string | null
           start_date: string | null
           video_conference_url: string | null
         }
         Insert: {
           created_at?: string
+          dilemmas_url?: string | null
           end_date?: string | null
           id?: string
           name: string
+          pda_report_enabled?: boolean
           program_id: string
+          resilience_url?: string | null
           specialist?: string | null
           start_date?: string | null
           video_conference_url?: string | null
         }
         Update: {
           created_at?: string
+          dilemmas_url?: string | null
           end_date?: string | null
           id?: string
           name?: string
+          pda_report_enabled?: boolean
           program_id?: string
+          resilience_url?: string | null
           specialist?: string | null
           start_date?: string | null
           video_conference_url?: string | null

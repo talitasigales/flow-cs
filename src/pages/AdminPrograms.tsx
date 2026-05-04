@@ -81,6 +81,9 @@ export default function AdminPrograms() {
   const [classModuleIds, setClassModuleIds] = useState<string[]>([]);
   // module_id -> array de specialist_ids
   const [classModuleSpecialists, setClassModuleSpecialists] = useState<Record<string, string[]>>({});
+  const [classPdaReportEnabled, setClassPdaReportEnabled] = useState(false);
+  const [classResilienceUrl, setClassResilienceUrl] = useState('');
+  const [classDilemmasUrl, setClassDilemmasUrl] = useState('');
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
@@ -359,6 +362,9 @@ export default function AdminPrograms() {
       setClassEndDate(cls.end_date ? new Date(cls.end_date + 'T12:00:00') : undefined);
       setClassVideoUrl(cls.video_conference_url || '');
       setClassSpecialist(cls.specialist || '');
+      setClassPdaReportEnabled(!!cls.pda_report_enabled);
+      setClassResilienceUrl(cls.resilience_url || '');
+      setClassDilemmasUrl(cls.dilemmas_url || '');
       // Load existing class modules
       const { data: cm } = await (supabase as any).from('class_modules').select('module_id').eq('class_id', cls.id);
       setClassModuleIds((cm || []).map((r: any) => r.module_id));
@@ -380,6 +386,9 @@ export default function AdminPrograms() {
       setClassEndDate(undefined);
       setClassVideoUrl('');
       setClassSpecialist('');
+      setClassPdaReportEnabled(false);
+      setClassResilienceUrl('');
+      setClassDilemmasUrl('');
       // Default: select all modules
       setClassModuleIds(modules.map((m: any) => m.id));
       setClassModuleSpecialists({});
@@ -400,6 +409,9 @@ export default function AdminPrograms() {
         end_date: classEndDate ? format(classEndDate, 'yyyy-MM-dd') : null,
         video_conference_url: classVideoUrl.trim() || null,
         specialist: classSpecialist || null,
+        pda_report_enabled: classPdaReportEnabled,
+        resilience_url: classResilienceUrl.trim() || null,
+        dilemmas_url: classDilemmasUrl.trim() || null,
       };
       let classId: string;
       if (editingClass) {
@@ -1057,6 +1069,36 @@ export default function AdminPrograms() {
           <div className="space-y-2">
             <Label>Link da Videoconferência (Zoom/Meet)</Label>
             <Input value={classVideoUrl} onChange={e => setClassVideoUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
+          </div>
+          <div className="space-y-3 border rounded-lg p-3">
+            <Label className="text-sm font-semibold">Recursos iniciais para os alunos</Label>
+            <p className="text-xs text-muted-foreground -mt-1">Escolha o que será exibido na tela inicial desta turma.</p>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="cls-pda-report"
+                checked={classPdaReportEnabled}
+                onCheckedChange={(c) => setClassPdaReportEnabled(!!c)}
+              />
+              <label htmlFor="cls-pda-report" className="text-sm cursor-pointer">
+                Habilitar upload do Relatório PDA Individual
+              </label>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Link do Questionário de Resiliência</Label>
+              <Input
+                value={classResilienceUrl}
+                onChange={e => setClassResilienceUrl(e.target.value)}
+                placeholder="https://... (deixe vazio para ocultar)"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Link do Questionário Dilemas de Gestão</Label>
+              <Input
+                value={classDilemmasUrl}
+                onChange={e => setClassDilemmasUrl(e.target.value)}
+                placeholder="https://... (deixe vazio para ocultar)"
+              />
+            </div>
           </div>
           {modules.length > 0 && (
             <div className="space-y-2">
