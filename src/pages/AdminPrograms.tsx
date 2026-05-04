@@ -361,6 +361,17 @@ export default function AdminPrograms() {
       // Load existing class modules
       const { data: cm } = await (supabase as any).from('class_modules').select('module_id').eq('class_id', cls.id);
       setClassModuleIds((cm || []).map((r: any) => r.module_id));
+      // Load existing module specialists
+      const { data: cms } = await (supabase as any)
+        .from('class_module_specialists')
+        .select('module_id, specialist_id')
+        .eq('class_id', cls.id);
+      const map: Record<string, string[]> = {};
+      (cms || []).forEach((r: any) => {
+        if (!map[r.module_id]) map[r.module_id] = [];
+        map[r.module_id].push(r.specialist_id);
+      });
+      setClassModuleSpecialists(map);
     } else {
       setEditingClass(null);
       setClassName('');
@@ -370,6 +381,7 @@ export default function AdminPrograms() {
       setClassSpecialist('');
       // Default: select all modules
       setClassModuleIds(modules.map((m: any) => m.id));
+      setClassModuleSpecialists({});
     }
     setClassDialogOpen(true);
   };
