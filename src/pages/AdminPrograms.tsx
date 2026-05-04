@@ -111,6 +111,7 @@ export default function AdminPrograms() {
   const [moduleTitle, setModuleTitle] = useState('');
   const [moduleDescription, setModuleDescription] = useState('');
   const [moduleOrder, setModuleOrder] = useState(0);
+  const [moduleSpecialistIds, setModuleSpecialistIds] = useState<string[]>([]);
   const [savingModule, setSavingModule] = useState(false);
 
   // Schedule state
