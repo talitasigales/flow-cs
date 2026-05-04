@@ -333,7 +333,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     const programModules = allModules;
     if (classId) {
       const cmIds = classModules.map((cm: any) => cm.module_id);
-      if (cmIds.length > 0) return programModules.filter((m: any) => cmIds.includes(m.id));
+      return programModules.filter((m: any) => cmIds.includes(m.id));
     }
     return programModules;
   };
