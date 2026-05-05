@@ -57,21 +57,72 @@ serve(async (req) => {
       user_metadata: { full_name, company, job_title },
     });
 
+    let userId: string;
+
     if (createError) {
-      if ((createError as any).code === 'email_exists' || createError.message?.includes('already been registered')) {
+      const isDuplicate =
+        (createError as any).code === 'email_exists' ||
+        createError.message?.includes('already been registered');
+
+      if (!isDuplicate) {
+        console.error('Error creating user:', createError);
+        return new Response(
+          JSON.stringify({ error: `Erro ao criar conta: ${createError.message}` }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Email already exists — check if it's a pre-enrolled (never-activated) account
+      const { data: profileRow } = await supabaseAdmin
+        .from('profiles')
+        .select('user_id, password_changed')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      let existingUserId = profileRow?.user_id as string | undefined;
+
+      // Fallback: locate via auth admin listUsers if no profile row
+      if (!existingUserId) {
+        const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const found = listData?.users?.find((u: any) => u.email?.toLowerCase() === normalizedEmail);
+        existingUserId = found?.id;
+      }
+
+      if (!existingUserId) {
         return new Response(
           JSON.stringify({ error: 'Este e-mail já tem cadastro na plataforma. Acesse com sua senha ou clique em "Esqueceu a senha?" para defini-la.' }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      console.error('Error creating user:', createError);
-      return new Response(
-        JSON.stringify({ error: `Erro ao criar conta: ${createError.message}` }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
-    const userId = newUser.user.id;
+      // If the user already activated their account (changed password), block re-registration
+      if (profileRow?.password_changed === true) {
+        return new Response(
+          JSON.stringify({ error: 'Este e-mail já tem cadastro ativo. Faça login ou use "Esqueceu a senha?" para recuperar o acesso.' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Pre-enrolled account never activated — claim it: set chosen password and update profile
+      const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(existingUserId, {
+        password,
+        email_confirm: true,
+        user_metadata: { full_name, company, job_title },
+      });
+
+      if (updateAuthError) {
+        console.error('Error updating pre-enrolled user password:', updateAuthError);
+        return new Response(
+          JSON.stringify({ error: `Erro ao ativar conta: ${updateAuthError.message}` }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      userId = existingUserId;
+      console.log(`Pre-enrolled account claimed via signup: ${normalizedEmail} (${userId})`);
+    } else {
+      userId = newUser!.user.id;
+    }
 
     // Update profile with company and job_title
     const { error: profileError } = await supabaseAdmin
