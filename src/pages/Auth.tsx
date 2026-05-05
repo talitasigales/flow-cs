@@ -107,8 +107,20 @@ export default function Auth() {
         body: { email, password, full_name: fullName, company, job_title: jobTitle },
       });
 
+      // Try to extract a friendly message even when the function returns non-2xx
+      let friendlyError: string | null = null;
       if (response.error) {
-        throw new Error(response.error.message || 'Erro ao criar conta');
+        try {
+          const ctx: any = (response.error as any).context;
+          if (ctx?.body) {
+            const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+            if (parsed?.error) friendlyError = parsed.error;
+          }
+        } catch {}
+        if (!friendlyError) friendlyError = response.error.message || 'Erro ao criar conta';
+        toast.error(friendlyError);
+        setLoading(false);
+        return;
       }
 
       const data = response.data;
