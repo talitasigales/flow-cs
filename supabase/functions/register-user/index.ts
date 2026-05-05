@@ -60,14 +60,14 @@ serve(async (req) => {
     if (createError) {
       if ((createError as any).code === 'email_exists' || createError.message?.includes('already been registered')) {
         return new Response(
-          JSON.stringify({ error: 'Este email já está cadastrado. Faça login.' }),
-          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Este e-mail já tem cadastro na plataforma. Acesse com sua senha ou clique em "Esqueceu a senha?" para defini-la.' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       console.error('Error creating user:', createError);
       return new Response(
         JSON.stringify({ error: `Erro ao criar conta: ${createError.message}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
