@@ -25,19 +25,19 @@ serve(async (req) => {
     if (!email || !email.includes('@')) {
       return new Response(
         JSON.stringify({ error: 'Email inválido' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     if (!password || password.length < 6) {
       return new Response(
         JSON.stringify({ error: 'A senha deve ter pelo menos 6 caracteres' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     if (!full_name || !company || !job_title) {
       return new Response(
         JSON.stringify({ error: 'Nome completo, empresa e cargo são obrigatórios' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
