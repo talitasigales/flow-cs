@@ -199,13 +199,13 @@ export default function AdminPrograms() {
       }
       const { data: enrs } = await query;
       if (!enrs || enrs.length === 0) return [];
-      const userIds = [...new Set(enrs.map(e => e.user_id))];
+      const userIds = [...new Set((enrs as any[]).map((e: any) => e.user_id as string))];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('user_id, full_name, email, last_access_at')
         .in('user_id', userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-      return enrs.map(e => ({ ...e, profiles: profileMap.get(e.user_id) || null }));
+      return (enrs as any[]).map((e: any) => ({ ...e, profiles: profileMap.get(e.user_id) || null }));
     },
   });
 
