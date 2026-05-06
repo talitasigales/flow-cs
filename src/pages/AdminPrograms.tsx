@@ -1708,7 +1708,7 @@ export default function AdminPrograms() {
                     Informe um e-mail principal e, opcionalmente, um secundário (corporativo + pessoal). O aluno será matriculado se cadastrar com qualquer um dos dois.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Nome completo</Label>
@@ -1740,6 +1740,17 @@ export default function AdminPrograms() {
                       {enrollingIndividual ? 'Matriculando...' : 'Matricular'}
                     </Button>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Link Resiliência (QR) — específico deste aluno (opcional)</Label>
+                      <Input placeholder="https://..." value={individualResilienceUrl} onChange={e => setIndividualResilienceUrl(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Link Dilemas de Gestão (DG) — específico deste aluno (opcional)</Label>
+                      <Input placeholder="https://..." value={individualDilemmasUrl} onChange={e => setIndividualDilemmasUrl(e.target.value)} />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Se vazio, o aluno vê o link geral configurado na turma.</p>
                 </CardContent>
               </Card>
 
