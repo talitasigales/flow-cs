@@ -9,6 +9,8 @@ interface Entry {
   name?: string;
   email: string;
   secondary_email?: string | null;
+  resilience_url?: string | null;
+  dilemmas_url?: string | null;
 }
 
 const norm = (v: unknown): string => (typeof v === 'string' ? v.trim().toLowerCase() : '');
