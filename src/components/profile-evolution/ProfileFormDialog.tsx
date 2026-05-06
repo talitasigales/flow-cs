@@ -59,7 +59,7 @@ export function ProfileFormDialog({
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('profile_evolution').insert({
+      const { error } = await (supabase as any).from('profile_evolution').insert({
         user_id: userId,
         employee_name: formData.employee_name,
         assessment_date: `${formData.year}-01-01`,
@@ -72,6 +72,7 @@ export function ProfileFormDialog({
         profile_intensity: formData.intensidade_perfil,
         energy: formData.energia,
         energy_balance: formData.equilibrio_energia,
+        profile_modification: formData.modificacao_perfil,
         notes: formData.notes,
       });
 

@@ -1714,6 +1714,7 @@ export type Database = {
           notes: string | null
           p_value: number | null
           profile_intensity: number | null
+          profile_modification: number
           r_value: number | null
           updated_at: string
           user_id: string
@@ -1732,6 +1733,7 @@ export type Database = {
           notes?: string | null
           p_value?: number | null
           profile_intensity?: number | null
+          profile_modification?: number
           r_value?: number | null
           updated_at?: string
           user_id: string
@@ -1750,6 +1752,7 @@ export type Database = {
           notes?: string | null
           p_value?: number | null
           profile_intensity?: number | null
+          profile_modification?: number
           r_value?: number | null
           updated_at?: string
           user_id?: string

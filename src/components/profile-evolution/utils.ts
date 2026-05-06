@@ -11,6 +11,7 @@ export const getProfileValue = (profile: ProfileEvolution, key: string): number 
     intensidade_perfil: 'profile_intensity',
     energia: 'energy',
     equilibrio_energia: 'energy_balance',
+    modificacao_perfil: 'profile_modification' as any,
   };
   const dbKey = mappings[key] || key;
   return (profile[dbKey as keyof ProfileEvolution] as number) || 0;
@@ -141,7 +142,7 @@ export const mapDatabaseToProfile = (item: any): ProfileEvolution => {
       intensidade_perfil: item.profile_intensity || 0,
       energia: item.energy || 0,
       equilibrio_energia: item.energy_balance || 0,
-      modificacao_perfil: 0,
+      modificacao_perfil: (item as any).profile_modification || 0,
       notes: item.notes,
     },
   };

@@ -44,7 +44,7 @@ export function ProfileCard({ profile, onDelete, onRefresh }: ProfileCardProps) 
                 intensidade_perfil: getProfileValue(profile, 'intensidade_perfil'),
                 energia: getProfileValue(profile, 'energia'),
                 equilibrio_energia: getProfileValue(profile, 'equilibrio_energia'),
-                modificacao_perfil: 0,
+                modificacao_perfil: getProfileValue(profile, 'modificacao_perfil'),
               }}
               onSuccess={onRefresh}
             />
