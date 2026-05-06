@@ -142,7 +142,7 @@ export const mapDatabaseToProfile = (item: any): ProfileEvolution => {
       intensidade_perfil: item.profile_intensity || 0,
       energia: item.energy || 0,
       equilibrio_energia: item.energy_balance || 0,
-      modificacao_perfil: 0,
+      modificacao_perfil: (item as any).profile_modification || 0,
       notes: item.notes,
     },
   };
