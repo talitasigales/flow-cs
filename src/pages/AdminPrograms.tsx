@@ -191,7 +191,7 @@ export default function AdminPrograms() {
     queryFn: async () => {
       let query = supabase
         .from('program_enrollments')
-        .select('id, user_id, enrolled_at, class_id')
+        .select('id, user_id, enrolled_at, class_id, resilience_url, dilemmas_url')
         .eq('program_id', selectedProgram)
         .order('enrolled_at', { ascending: false });
       if (selectedClassFilter && selectedClassFilter !== 'all') {
