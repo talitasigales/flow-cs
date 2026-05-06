@@ -9,6 +9,8 @@ interface Entry {
   name?: string;
   email: string;
   secondary_email?: string | null;
+  resilience_url?: string | null;
+  dilemmas_url?: string | null;
 }
 
 const norm = (v: unknown): string => (typeof v === 'string' ? v.trim().toLowerCase() : '');
@@ -61,8 +63,16 @@ Deno.serve(async (req) => {
         .map((e: any) => {
           const primary = norm(e?.email);
           const secondary = norm(e?.secondary_email);
+          const resilience = typeof e?.resilience_url === 'string' ? e.resilience_url.trim() : '';
+          const dilemmas = typeof e?.dilemmas_url === 'string' ? e.dilemmas_url.trim() : '';
           return primary
-            ? { name: typeof e?.name === 'string' ? e.name.trim() : undefined, email: primary, secondary_email: secondary && secondary !== primary ? secondary : null }
+            ? {
+                name: typeof e?.name === 'string' ? e.name.trim() : undefined,
+                email: primary,
+                secondary_email: secondary && secondary !== primary ? secondary : null,
+                resilience_url: resilience || null,
+                dilemmas_url: dilemmas || null,
+              }
             : null;
         })
         .filter((x): x is Entry => x !== null);
@@ -96,9 +106,22 @@ Deno.serve(async (req) => {
       if (profile) {
         const insertData: any = { program_id, user_id: profile.user_id };
         if (class_id && class_id !== 'none') insertData.class_id = class_id;
+        if (entry.resilience_url) insertData.resilience_url = entry.resilience_url;
+        if (entry.dilemmas_url) insertData.dilemmas_url = entry.dilemmas_url;
         const { error } = await supabase.from('program_enrollments').insert(insertData);
         if (error) {
           if (error.code === '23505') {
+            // Already enrolled — backfill links if provided
+            if (entry.resilience_url || entry.dilemmas_url) {
+              const updateData: any = {};
+              if (entry.resilience_url) updateData.resilience_url = entry.resilience_url;
+              if (entry.dilemmas_url) updateData.dilemmas_url = entry.dilemmas_url;
+              await supabase
+                .from('program_enrollments')
+                .update(updateData)
+                .eq('program_id', program_id)
+                .eq('user_id', profile.user_id);
+            }
             alreadyEnrolled.push(entry.email);
           } else {
             console.error('enroll error', error);
@@ -117,24 +140,27 @@ Deno.serve(async (req) => {
         secondary_email: entry.secondary_email || null,
       };
       if (class_id && class_id !== 'none') pendingData.class_id = class_id;
+      if (entry.resilience_url) pendingData.resilience_url = entry.resilience_url;
+      if (entry.dilemmas_url) pendingData.dilemmas_url = entry.dilemmas_url;
 
       const { error: pendingErr } = await supabase.from('pending_enrollments').insert(pendingData);
 
       if (pendingErr) {
         if (pendingErr.code === '23505') {
-          // already pending for this primary email/program — try to backfill secondary if missing
-          if (entry.secondary_email) {
-            const { data: existing } = await supabase
-              .from('pending_enrollments')
-              .select('id, secondary_email')
-              .eq('email', entry.email)
-              .eq('program_id', program_id)
-              .maybeSingle();
-            if (existing && !existing.secondary_email) {
-              await supabase
-                .from('pending_enrollments')
-                .update({ secondary_email: entry.secondary_email })
-                .eq('id', existing.id);
+          // already pending for this primary email/program — backfill missing fields
+          const { data: existing } = await supabase
+            .from('pending_enrollments')
+            .select('id, secondary_email, resilience_url, dilemmas_url')
+            .eq('email', entry.email)
+            .eq('program_id', program_id)
+            .maybeSingle();
+          if (existing) {
+            const updateData: any = {};
+            if (entry.secondary_email && !existing.secondary_email) updateData.secondary_email = entry.secondary_email;
+            if (entry.resilience_url) updateData.resilience_url = entry.resilience_url;
+            if (entry.dilemmas_url) updateData.dilemmas_url = entry.dilemmas_url;
+            if (Object.keys(updateData).length > 0) {
+              await supabase.from('pending_enrollments').update(updateData).eq('id', existing.id);
             }
           }
           alreadyEnrolled.push(entry.email);

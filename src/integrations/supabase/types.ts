@@ -1655,25 +1655,31 @@ export type Database = {
         Row: {
           class_id: string | null
           created_at: string
+          dilemmas_url: string | null
           email: string
           id: string
           program_id: string
+          resilience_url: string | null
           secondary_email: string | null
         }
         Insert: {
           class_id?: string | null
           created_at?: string
+          dilemmas_url?: string | null
           email: string
           id?: string
           program_id: string
+          resilience_url?: string | null
           secondary_email?: string | null
         }
         Update: {
           class_id?: string | null
           created_at?: string
+          dilemmas_url?: string | null
           email?: string
           id?: string
           program_id?: string
+          resilience_url?: string | null
           secondary_email?: string | null
         }
         Relationships: [
@@ -1893,23 +1899,29 @@ export type Database = {
       program_enrollments: {
         Row: {
           class_id: string | null
+          dilemmas_url: string | null
           enrolled_at: string
           id: string
           program_id: string
+          resilience_url: string | null
           user_id: string
         }
         Insert: {
           class_id?: string | null
+          dilemmas_url?: string | null
           enrolled_at?: string
           id?: string
           program_id: string
+          resilience_url?: string | null
           user_id: string
         }
         Update: {
           class_id?: string | null
+          dilemmas_url?: string | null
           enrolled_at?: string
           id?: string
           program_id?: string
+          resilience_url?: string | null
           user_id?: string
         }
         Relationships: [

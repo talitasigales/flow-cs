@@ -35,6 +35,7 @@ import { ExerciseRenderer } from '@/components/academy/ExerciseRenderer';
 import { FeatureLinkCards } from '@/components/academy/FeatureLinkCards';
 import { ProgramWelcomeManager } from '@/components/admin/ProgramWelcomeManager';
 import { CertificateManager } from '@/components/admin/CertificateManager';
+import { StudentLinksEditor } from '@/components/admin/StudentLinksEditor';
 import * as XLSX from 'xlsx';
 
 const QUESTION_LABELS: Record<string, string> = {
@@ -94,6 +95,8 @@ export default function AdminPrograms() {
   const [individualEmail, setIndividualEmail] = useState('');
   const [individualSecondaryEmail, setIndividualSecondaryEmail] = useState('');
   const [individualClassId, setIndividualClassId] = useState('');
+  const [individualResilienceUrl, setIndividualResilienceUrl] = useState('');
+  const [individualDilemmasUrl, setIndividualDilemmasUrl] = useState('');
   const [enrollingIndividual, setEnrollingIndividual] = useState(false);
 
   // Materials state
@@ -187,9 +190,9 @@ export default function AdminPrograms() {
     queryKey: ['all-enrollments', selectedProgram, selectedClassFilter],
     enabled: !!selectedProgram,
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('program_enrollments')
-        .select('id, user_id, enrolled_at, class_id')
+        .select('id, user_id, enrolled_at, class_id, resilience_url, dilemmas_url')
         .eq('program_id', selectedProgram)
         .order('enrolled_at', { ascending: false });
       if (selectedClassFilter && selectedClassFilter !== 'all') {
@@ -197,13 +200,13 @@ export default function AdminPrograms() {
       }
       const { data: enrs } = await query;
       if (!enrs || enrs.length === 0) return [];
-      const userIds = [...new Set(enrs.map(e => e.user_id))];
+      const userIds = [...new Set((enrs as any[]).map((e: any) => e.user_id as string))];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('user_id, full_name, email, last_access_at')
         .in('user_id', userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-      return enrs.map(e => ({ ...e, profiles: profileMap.get(e.user_id) || null }));
+      return (enrs as any[]).map((e: any) => ({ ...e, profiles: profileMap.get(e.user_id) || null }));
     },
   });
 
@@ -507,6 +510,8 @@ export default function AdminPrograms() {
             name: individualName.trim(),
             email: primary,
             secondary_email: secondary && secondary !== primary ? secondary : null,
+            resilience_url: individualResilienceUrl.trim() || null,
+            dilemmas_url: individualDilemmasUrl.trim() || null,
           }],
           program_id: selectedProgram,
           class_id: individualClassId || null,
@@ -536,6 +541,8 @@ export default function AdminPrograms() {
       setIndividualEmail('');
       setIndividualSecondaryEmail('');
       setIndividualClassId('');
+      setIndividualResilienceUrl('');
+      setIndividualDilemmasUrl('');
       refetchEnrollments();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao matricular aluno');
@@ -1702,7 +1709,7 @@ export default function AdminPrograms() {
                     Informe um e-mail principal e, opcionalmente, um secundário (corporativo + pessoal). O aluno será matriculado se cadastrar com qualquer um dos dois.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Nome completo</Label>
@@ -1734,6 +1741,17 @@ export default function AdminPrograms() {
                       {enrollingIndividual ? 'Matriculando...' : 'Matricular'}
                     </Button>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Link Resiliência (QR) — específico deste aluno (opcional)</Label>
+                      <Input placeholder="https://..." value={individualResilienceUrl} onChange={e => setIndividualResilienceUrl(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Link Dilemas de Gestão (DG) — específico deste aluno (opcional)</Label>
+                      <Input placeholder="https://..." value={individualDilemmasUrl} onChange={e => setIndividualDilemmasUrl(e.target.value)} />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Se vazio, o aluno vê o link geral configurado na turma.</p>
                 </CardContent>
               </Card>
 
@@ -1823,7 +1841,7 @@ export default function AdminPrograms() {
                          <TableHead>Turma</TableHead>
                         <TableHead>Data de Matrícula</TableHead>
                         <TableHead>Último Acesso</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
+                        <TableHead className="w-[180px] text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1863,9 +1881,18 @@ export default function AdminPrograms() {
                             }
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <StudentLinksEditor
+                                table="program_enrollments"
+                                rowId={e.id}
+                                resilienceUrl={e.resilience_url}
+                                dilemmasUrl={e.dilemmas_url}
+                                onSaved={refetchEnrollments}
+                              />
+                              <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1945,21 +1972,30 @@ export default function AdminPrograms() {
                               <TableCell>{cls?.name || '—'}</TableCell>
                               <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
                               <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={async () => {
-                                    const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
-                                    if (error) {
-                                      toast.error('Erro ao remover pré-matrícula');
-                                    } else {
-                                      toast.success('Pré-matrícula removida');
-                                      refetchPending();
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="w-4 h-4 text-destructive" />
-                                </Button>
+                                <div className="flex items-center justify-end gap-1">
+                                  <StudentLinksEditor
+                                    table="pending_enrollments"
+                                    rowId={pe.id}
+                                    resilienceUrl={pe.resilience_url}
+                                    dilemmasUrl={pe.dilemmas_url}
+                                    onSaved={refetchPending}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={async () => {
+                                      const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
+                                      if (error) {
+                                        toast.error('Erro ao remover pré-matrícula');
+                                      } else {
+                                        toast.success('Pré-matrícula removida');
+                                        refetchPending();
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           );
