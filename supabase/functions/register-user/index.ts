@@ -137,7 +137,7 @@ serve(async (req) => {
     // Process pending enrollments for this email (match primary OR secondary)
     const { data: pendingRows, error: pendingError } = await supabaseAdmin
       .from('pending_enrollments')
-      .select('id, program_id, class_id')
+      .select('id, program_id, class_id, resilience_url, dilemmas_url')
       .or(`email.eq.${normalizedEmail},secondary_email.eq.${normalizedEmail}`);
 
     if (pendingError) {
@@ -150,6 +150,8 @@ serve(async (req) => {
             user_id: userId,
             program_id: row.program_id,
             class_id: row.class_id,
+            resilience_url: row.resilience_url,
+            dilemmas_url: row.dilemmas_url,
           });
 
         if (enrollError) {
