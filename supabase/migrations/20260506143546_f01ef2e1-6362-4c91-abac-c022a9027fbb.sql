@@ -1,0 +1,1 @@
+ALTER TABLE public.profile_evolution ADD COLUMN IF NOT EXISTS profile_modification integer NOT NULL DEFAULT 0;

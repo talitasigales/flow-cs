@@ -65,7 +65,16 @@ export function EditProfileDialog({ profileId, currentData, onSuccess }: EditPro
       const { error } = await (supabase as any)
         .from('profile_evolution')
         .update({
-          analysis_result: validatedData
+          r_value: validatedData.r,
+          e_value: validatedData.e,
+          p_value: validatedData.p,
+          n_value: validatedData.n,
+          a_value: validatedData.a,
+          decision_making: validatedData.tomada_decisoes,
+          profile_intensity: validatedData.intensidade_perfil,
+          energy: validatedData.energia,
+          energy_balance: validatedData.equilibrio_energia,
+          profile_modification: validatedData.modificacao_perfil,
         })
         .eq('id', profileId);
 
