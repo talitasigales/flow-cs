@@ -189,7 +189,7 @@ export default function AdminPrograms() {
     queryKey: ['all-enrollments', selectedProgram, selectedClassFilter],
     enabled: !!selectedProgram,
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('program_enrollments')
         .select('id, user_id, enrolled_at, class_id, resilience_url, dilemmas_url')
         .eq('program_id', selectedProgram)
