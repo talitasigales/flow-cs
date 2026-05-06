@@ -94,6 +94,8 @@ export default function AdminPrograms() {
   const [individualEmail, setIndividualEmail] = useState('');
   const [individualSecondaryEmail, setIndividualSecondaryEmail] = useState('');
   const [individualClassId, setIndividualClassId] = useState('');
+  const [individualResilienceUrl, setIndividualResilienceUrl] = useState('');
+  const [individualDilemmasUrl, setIndividualDilemmasUrl] = useState('');
   const [enrollingIndividual, setEnrollingIndividual] = useState(false);
 
   // Materials state
