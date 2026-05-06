@@ -509,6 +509,8 @@ export default function AdminPrograms() {
             name: individualName.trim(),
             email: primary,
             secondary_email: secondary && secondary !== primary ? secondary : null,
+            resilience_url: individualResilienceUrl.trim() || null,
+            dilemmas_url: individualDilemmasUrl.trim() || null,
           }],
           program_id: selectedProgram,
           class_id: individualClassId || null,
@@ -538,6 +540,8 @@ export default function AdminPrograms() {
       setIndividualEmail('');
       setIndividualSecondaryEmail('');
       setIndividualClassId('');
+      setIndividualResilienceUrl('');
+      setIndividualDilemmasUrl('');
       refetchEnrollments();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao matricular aluno');
