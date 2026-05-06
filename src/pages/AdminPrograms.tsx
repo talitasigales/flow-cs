@@ -1841,7 +1841,7 @@ export default function AdminPrograms() {
                          <TableHead>Turma</TableHead>
                         <TableHead>Data de Matrícula</TableHead>
                         <TableHead>Último Acesso</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
+                        <TableHead className="w-[180px] text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
