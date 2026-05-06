@@ -63,8 +63,16 @@ Deno.serve(async (req) => {
         .map((e: any) => {
           const primary = norm(e?.email);
           const secondary = norm(e?.secondary_email);
+          const resilience = typeof e?.resilience_url === 'string' ? e.resilience_url.trim() : '';
+          const dilemmas = typeof e?.dilemmas_url === 'string' ? e.dilemmas_url.trim() : '';
           return primary
-            ? { name: typeof e?.name === 'string' ? e.name.trim() : undefined, email: primary, secondary_email: secondary && secondary !== primary ? secondary : null }
+            ? {
+                name: typeof e?.name === 'string' ? e.name.trim() : undefined,
+                email: primary,
+                secondary_email: secondary && secondary !== primary ? secondary : null,
+                resilience_url: resilience || null,
+                dilemmas_url: dilemmas || null,
+              }
             : null;
         })
         .filter((x): x is Entry => x !== null);
