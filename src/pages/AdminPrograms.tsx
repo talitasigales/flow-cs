@@ -1972,21 +1972,30 @@ export default function AdminPrograms() {
                               <TableCell>{cls?.name || '—'}</TableCell>
                               <TableCell>{format(new Date(pe.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
                               <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={async () => {
-                                    const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
-                                    if (error) {
-                                      toast.error('Erro ao remover pré-matrícula');
-                                    } else {
-                                      toast.success('Pré-matrícula removida');
-                                      refetchPending();
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="w-4 h-4 text-destructive" />
-                                </Button>
+                                <div className="flex items-center justify-end gap-1">
+                                  <StudentLinksEditor
+                                    table="pending_enrollments"
+                                    rowId={pe.id}
+                                    resilienceUrl={pe.resilience_url}
+                                    dilemmasUrl={pe.dilemmas_url}
+                                    onSaved={refetchPending}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={async () => {
+                                      const { error } = await supabase.from('pending_enrollments').delete().eq('id', pe.id);
+                                      if (error) {
+                                        toast.error('Erro ao remover pré-matrícula');
+                                      } else {
+                                        toast.success('Pré-matrícula removida');
+                                        refetchPending();
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           );
