@@ -1881,9 +1881,18 @@ export default function AdminPrograms() {
                             }
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              <StudentLinksEditor
+                                table="program_enrollments"
+                                rowId={e.id}
+                                resilienceUrl={e.resilience_url}
+                                dilemmasUrl={e.dilemmas_url}
+                                onSaved={refetchEnrollments}
+                              />
+                              <Button variant="ghost" size="icon" onClick={() => handleRemoveEnrollment(e.id)} className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
