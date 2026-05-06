@@ -431,26 +431,26 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
       {programId && cls?.pda_report_enabled && <PdaReportUpload programId={programId} programName={program?.name} />}
 
       {/* Questionários configurados pela turma */}
-      {(cls?.resilience_url || cls?.dilemmas_url) && (
+      {(resilienceUrl || dilemmasUrl) && (
         <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center gap-2">
               <ClipboardList className="w-5 h-5 text-primary" />
-              <p className="text-sm font-semibold">Questionários da turma</p>
+              <p className="text-sm font-semibold">Seus questionários</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {cls?.resilience_url && (
+              {resilienceUrl && (
                 <Button asChild variant="outline" className="justify-between h-auto py-3">
-                  <a href={cls.resilience_url} target="_blank" rel="noopener noreferrer">
-                    <span className="text-sm font-medium">Avaliação de Resiliência</span>
+                  <a href={resilienceUrl} target="_blank" rel="noopener noreferrer">
+                    <span className="text-sm font-medium">Avaliação de Resiliência (QR)</span>
                     <ChevronRight className="w-4 h-4" />
                   </a>
                 </Button>
               )}
-              {cls?.dilemmas_url && (
+              {dilemmasUrl && (
                 <Button asChild variant="outline" className="justify-between h-auto py-3">
-                  <a href={cls.dilemmas_url} target="_blank" rel="noopener noreferrer">
-                    <span className="text-sm font-medium">Dilemas de Gestão</span>
+                  <a href={dilemmasUrl} target="_blank" rel="noopener noreferrer">
+                    <span className="text-sm font-medium">Dilemas de Gestão (DG)</span>
                     <ChevronRight className="w-4 h-4" />
                   </a>
                 </Button>
