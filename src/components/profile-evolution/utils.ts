@@ -114,7 +114,8 @@ export const calculateDelta = (
 };
 
 export const mapDatabaseToProfile = (item: any): ProfileEvolution => {
-  const year = new Date(item.assessment_date).getFullYear();
+  // Parse YYYY-MM-DD safely without timezone shift
+  const year = parseInt(String(item.assessment_date).slice(0, 4), 10);
   return {
     id: item.id,
     employee_name: item.employee_name,
