@@ -13,6 +13,8 @@ import { Plus, Search, Building2, AlertTriangle, Users as UsersIcon, Activity } 
 import { CompanyFormDialog } from '@/components/cs/CompanyFormDialog';
 import { HealthBadge } from '@/components/cs/HealthBadge';
 import { AlertsBanner } from '@/components/cs/AlertsBanner';
+import { CSUsageDashboard } from '@/components/cs/CSUsageDashboard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateHealthScore, COMPANY_STATUS_LABELS } from '@/lib/cs/healthScore';
 import { toast } from 'sonner';
 
@@ -141,90 +143,106 @@ export default function CSDashboard() {
       <div className="container mx-auto p-6 space-y-6 max-w-7xl">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-3xl font-bold gradient-text">CS Timeline & Touchpoints</h1>
-            <p className="text-muted-foreground text-sm">Gestão de relacionamento com clientes do time de Customer Success.</p>
+            <h1 className="text-3xl font-bold gradient-text">Customer Success</h1>
+            <p className="text-muted-foreground text-sm">Gestão de relacionamento com clientes e acompanhamento de uso da plataforma.</p>
           </div>
-          {canEdit && (
-            <Button onClick={() => setOpenForm(true)}>
-              <Plus className="w-4 h-4 mr-2" />Nova empresa
-            </Button>
-          )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard icon={Building2} label="Empresas" value={kpis.total} />
-          <KpiCard icon={AlertTriangle} label="Em risco/churn" value={kpis.risco} tone="danger" />
-          <KpiCard icon={Activity} label="Health crítico" value={kpis.critical} tone="danger" />
-          <KpiCard icon={UsersIcon} label="Em expansão" value={kpis.expansao} tone="success" />
-        </div>
+        <Tabs defaultValue="timeline" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="timeline">Timeline & Touchpoints</TabsTrigger>
+            <TabsTrigger value="usage">Uso de usuários</TabsTrigger>
+          </TabsList>
 
-        <AlertsBanner {...alerts} />
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-wrap gap-3 items-end">
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input className="pl-9" placeholder="Buscar empresa ou segmento..." value={search} onChange={e => setSearch(e.target.value)} />
-                </div>
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  {Object.entries(COMPANY_STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
-                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Responsável" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos responsáveis</SelectItem>
-                  {Object.entries(ownersMap).map(([id, name]) => <SelectItem key={id} value={id}>{name || id.slice(0, 8)}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={healthFilter} onValueChange={setHealthFilter}>
-                <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Health: todos</SelectItem>
-                  <SelectItem value="healthy">Saudável</SelectItem>
-                  <SelectItem value="warning">Atenção</SelectItem>
-                  <SelectItem value="critical">Crítico</SelectItem>
-                </SelectContent>
-              </Select>
+          <TabsContent value="timeline" className="space-y-6 mt-0">
+            <div className="flex items-center justify-end">
+              {canEdit && (
+                <Button onClick={() => setOpenForm(true)}>
+                  <Plus className="w-4 h-4 mr-2" />Nova empresa
+                </Button>
+              )}
             </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Health</TableHead>
-                  <TableHead>Último contato</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Segmento</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma empresa encontrada.</TableCell></TableRow>
-                ) : filtered.map(c => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/40" onClick={() => navigate(`/cs/empresas/${c.id}`)}>
-                    <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell><Badge variant="outline" className={statusColors[c.status]}>{COMPANY_STATUS_LABELS[c.status]}</Badge></TableCell>
-                    <TableCell><HealthBadge score={c.health.score} band={c.health.band} /></TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {c.health.daysSinceLast === null ? 'Nunca' : `há ${c.health.daysSinceLast}d`}
-                    </TableCell>
-                    <TableCell className="text-sm">{c.owner_name || '—'}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{c.segment || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <KpiCard icon={Building2} label="Empresas" value={kpis.total} />
+              <KpiCard icon={AlertTriangle} label="Em risco/churn" value={kpis.risco} tone="danger" />
+              <KpiCard icon={Activity} label="Health crítico" value={kpis.critical} tone="danger" />
+              <KpiCard icon={UsersIcon} label="Em expansão" value={kpis.expansao} tone="success" />
+            </div>
+
+            <AlertsBanner {...alerts} />
+
+            <Card>
+              <CardHeader>
+                <div className="flex flex-wrap gap-3 items-end">
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input className="pl-9" placeholder="Buscar empresa ou segmento..." value={search} onChange={e => setSearch(e.target.value)} />
+                    </div>
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      {Object.entries(COMPANY_STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                    <SelectTrigger className="w-[180px]"><SelectValue placeholder="Responsável" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos responsáveis</SelectItem>
+                      {Object.entries(ownersMap).map(([id, name]) => <SelectItem key={id} value={id}>{name || id.slice(0, 8)}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={healthFilter} onValueChange={setHealthFilter}>
+                    <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Health: todos</SelectItem>
+                      <SelectItem value="healthy">Saudável</SelectItem>
+                      <SelectItem value="warning">Atenção</SelectItem>
+                      <SelectItem value="critical">Crítico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Empresa</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Health</TableHead>
+                      <TableHead>Último contato</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Segmento</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma empresa encontrada.</TableCell></TableRow>
+                    ) : filtered.map(c => (
+                      <TableRow key={c.id} className="cursor-pointer hover:bg-muted/40" onClick={() => navigate(`/cs/empresas/${c.id}`)}>
+                        <TableCell className="font-medium">{c.name}</TableCell>
+                        <TableCell><Badge variant="outline" className={statusColors[c.status]}>{COMPANY_STATUS_LABELS[c.status]}</Badge></TableCell>
+                        <TableCell><HealthBadge score={c.health.score} band={c.health.band} /></TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {c.health.daysSinceLast === null ? 'Nunca' : `há ${c.health.daysSinceLast}d`}
+                        </TableCell>
+                        <TableCell className="text-sm">{c.owner_name || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{c.segment || '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="usage" className="mt-0">
+            <CSUsageDashboard />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <CompanyFormDialog open={openForm} onOpenChange={setOpenForm} onSaved={fetchAll} />
