@@ -12,9 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check, Trash2, Search, Activity, Sparkles } from 'lucide-react';
+import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check, Trash2, Search, Activity, Sparkles, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { UserActivityDialog } from '@/components/admin/UserActivityDialog';
+import { generateCSV, downloadCSV } from '@/utils/exportUtils';
 
 interface UserData {
   id: string;
