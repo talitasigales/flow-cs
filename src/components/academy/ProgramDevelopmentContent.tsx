@@ -430,14 +430,16 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
       {/* PDA Report Upload (controlado pelo admin no nível da turma) */}
       {programId && cls?.pda_report_enabled && <PdaReportUpload programId={programId} programName={program?.name} />}
 
-      {/* Questionários configurados pela turma */}
-      {(resilienceUrl || dilemmasUrl) && (
-        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+      {/* Questionários configurados pela turma — liberados a partir de 11/05 */}
+      {(resilienceUrl || dilemmasUrl) && today >= '2026-05-11' && (
+        <Card className="border-primary/40 bg-gradient-to-r from-primary/10 to-transparent">
           <CardContent className="p-4 space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <ClipboardList className="w-5 h-5 text-primary" />
               <p className="text-sm font-semibold">Seus questionários</p>
+              <Badge className="bg-primary text-primary-foreground text-[10px] uppercase tracking-wide">Preenchimento obrigatório</Badge>
             </div>
+            <p className="text-xs text-muted-foreground">Acesse os links abaixo (individuais por aluno) e responda antes do próximo encontro.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {resilienceUrl && (
                 <Button asChild variant="outline" className="justify-between h-auto py-3">
