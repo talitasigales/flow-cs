@@ -50,6 +50,16 @@ const AdminUsers = () => {
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  // Activity dialog
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [activityUserId, setActivityUserId] = useState<string | null>(null);
+  const [activityUserName, setActivityUserName] = useState('');
+
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
       toast.error('Acesso negado');
