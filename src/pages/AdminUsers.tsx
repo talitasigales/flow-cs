@@ -12,8 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check, Trash2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check, Trash2, Search, Activity, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { UserActivityDialog } from '@/components/admin/UserActivityDialog';
 
 interface UserData {
   id: string;
@@ -23,6 +24,9 @@ interface UserData {
   company: string | null;
   created_at: string;
   role: 'admin' | 'user' | null;
+  nanda_count: number;
+  action_count: number;
+  last_activity: string | null;
 }
 
 const AdminUsers = () => {
@@ -45,6 +49,16 @@ const AdminUsers = () => {
   const [resetting, setResetting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  // Activity dialog
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [activityUserId, setActivityUserId] = useState<string | null>(null);
+  const [activityUserName, setActivityUserName] = useState('');
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -76,12 +90,43 @@ const AdminUsers = () => {
 
       if (rolesError) throw rolesError;
 
+      // Fetch usage data: Nanda messages and audit logs
+      const [nandaRes, auditRes] = await Promise.all([
+        (supabase as any).from('nanda_messages').select('user_id, created_at').eq('role', 'user'),
+        (supabase as any).from('audit_logs').select('user_id, created_at'),
+      ]);
+
+      const nandaCounts: Record<string, number> = {};
+      for (const m of (nandaRes.data || [])) {
+        if (m.user_id) nandaCounts[m.user_id] = (nandaCounts[m.user_id] || 0) + 1;
+      }
+
+      const actionCounts: Record<string, number> = {};
+      const lastActivity: Record<string, string> = {};
+      for (const l of (auditRes.data || [])) {
+        if (!l.user_id) continue;
+        actionCounts[l.user_id] = (actionCounts[l.user_id] || 0) + 1;
+        if (!lastActivity[l.user_id] || l.created_at > lastActivity[l.user_id]) {
+          lastActivity[l.user_id] = l.created_at;
+        }
+      }
+      // Nanda messages also count as activity for "last_activity"
+      for (const m of (nandaRes.data || [])) {
+        if (!m.user_id) continue;
+        if (!lastActivity[m.user_id] || m.created_at > lastActivity[m.user_id]) {
+          lastActivity[m.user_id] = m.created_at;
+        }
+      }
+
       // Combine profiles with roles
       const usersWithRoles = (profiles || []).map((profile: any) => {
         const userRole = (roles || []).find((r: any) => r.user_id === profile.user_id);
         return {
           ...profile,
-          role: userRole?.role || null
+          role: userRole?.role || null,
+          nanda_count: nandaCounts[profile.user_id] || 0,
+          action_count: actionCounts[profile.user_id] || 0,
+          last_activity: lastActivity[profile.user_id] || null,
         };
       });
 
@@ -330,12 +375,56 @@ const AdminUsers = () => {
           </Dialog>
         </div>
 
+        {(() => {
+          const uniqueCompanies = Array.from(new Set(users.map(u => u.company).filter(Boolean))).sort() as string[];
+          const term = searchTerm.toLowerCase().trim();
+          const filteredUsers = users.filter(u => {
+            const matchesSearch = !term ||
+              (u.full_name || '').toLowerCase().includes(term) ||
+              (u.email || '').toLowerCase().includes(term) ||
+              (u.company || '').toLowerCase().includes(term);
+            const matchesCompany = companyFilter === 'all' || (u.company || '') === companyFilter;
+            const matchesRole = roleFilter === 'all'
+              || (roleFilter === 'admin' && u.role === 'admin')
+              || (roleFilter === 'user' && u.role !== 'admin');
+            return matchesSearch && matchesCompany && matchesRole;
+          });
+
+          return (
         <Card>
           <CardHeader>
             <CardTitle>Usuários Cadastrados</CardTitle>
             <CardDescription>
-              Total de {users.length} usuário{users.length !== 1 ? 's' : ''} no sistema
+              Mostrando {filteredUsers.length} de {users.length} usuário{users.length !== 1 ? 's' : ''}
             </CardDescription>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome, email ou empresa..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger><SelectValue placeholder="Empresa" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as empresas</SelectItem>
+                  {uniqueCompanies.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger><SelectValue placeholder="Permissão" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as permissões</SelectItem>
+                  <SelectItem value="admin">Administradores</SelectItem>
+                  <SelectItem value="user">Usuários</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -345,12 +434,13 @@ const AdminUsers = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Permissão</TableHead>
-                  <TableHead>Cadastrado em</TableHead>
+                  <TableHead>Atividade</TableHead>
+                  <TableHead>Última atividade</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((userData) => (
+                {filteredUsers.map((userData) => (
                   <TableRow key={userData.id}>
                     <TableCell className="font-medium">
                       {userData.full_name || 'Sem nome'}
@@ -371,9 +461,33 @@ const AdminUsers = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {new Date(userData.created_at).toLocaleDateString('pt-BR')}
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="outline" className="text-[10px]" title="Ações registradas">
+                          <Activity className="h-3 w-3 mr-1" />{userData.action_count}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] border-primary/40 text-primary" title="Mensagens enviadas à Nanda">
+                          <Sparkles className="h-3 w-3 mr-1" />{userData.nanda_count}
+                        </Badge>
+                      </div>
                     </TableCell>
-                    <TableCell className="text-right space-x-2">
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {userData.last_activity
+                        ? new Date(userData.last_activity).toLocaleDateString('pt-BR')
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-right space-x-2 space-y-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setActivityUserId(userData.user_id);
+                          setActivityUserName(userData.full_name || userData.email || 'Usuário');
+                          setActivityOpen(true);
+                        }}
+                      >
+                        <Activity className="h-3 w-3 mr-1" />
+                        Atividade
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -423,6 +537,16 @@ const AdminUsers = () => {
             </Table>
           </CardContent>
         </Card>
+          );
+        })()}
+
+        <UserActivityDialog
+          open={activityOpen}
+          onOpenChange={setActivityOpen}
+          userId={activityUserId}
+          userName={activityUserName}
+        />
+
 
         {/* Reset Password Dialog */}
         <Dialog open={resetDialogOpen} onOpenChange={(open) => {
