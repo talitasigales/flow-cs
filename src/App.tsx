@@ -41,6 +41,7 @@ import SecurityOverview from "./pages/SecurityOverview";
 import CSDashboard from "./pages/cs/CSDashboard";
 import CompanyDetail from "./pages/cs/CompanyDetail";
 import AdminCSAccess from "./pages/admin/AdminCSAccess";
+import AdminChangelog from "./pages/admin/AdminChangelog";
 
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const App = () => (
           <Route path="/cs" element={<CSDashboard />} />
           <Route path="/cs/empresas/:companyId" element={<CompanyDetail />} />
           <Route path="/admin/cs-access" element={<AdminCSAccess />} />
+          <Route path="/admin/changelog" element={<AdminChangelog />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

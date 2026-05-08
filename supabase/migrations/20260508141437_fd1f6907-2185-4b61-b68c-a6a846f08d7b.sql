@@ -1,0 +1,8 @@
+INSERT INTO public.platform_changelog (title, description, category, area, published_at) VALUES
+('Newsletter semanal automática', 'A plataforma agora envia toda sexta-feira um resumo das novidades da semana para todos os colaboradores @grougp.com.br.', 'novidade', 'Plataforma', now()),
+('Dashboard de uso por usuário em CS', 'Nova subaba em Customer Success com métricas de uso, mensagens da Nanda e ações por usuário, com filtro por empresa, busca e exportação CSV.', 'novidade', 'Customer Success', now()),
+('Visão completa de atividades por usuário', 'Em Gerenciamento de Usuários agora dá pra abrir o histórico completo de cada pessoa: ações na plataforma + conversas com a Nanda, com filtros por empresa e busca por nome/empresa.', 'novidade', 'Admin', now()),
+('Exportação CSV de atividades', 'Admins podem exportar CSV geral (todos os usuários filtrados) e CSV individual por usuário com a timeline de atividades.', 'melhoria', 'Admin', now()),
+('Links QR e DG visíveis para alunos', 'A partir de 11 de maio, os links QR e DG cadastrados pelo admin aparecem para o aluno acima do cronograma com tag de preenchimento obrigatório.', 'novidade', 'Academy', now()),
+('Correção no ano da Evolução de Perfis', 'Ao adicionar um novo relatório PDA com ano específico, agora o ano é salvo corretamente (antes diminuía 1).', 'correção', 'PDA', now()),
+('Tela de Novidades da plataforma', 'Criamos /admin/changelog para registrar tudo que é implementado/ajustado na plataforma — é dali que a newsletter é montada toda sexta.', 'novidade', 'Admin', now());
