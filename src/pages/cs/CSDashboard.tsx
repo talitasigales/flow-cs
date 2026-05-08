@@ -13,6 +13,8 @@ import { Plus, Search, Building2, AlertTriangle, Users as UsersIcon, Activity } 
 import { CompanyFormDialog } from '@/components/cs/CompanyFormDialog';
 import { HealthBadge } from '@/components/cs/HealthBadge';
 import { AlertsBanner } from '@/components/cs/AlertsBanner';
+import { CSUsageDashboard } from '@/components/cs/CSUsageDashboard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateHealthScore, COMPANY_STATUS_LABELS } from '@/lib/cs/healthScore';
 import { toast } from 'sonner';
 
