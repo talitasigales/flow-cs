@@ -90,12 +90,43 @@ const AdminUsers = () => {
 
       if (rolesError) throw rolesError;
 
+      // Fetch usage data: Nanda messages and audit logs
+      const [nandaRes, auditRes] = await Promise.all([
+        (supabase as any).from('nanda_messages').select('user_id, created_at').eq('role', 'user'),
+        (supabase as any).from('audit_logs').select('user_id, created_at'),
+      ]);
+
+      const nandaCounts: Record<string, number> = {};
+      for (const m of (nandaRes.data || [])) {
+        if (m.user_id) nandaCounts[m.user_id] = (nandaCounts[m.user_id] || 0) + 1;
+      }
+
+      const actionCounts: Record<string, number> = {};
+      const lastActivity: Record<string, string> = {};
+      for (const l of (auditRes.data || [])) {
+        if (!l.user_id) continue;
+        actionCounts[l.user_id] = (actionCounts[l.user_id] || 0) + 1;
+        if (!lastActivity[l.user_id] || l.created_at > lastActivity[l.user_id]) {
+          lastActivity[l.user_id] = l.created_at;
+        }
+      }
+      // Nanda messages also count as activity for "last_activity"
+      for (const m of (nandaRes.data || [])) {
+        if (!m.user_id) continue;
+        if (!lastActivity[m.user_id] || m.created_at > lastActivity[m.user_id]) {
+          lastActivity[m.user_id] = m.created_at;
+        }
+      }
+
       // Combine profiles with roles
       const usersWithRoles = (profiles || []).map((profile: any) => {
         const userRole = (roles || []).find((r: any) => r.user_id === profile.user_id);
         return {
           ...profile,
-          role: userRole?.role || null
+          role: userRole?.role || null,
+          nanda_count: nandaCounts[profile.user_id] || 0,
+          action_count: actionCounts[profile.user_id] || 0,
+          last_activity: lastActivity[profile.user_id] || null,
         };
       });
 
