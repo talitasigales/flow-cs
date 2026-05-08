@@ -1699,6 +1699,42 @@ export type Database = {
           },
         ]
       }
+      platform_changelog: {
+        Row: {
+          area: string
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          published_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          area?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          published_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          published_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profile_evolution: {
         Row: {
           a_value: number | null
