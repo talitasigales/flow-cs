@@ -12,8 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check, Trash2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Shield, User, KeyRound, Copy, Check, Trash2, Search, Activity, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { UserActivityDialog } from '@/components/admin/UserActivityDialog';
 
 interface UserData {
   id: string;
@@ -23,6 +24,9 @@ interface UserData {
   company: string | null;
   created_at: string;
   role: 'admin' | 'user' | null;
+  nanda_count: number;
+  action_count: number;
+  last_activity: string | null;
 }
 
 const AdminUsers = () => {
