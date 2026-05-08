@@ -394,10 +394,44 @@ const AdminUsers = () => {
           return (
         <Card>
           <CardHeader>
-            <CardTitle>Usuários Cadastrados</CardTitle>
-            <CardDescription>
-              Mostrando {filteredUsers.length} de {users.length} usuário{users.length !== 1 ? 's' : ''}
-            </CardDescription>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <CardTitle>Usuários Cadastrados</CardTitle>
+                <CardDescription>
+                  Mostrando {filteredUsers.length} de {users.length} usuário{users.length !== 1 ? 's' : ''}
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (filteredUsers.length === 0) {
+                    toast.error('Nenhum usuário para exportar');
+                    return;
+                  }
+                  const headers = [
+                    'Nome', 'Email', 'Empresa', 'Permissão',
+                    'Mensagens Nanda', 'Total de ações', 'Última atividade', 'Cadastrado em',
+                  ];
+                  const rows = filteredUsers.map(u => [
+                    u.full_name || '', u.email || '', u.company || '',
+                    u.role === 'admin' ? 'Admin' : 'Usuário',
+                    u.nanda_count, u.action_count,
+                    u.last_activity ? new Date(u.last_activity).toLocaleString('pt-BR') : '',
+                    new Date(u.created_at).toLocaleDateString('pt-BR'),
+                  ]);
+                  const csv = generateCSV(headers, rows);
+                  const scope = companyFilter !== 'all'
+                    ? companyFilter.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 40)
+                    : 'geral';
+                  downloadCSV(csv, `atividade_usuarios_${scope}_${new Date().toISOString().split('T')[0]}.csv`);
+                  toast.success(`${filteredUsers.length} usuários exportados`);
+                }}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV {companyFilter !== 'all' ? '(empresa filtrada)' : '(geral)'}
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
