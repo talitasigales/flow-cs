@@ -109,8 +109,51 @@ export const UserActivityDialog = ({ open, onOpenChange, userId, userName }: Pro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh]">
         <DialogHeader>
-          <DialogTitle>Atividade · {userName}</DialogTitle>
-          <DialogDescription>Visão completa do uso da plataforma por este usuário</DialogDescription>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <DialogTitle>Atividade · {userName}</DialogTitle>
+              <DialogDescription>Visão completa do uso da plataforma por este usuário</DialogDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={loading || (logs.length === 0 && nandaMsgs.length === 0)}
+              onClick={() => {
+                const headers = ['Data/Hora', 'Tipo', 'Ação', 'Recurso', 'Detalhes'];
+                const rows: (string | number)[][] = [];
+                for (const l of logs) {
+                  rows.push([
+                    new Date(l.created_at).toLocaleString('pt-BR'),
+                    'Plataforma',
+                    ACTION_LABELS[l.action] || l.action,
+                    RESOURCE_LABELS[l.table_name] || l.table_name || '-',
+                    getActionDetail(l),
+                  ]);
+                }
+                for (const m of nandaMsgs) {
+                  rows.push([
+                    new Date(m.created_at).toLocaleString('pt-BR'),
+                    'Nanda',
+                    m.role === 'user' ? 'Mensagem do usuário' : 'Resposta da Nanda',
+                    'Chatbot Nanda',
+                    String(m.content || '').replace(/\s+/g, ' ').slice(0, 500),
+                  ]);
+                }
+                rows.sort((a, b) => String(b[0]).localeCompare(String(a[0])));
+                if (rows.length === 0) {
+                  toast.error('Nenhuma atividade para exportar');
+                  return;
+                }
+                const csv = generateCSV(headers, rows);
+                const slug = userName.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 40) || 'usuario';
+                downloadCSV(csv, `atividade_${slug}_${new Date().toISOString().split('T')[0]}.csv`);
+                toast.success(`${rows.length} registros exportados`);
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </DialogHeader>
 
         {loading ? (
