@@ -3,8 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Activity, MessageSquare } from 'lucide-react';
+import { Sparkles, Activity, MessageSquare, Download } from 'lucide-react';
+import { generateCSV, downloadCSV } from '@/utils/exportUtils';
+import { toast } from 'sonner';
 
 interface Props {
   open: boolean;
