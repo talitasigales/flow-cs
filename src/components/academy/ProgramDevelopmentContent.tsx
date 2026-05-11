@@ -431,7 +431,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
       {programId && cls?.pda_report_enabled && <PdaReportUpload programId={programId} programName={program?.name} />}
 
       {/* Questionários configurados pela turma — liberados a partir de 11/05 */}
-      {(resilienceUrl || dilemmasUrl) && today >= '2026-05-11' && (
+      {(resilienceUrl || dilemmasUrl) && (
         <Card className="border-primary/40 bg-gradient-to-r from-primary/10 to-transparent">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center gap-2 flex-wrap">
