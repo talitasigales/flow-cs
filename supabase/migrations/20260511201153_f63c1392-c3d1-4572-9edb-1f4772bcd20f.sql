@@ -1,0 +1,1 @@
+UPDATE public.program_enrollments SET resilience_url='https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=BR&is_targeted_country=false&media_type=all&search_type=page&sort_data%5Bdirection%5D=desc&sort_data%5Bmode%5D=total_impressions&view_all_page_id=294283917108897' WHERE id='3201030b-9d84-4ce9-ae65-36b8fc78fe62';
