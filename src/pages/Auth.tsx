@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Shield } from 'lucide-react';
+import { Loader2, ArrowLeft, Shield, Wifi } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,6 +28,7 @@ export default function Auth() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotCooldown, setForgotCooldown] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [testingConnection, setTestingConnection] = useState(false);
   
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -182,6 +183,52 @@ export default function Auth() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    const SUPABASE_URL = 'https://hapzzpwywnahovmddlej.supabase.co';
+    const toastId = toast.loading('Testando conexão com o servidor...');
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: { apikey: 'test' },
+      });
+      clearTimeout(timeoutId);
+      toast.dismiss(toastId);
+      if (res.ok || res.status === 401 || res.status === 400) {
+        toast.success(
+          'Conexão com o servidor OK! Se o login ainda falhar, pode ser senha incorreta ou bloqueio de extensão do navegador.',
+          { duration: 8000 }
+        );
+      } else {
+        toast.warning(
+          `Servidor respondeu com status ${res.status}. Pode haver um proxy/firewall interceptando. Peça ao TI para liberar *.supabase.co.`,
+          { duration: 10000 }
+        );
+      }
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      const msg = String(err?.message || '').toLowerCase();
+      if (err?.name === 'AbortError') {
+        toast.error(
+          'Tempo esgotado ao conectar. Sua rede está bloqueando hapzzpwywnahovmddlej.supabase.co. Soluções: 1) Trocar DNS do Wi-Fi para 1.1.1.1 ou 8.8.8.8; 2) Usar dados móveis (4G/5G); 3) Pedir ao TI para liberar *.supabase.co (porta 443).',
+          { duration: 15000 }
+        );
+      } else if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed')) {
+        toast.error(
+          'Falha de rede: o navegador não conseguiu acessar o servidor. Causas comuns: DNS do Wi-Fi bloqueando o domínio, firewall corporativo, antivírus (Kaspersky/ESET) ou extensão (AdBlock). Tente: trocar DNS para 1.1.1.1, desativar VPN/extensões, ou usar 4G.',
+          { duration: 15000 }
+        );
+      } else {
+        toast.error(`Erro inesperado: ${err?.message || 'desconhecido'}`, { duration: 10000 });
+      }
+    } finally {
+      setTestingConnection(false);
     }
   };
 
@@ -411,6 +458,23 @@ export default function Auth() {
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Entrar
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleTestConnection}
+          disabled={testingConnection || loading}
+        >
+          {testingConnection ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Wifi className="mr-2 h-4 w-4" />
+          )}
+          Testar conexão
+        </Button>
+        <p className="text-[11px] text-center text-muted-foreground leading-relaxed">
+          Não consegue entrar? Clique em "Testar conexão" para diagnosticar se o problema é da sua rede (Wi-Fi/firewall) ou do servidor.
+        </p>
         <p className="text-center text-sm text-muted-foreground">
           Não tem conta?{' '}
           <button type="button" onClick={() => setMode('signup')} className="text-primary hover:underline">
