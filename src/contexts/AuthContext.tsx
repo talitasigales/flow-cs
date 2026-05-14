@@ -70,20 +70,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    // Check for existing session — guard against invalid/expired refresh tokens
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.warn('[Auth] getSession error, clearing local session:', error.message);
+          // Clear stale tokens silently so the app boots into a clean signed-out state
+          supabase.auth.signOut().catch(() => {});
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
 
-      // Track last access
-      if (session?.user) {
-        supabase.from('profiles')
-          .update({ last_access_at: new Date().toISOString() })
-          .eq('user_id', session.user.id)
-          .then(() => {});
-      }
-    });
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+
+        // Track last access
+        if (session?.user) {
+          supabase.from('profiles')
+            .update({ last_access_at: new Date().toISOString() })
+            .eq('user_id', session.user.id)
+            .then(() => {});
+        }
+      })
+      .catch((err) => {
+        console.warn('[Auth] getSession threw, clearing local session:', err);
+        supabase.auth.signOut().catch(() => {});
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+      });
 
     return () => subscription.unsubscribe();
   }, []);
