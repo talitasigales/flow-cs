@@ -186,6 +186,52 @@ export default function Auth() {
     }
   };
 
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    const SUPABASE_URL = 'https://hapzzpwywnahovmddlej.supabase.co';
+    const toastId = toast.loading('Testando conexão com o servidor...');
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: { apikey: 'test' },
+      });
+      clearTimeout(timeoutId);
+      toast.dismiss(toastId);
+      if (res.ok || res.status === 401 || res.status === 400) {
+        toast.success(
+          'Conexão com o servidor OK! Se o login ainda falhar, pode ser senha incorreta ou bloqueio de extensão do navegador.',
+          { duration: 8000 }
+        );
+      } else {
+        toast.warning(
+          `Servidor respondeu com status ${res.status}. Pode haver um proxy/firewall interceptando. Peça ao TI para liberar *.supabase.co.`,
+          { duration: 10000 }
+        );
+      }
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      const msg = String(err?.message || '').toLowerCase();
+      if (err?.name === 'AbortError') {
+        toast.error(
+          'Tempo esgotado ao conectar. Sua rede está bloqueando hapzzpwywnahovmddlej.supabase.co. Soluções: 1) Trocar DNS do Wi-Fi para 1.1.1.1 ou 8.8.8.8; 2) Usar dados móveis (4G/5G); 3) Pedir ao TI para liberar *.supabase.co (porta 443).',
+          { duration: 15000 }
+        );
+      } else if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed')) {
+        toast.error(
+          'Falha de rede: o navegador não conseguiu acessar o servidor. Causas comuns: DNS do Wi-Fi bloqueando o domínio, firewall corporativo, antivírus (Kaspersky/ESET) ou extensão (AdBlock). Tente: trocar DNS para 1.1.1.1, desativar VPN/extensões, ou usar 4G.',
+          { duration: 15000 }
+        );
+      } else {
+        toast.error(`Erro inesperado: ${err?.message || 'desconhecido'}`, { duration: 10000 });
+      }
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
   const renderForm = () => {
     if (mode === 'forgot-password') {
       return (
