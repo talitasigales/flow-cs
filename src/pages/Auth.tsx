@@ -161,12 +161,24 @@ export default function Auth() {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Auth error:', error);
-      if (error.message?.includes('Invalid login credentials')) {
+      const msg = String(error?.message || '');
+      const isFetchFail =
+        error?.name === 'TypeError' ||
+        msg.toLowerCase().includes('failed to fetch') ||
+        msg.toLowerCase().includes('networkerror') ||
+        msg.toLowerCase().includes('load failed');
+
+      if (msg.includes('Invalid login credentials')) {
         toast.error('Email ou senha incorretos.');
-      } else if (error.message?.includes('rate limit') || error.status === 429) {
+      } else if (msg.includes('rate limit') || error.status === 429) {
         toast.error('Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de tentar novamente.', { duration: 6000 });
+      } else if (isFetchFail) {
+        toast.error(
+          'Não foi possível conectar ao servidor de autenticação. Verifique sua internet, desative VPN/extensões (ex.: AdBlock, Kaspersky) ou peça ao TI para liberar o acesso a *.supabase.co. Se você está vendo isto dentro do preview da Lovable, abra o site publicado em cs.grougp.com.br e tente novamente.',
+          { duration: 10000 }
+        );
       } else {
-        toast.error(error.message || 'Erro ao autenticar');
+        toast.error(msg || 'Erro ao autenticar');
       }
     } finally {
       setLoading(false);
