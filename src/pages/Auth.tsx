@@ -458,6 +458,23 @@ export default function Auth() {
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Entrar
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleTestConnection}
+          disabled={testingConnection || loading}
+        >
+          {testingConnection ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Wifi className="mr-2 h-4 w-4" />
+          )}
+          Testar conexão
+        </Button>
+        <p className="text-[11px] text-center text-muted-foreground leading-relaxed">
+          Não consegue entrar? Clique em "Testar conexão" para diagnosticar se o problema é da sua rede (Wi-Fi/firewall) ou do servidor.
+        </p>
         <p className="text-center text-sm text-muted-foreground">
           Não tem conta?{' '}
           <button type="button" onClick={() => setMode('signup')} className="text-primary hover:underline">
