@@ -28,6 +28,7 @@ export default function Auth() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotCooldown, setForgotCooldown] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [testingConnection, setTestingConnection] = useState(false);
   
   const navigate = useNavigate();
   const { user } = useAuth();
