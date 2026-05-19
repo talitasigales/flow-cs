@@ -369,6 +369,7 @@ export default function AdminPrograms() {
       setClassPdaReportEnabled(!!cls.pda_report_enabled);
       setClassResilienceUrl(cls.resilience_url || '');
       setClassDilemmasUrl(cls.dilemmas_url || '');
+      setClassDilemmasReleased(!!cls.dilemmas_released);
       // Load existing class modules
       const { data: cm } = await (supabase as any).from('class_modules').select('module_id').eq('class_id', cls.id);
       setClassModuleIds((cm || []).map((r: any) => r.module_id));
