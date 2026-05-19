@@ -85,6 +85,7 @@ export default function AdminPrograms() {
   const [classPdaReportEnabled, setClassPdaReportEnabled] = useState(false);
   const [classResilienceUrl, setClassResilienceUrl] = useState('');
   const [classDilemmasUrl, setClassDilemmasUrl] = useState('');
+  const [classDilemmasReleased, setClassDilemmasReleased] = useState(false);
   const [savingClass, setSavingClass] = useState(false);
 
   // Import class selector
