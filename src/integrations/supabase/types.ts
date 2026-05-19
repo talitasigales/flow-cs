@@ -1888,6 +1888,7 @@ export type Database = {
       program_classes: {
         Row: {
           created_at: string
+          dilemmas_released: boolean
           dilemmas_url: string | null
           end_date: string | null
           id: string
@@ -1901,6 +1902,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dilemmas_released?: boolean
           dilemmas_url?: string | null
           end_date?: string | null
           id?: string
@@ -1914,6 +1916,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dilemmas_released?: boolean
           dilemmas_url?: string | null
           end_date?: string | null
           id?: string
