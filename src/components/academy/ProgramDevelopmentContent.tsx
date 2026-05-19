@@ -172,7 +172,7 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from('program_enrollments')
-        .select('id, enrolled_at, class_id, resilience_url, dilemmas_url, programs!inner(id, name, slug, description), program_classes(id, name, start_date, end_date, video_conference_url, specialist, pda_report_enabled, resilience_url, dilemmas_url)')
+        .select('id, enrolled_at, class_id, resilience_url, dilemmas_url, programs!inner(id, name, slug, description), program_classes(id, name, start_date, end_date, video_conference_url, specialist, pda_report_enabled, resilience_url, dilemmas_url, dilemmas_released)')
         .eq('user_id', user!.id)
         .eq('programs.slug', programSlug)
         .maybeSingle();
@@ -186,7 +186,9 @@ export function ProgramDevelopmentContent({ programSlug }: Props) {
   const programId = program?.id;
   // Per-student links override class-level fallback
   const resilienceUrl = (enrollment as any)?.resilience_url || cls?.resilience_url;
-  const dilemmasUrl = (enrollment as any)?.dilemmas_url || cls?.dilemmas_url;
+  const rawDilemmasUrl = (enrollment as any)?.dilemmas_url || cls?.dilemmas_url;
+  // DG só aparece para o aluno quando o admin liberar explicitamente na turma
+  const dilemmasUrl = cls?.dilemmas_released ? rawDilemmasUrl : null;
 
   const { data: schedules = [] } = useQuery({
     queryKey: ['dev-class-schedules', classId],
