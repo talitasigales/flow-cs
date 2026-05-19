@@ -1109,6 +1109,16 @@ export default function AdminPrograms() {
                 onChange={e => setClassDilemmasUrl(e.target.value)}
                 placeholder="https://... (deixe vazio para ocultar)"
               />
+              <div className="flex items-center gap-2 pt-1">
+                <Checkbox
+                  id="cls-dg-released"
+                  checked={classDilemmasReleased}
+                  onCheckedChange={(c) => setClassDilemmasReleased(!!c)}
+                />
+                <label htmlFor="cls-dg-released" className="text-xs cursor-pointer">
+                  Liberar link de DG para os alunos (quando desligado, o link fica oculto mesmo se preenchido)
+                </label>
+              </div>
             </div>
           </div>
           {modules.length > 0 && (
