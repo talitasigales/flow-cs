@@ -394,6 +394,7 @@ export default function AdminPrograms() {
       setClassPdaReportEnabled(false);
       setClassResilienceUrl('');
       setClassDilemmasUrl('');
+      setClassDilemmasReleased(false);
       // Default: select all modules
       setClassModuleIds(modules.map((m: any) => m.id));
       setClassModuleSpecialists({});
