@@ -418,6 +418,7 @@ export default function AdminPrograms() {
         pda_report_enabled: classPdaReportEnabled,
         resilience_url: classResilienceUrl.trim() || null,
         dilemmas_url: classDilemmasUrl.trim() || null,
+        dilemmas_released: classDilemmasReleased,
       };
       let classId: string;
       if (editingClass) {
