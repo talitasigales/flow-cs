@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS cs_companies_name_lower_idx ON public.cs_companies (lower(name));
+CREATE INDEX IF NOT EXISTS cs_contacts_company_email_lower_idx ON public.cs_contacts (company_id, lower(email));
