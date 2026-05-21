@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Building2, AlertTriangle, Users as UsersIcon, Activity } from 'lucide-react';
+import { Plus, Search, Building2, AlertTriangle, Users as UsersIcon, Activity, Upload } from 'lucide-react';
 import { CompanyFormDialog } from '@/components/cs/CompanyFormDialog';
 import { HealthBadge } from '@/components/cs/HealthBadge';
 import { AlertsBanner } from '@/components/cs/AlertsBanner';
@@ -39,7 +39,7 @@ const statusColors: Record<string, string> = {
 
 export default function CSDashboard() {
   const navigate = useNavigate();
-  const { loading: accessLoading, hasAccess, canEdit } = useCSAccess();
+  const { loading: accessLoading, hasAccess, canEdit, canManage } = useCSAccess();
   const [companies, setCompanies] = useState<CompanyRow[]>([]);
   const [touchpointsByCompany, setTouchpointsByCompany] = useState<Record<string, any[]>>({});
   const [ownersMap, setOwnersMap] = useState<Record<string, string>>({});
@@ -155,7 +155,12 @@ export default function CSDashboard() {
           </TabsList>
 
           <TabsContent value="timeline" className="space-y-6 mt-0">
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end gap-2">
+              {canManage && (
+                <Button variant="outline" onClick={() => navigate('/admin/cs-import')}>
+                  <Upload className="w-4 h-4 mr-2" />Importar CSV
+                </Button>
+              )}
               {canEdit && (
                 <Button onClick={() => setOpenForm(true)}>
                   <Plus className="w-4 h-4 mr-2" />Nova empresa
