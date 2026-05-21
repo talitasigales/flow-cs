@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.weekly-newsletter]
 verify_jwt = false
+
+[functions.cs-import-companies]
+verify_jwt = false
