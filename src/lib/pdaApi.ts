@@ -1,9 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
 
-async function pdaFetch(endpoint: string) {
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function pdaFetch(endpoint: string, retries = 1) {
   const { data, error } = await supabase.functions.invoke("pda-proxy", {
     body: { endpoint },
   });
+
+  const message = error?.message || data?.error;
+  const isTransientBootError = typeof message === "string" && (
+    message.includes("BOOT_ERROR") ||
+    message.includes("Function failed to start") ||
+    message.includes("Edge function returned 503")
+  );
+
+  if (isTransientBootError && retries > 0) {
+    await wait(600);
+    return pdaFetch(endpoint, retries - 1);
+  }
+
   if (error) throw new Error(error.message);
   if (data?.error) throw new Error(data.error);
   return data;
@@ -34,17 +49,6 @@ export interface PdaCreditBalanceResponse {
   unavailable?: boolean;
 }
 
-export interface PdaAccount {
-  id: string | null;
-  baseId?: string;
-  email?: string;
-  active?: boolean;
-  creationDate?: string;
-  modificationDate?: string;
-  multiregion?: boolean;
-  unavailable?: boolean;
-}
-
 export async function getAccountBases(): Promise<PdaSubBaseDetail[]> {
   const data = await pdaFetch("/api/identity/v1/Accounts/AccountSubBaseDetail");
   return Array.isArray(data) ? data : (data?.data ?? []);
@@ -52,10 +56,6 @@ export async function getAccountBases(): Promise<PdaSubBaseDetail[]> {
 
 export async function getCreditBalance(baseId: string): Promise<PdaCreditBalanceResponse> {
   return pdaFetch(`/api/credit/v1/CreditBalance/base/${baseId}`);
-}
-
-export async function getAccount(accountId: string): Promise<PdaAccount> {
-  return pdaFetch(`/api/identity/v1/Accounts/${accountId}`);
 }
 
 export async function getCreditMovements() {
