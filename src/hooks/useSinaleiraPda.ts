@@ -84,6 +84,7 @@ export function useSinaleiraPda() {
   const [error, setError] = useState<string | null>(null);
   const [bases, setBases] = useState<PdaBase[]>([]);
   const [movements, setMovements] = useState<PdaMovement[]>([]);
+  const [movementsAvailable, setMovementsAvailable] = useState<boolean>(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   async function fetchData(force = false) {
