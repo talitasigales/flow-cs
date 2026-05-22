@@ -15,16 +15,22 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function getEndpointFallback(endpoint: string) {
+function getEndpointFallback(endpoint: string, status: number) {
   if (endpoint === "/api/credit/v1/Credit/CreditConsumeMovement") {
     return [];
   }
 
   if (endpoint.startsWith("/api/credit/v1/CreditBalance/base/")) {
     return {
-      availableCredits: 0,
-      totalCredits: 0,
-      usedCredits: 0,
+      clientCreditBalance: [],
+      isLicense: false,
+      unavailable: true,
+    };
+  }
+
+  if (status === 403 && endpoint.startsWith("/api/identity/v1/Accounts/")) {
+    return {
+      id: endpoint.split("/").pop() ?? null,
       unavailable: true,
     };
   }
@@ -112,7 +118,7 @@ Deno.serve(async (req) => {
         payload,
       });
 
-      const fallback = getEndpointFallback(endpoint);
+      const fallback = getEndpointFallback(endpoint, pdaRes.status);
       if (fallback !== null) {
         return jsonResponse(fallback);
       }
