@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { getAccountBases, getCreditBalance, getCreditMovements } from "@/lib/pdaApi";
+import {
+  getAccountBases,
+  getCreditBalance,
+  getCreditMovements,
+  getAccount,
+  type PdaSubBaseDetail,
+} from "@/lib/pdaApi";
 
 export type SinaleiraStatus = "ok" | "warning" | "critical" | "expired";
 
@@ -7,13 +13,16 @@ export interface PdaBase {
   baseId: string;
   baseName: string;
   accountName: string;
-  expirationDate: string;
+  accountId: string;
+  link: string;
+  expirationDate: string | null;
   availableCredits: number;
   totalCredits: number;
   usedCredits: number;
   daysUntilExpiry: number;
   usedPercent: number;
   status: SinaleiraStatus;
+  unavailable?: boolean;
 }
 
 export interface PdaMovement {
@@ -43,57 +52,66 @@ export function useSinaleiraPda() {
       setLoading(true);
       setError(null);
 
-      const [accounts, movs] = await Promise.all([
+      const [subBases, movs] = await Promise.all([
         getAccountBases(),
-        getCreditMovements().catch((e) => {
+        getCreditMovements().catch((e: any) => {
           console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
           return [];
         }),
       ]);
 
-      const accountsArr = Array.isArray(accounts) ? accounts : (accounts?.data ?? []);
-      // PDA retorna lista plana: cada item é uma subBase. Agrupamos por baseId.
-      const basesMap = new Map<string, any>();
-      for (const item of accountsArr) {
-        const baseId = item.baseId || item.id;
-        if (!baseId) continue;
-        if (!basesMap.has(baseId)) {
-          basesMap.set(baseId, {
-            baseId,
-            baseName: (item.baseName || item.name || "").trim(),
-            accountName: item.subBaseName || item.accountName || item.link || "",
-            expirationDate: item.expirationDate,
-          });
-        }
+      // Agrupa subBases por baseId (PDA retorna lista plana de subBases)
+      const basesMap = new Map<string, PdaSubBaseDetail>();
+      for (const item of subBases) {
+        if (!item.baseId) continue;
+        if (!basesMap.has(item.baseId)) basesMap.set(item.baseId, item);
       }
-      const rawBases = Array.from(basesMap.values());
+      const uniqueBases = Array.from(basesMap.values());
 
-      const balances = await Promise.all(
-        rawBases.map((b: any) => getCreditBalance(b.baseId).catch(() => ({})))
+      // Para cada base: busca saldo + account (em paralelo, tolerando 403/404 por base)
+      const enriched = await Promise.all(
+        uniqueBases.map(async (b): Promise<PdaBase> => {
+          const [balRes, accRes] = await Promise.all([
+            getCreditBalance(b.baseId).catch(() => null),
+            getAccount(b.accountId).catch(() => null),
+          ]);
+
+          // Soma todas as subBases retornadas em clientCreditBalance
+          const entries = balRes?.clientCreditBalance ?? [];
+          const remaining = entries.reduce((s, e) => s + (e.remainingCredits ?? 0), 0);
+          const spent = entries.reduce((s, e) => s + (e.spentCredits ?? 0), 0);
+          const total = remaining + spent;
+          const usedPercent = total > 0 ? Math.round((spent / total) * 100) : 0;
+
+          // PDA não expõe expirationDate em Accounts/{id}; usamos null até descobrirmos o endpoint
+          const expirationDate: string | null = (accRes as any)?.expirationDate ?? null;
+          const daysUntilExpiry = expirationDate
+            ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
+            : Infinity;
+
+          const unavailable = balRes === null;
+
+          return {
+            baseId: b.baseId,
+            baseName: (b.baseName || "").trim(),
+            accountName: b.subBaseName || b.link,
+            accountId: b.accountId,
+            link: b.link,
+            expirationDate,
+            availableCredits: remaining,
+            totalCredits: total,
+            usedCredits: spent,
+            usedPercent,
+            daysUntilExpiry,
+            status: calcStatus(daysUntilExpiry, usedPercent),
+            unavailable,
+          };
+        })
       );
 
-      const enriched: PdaBase[] = rawBases.map((b: any, i: number) => {
-        const bal = balances[i] || {};
-        const available = bal.availableCredits ?? bal.balance ?? 0;
-        const total = bal.totalCredits ?? 0;
-        const used = bal.usedCredits ?? Math.max(total - available, 0);
-        const usedPercent = total > 0 ? Math.round((used / total) * 100) : 0;
-        const daysUntilExpiry = b.expirationDate
-          ? Math.ceil((new Date(b.expirationDate).getTime() - Date.now()) / 86400000)
-          : Infinity;
-        return {
-          ...b,
-          availableCredits: available,
-          totalCredits: total,
-          usedCredits: used,
-          usedPercent,
-          daysUntilExpiry,
-          status: calcStatus(daysUntilExpiry, usedPercent),
-        };
-      });
-
       setBases(enriched);
-      const movsArr = Array.isArray(movs) ? movs : (movs?.data ?? []);
+
+      const movsArr = Array.isArray(movs) ? movs : ((movs as any)?.data ?? []);
       setMovements(
         movsArr.map((m: any) => ({
           date: m.date || m.createdAt,
