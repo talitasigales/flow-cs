@@ -21,7 +21,7 @@ const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge
 const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
 
 export function SinaleiraPda() {
-  const { loading, error, bases, movements, lastUpdated, refresh } = useSinaleiraPda();
+  const { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh } = useSinaleiraPda();
   const [selectedBase, setSelectedBase] = useState("all");
 
   // Filters
