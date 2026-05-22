@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function pdaFetch(endpoint: string, retries = 1) {
+async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<any> {
   const { data, error } = await supabase.functions.invoke("pda-proxy", {
     body: { endpoint },
   });
@@ -11,12 +11,19 @@ async function pdaFetch(endpoint: string, retries = 1) {
   const isTransientBootError = typeof message === "string" && (
     message.includes("BOOT_ERROR") ||
     message.includes("Function failed to start") ||
-    message.includes("Edge function returned 503")
+    message.includes("Edge function returned 503") ||
+    message.includes("503 Service Temporarily Unavailable")
   );
 
-  if (isTransientBootError && retries > 0) {
-    await wait(600);
-    return pdaFetch(endpoint, retries - 1);
+  const isTransientUpstreamError = typeof message === "string" && (
+    message.includes("PDA login failed: 502") ||
+    message.includes("PDA login failed: 503") ||
+    message.includes("Bad gateway")
+  );
+
+  if ((isTransientBootError || isTransientUpstreamError) && retries > 0) {
+    await wait(delayMs);
+    return pdaFetch(endpoint, retries - 1, delayMs * 2);
   }
 
   if (error) throw new Error(error.message);

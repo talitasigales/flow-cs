@@ -39,6 +39,16 @@ function calcStatus(daysUntilExpiry: number, usedPercent: number): SinaleiraStat
   return "ok";
 }
 
+async function mapWithConcurrency<T, R>(items: T[], concurrency: number, mapper: (item: T) => Promise<R>) {
+  const results: R[] = [];
+  for (let index = 0; index < items.length; index += concurrency) {
+    const chunk = items.slice(index, index + concurrency);
+    const chunkResults = await Promise.all(chunk.map(mapper));
+    results.push(...chunkResults);
+  }
+  return results;
+}
+
 export function useSinaleiraPda() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +78,7 @@ export function useSinaleiraPda() {
       const uniqueBases = Array.from(basesMap.values());
 
       // Para cada base: busca saldo; a API de account detalhada retorna 403 para parte das contas
-      const enriched = await Promise.all(
-        uniqueBases.map(async (b): Promise<PdaBase> => {
+      const enriched = await mapWithConcurrency(uniqueBases, 3, async (b): Promise<PdaBase> => {
           const balRes = await getCreditBalance(b.baseId).catch(() => null);
 
           // Soma todas as subBases retornadas em clientCreditBalance
@@ -102,8 +111,7 @@ export function useSinaleiraPda() {
             status: calcStatus(daysUntilExpiry, usedPercent),
             unavailable,
           };
-        })
-      );
+        });
 
       setBases(enriched);
 
