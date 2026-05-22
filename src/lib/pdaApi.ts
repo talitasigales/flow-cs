@@ -23,39 +23,64 @@ function getClientFallback(endpoint: string) {
 }
 
 async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<any> {
-  const { data, error } = await supabase.functions.invoke("pda-proxy", {
-    body: { endpoint },
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke("pda-proxy", {
+      body: { endpoint },
+    });
 
-  const message = error?.message || data?.error;
-  const isTransientBootError = typeof message === "string" && (
-    message.includes("BOOT_ERROR") ||
-    message.includes("Function failed to start") ||
-    message.includes("Edge function returned 503") ||
-    message.includes("503 Service Temporarily Unavailable")
-  );
+    const message = error?.message || data?.error;
+    const isTransientBootError = typeof message === "string" && (
+      message.includes("BOOT_ERROR") ||
+      message.includes("Function failed to start") ||
+      message.includes("Edge function returned 503") ||
+      message.includes("503 Service Temporarily Unavailable")
+    );
 
-  const isTransientUpstreamError = typeof message === "string" && (
-    message.includes("PDA login failed: 502") ||
-    message.includes("PDA login failed: 503") ||
-    message.includes("Bad gateway")
-  );
+    const isTransientUpstreamError = typeof message === "string" && (
+      message.includes("PDA login failed: 502") ||
+      message.includes("PDA login failed: 503") ||
+      message.includes("Bad gateway")
+    );
 
-  if ((isTransientBootError || isTransientUpstreamError) && retries > 0) {
-    await wait(delayMs);
-    return pdaFetch(endpoint, retries - 1, delayMs * 2);
-  }
-
-  if (isTransientBootError || isTransientUpstreamError) {
-    const fallback = getClientFallback(endpoint);
-    if (fallback !== null) {
-      return fallback;
+    if ((isTransientBootError || isTransientUpstreamError) && retries > 0) {
+      await wait(delayMs);
+      return pdaFetch(endpoint, retries - 1, delayMs * 2);
     }
-  }
 
-  if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
-  return data;
+    if (isTransientBootError || isTransientUpstreamError) {
+      const fallback = getClientFallback(endpoint);
+      if (fallback !== null) {
+        return fallback;
+      }
+    }
+
+    if (error) throw new Error(error.message);
+    if (data?.error) throw new Error(data.error);
+    return data;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const isTransientInvokeError = (
+      message.includes("BOOT_ERROR") ||
+      message.includes("Function failed to start") ||
+      message.includes("Edge function returned 503") ||
+      message.includes("FunctionsFetchError") ||
+      message.includes("Failed to send a request to the Edge Function")
+    );
+
+    if (isTransientInvokeError && retries > 0) {
+      await wait(delayMs);
+      return pdaFetch(endpoint, retries - 1, delayMs * 2);
+    }
+
+    if (isTransientInvokeError) {
+      const fallback = getClientFallback(endpoint);
+      if (fallback !== null) {
+        return fallback;
+      }
+    }
+
+    throw err;
+  }
 }
 
 export interface PdaSubBaseDetail {
