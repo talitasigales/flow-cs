@@ -275,7 +275,7 @@ export function SinaleiraPda() {
                     </TableCell>
                   </TableRow>
                 ) : sortedBases.map((base) => {
-                  const cfg = STATUS_CONFIG[base.status];
+                  const cfg = STATUS_CONFIG[base.status] ?? STATUS_CONFIG.unknown;
                   const ratioPct = base.consumptionRatio !== null ? Math.round(base.consumptionRatio * 100) : null;
                   return (
                     <TableRow key={base.baseId}>
