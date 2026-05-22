@@ -1,61 +1,48 @@
-# Reduzir chamadas à API PDA com cache
+## Nova lógica da Sinaleira
 
-## Diagnóstico
+Substituir a regra atual (baseada em `daysUntilExpiry` + `usedPercent`) pela comparação **Consumo do último mês ÷ Meta mensal**, onde:
 
-Hoje, **cada abertura/refresh da Sinaleira gasta várias chamadas reais à API da PDA**:
-
-- `GET AccountSubBaseDetail` — 1 chamada
-- `GET GetBasesByUser/{userId}` — 1 chamada (resposta gigante)
-- `GET CreditConsumeMovement` — 1 chamada
-- `GET CreditBalance/base/{baseId}` — **N chamadas** (uma por base, hoje ~dezenas)
-
-Total: ~`3 + N` requests por visualização. Não há cache: o edge function `pda-proxy` faz proxy direto, apenas cacheia o token de login. Qualquer usuário que abrir a página `/cs` dispara o ciclo completo. O botão "Atualizar" também.
-
-## Solução: cache em Postgres com TTL
-
-Criar tabela `pda_cache` consultada pelo edge function antes de chamar a PDA. TTL configurável por endpoint (padrão 6h, movimentações 1h). Suporte a `force=true` para refresh manual real (com rate limit).
-
-### 1. Migração — tabela de cache
-
-```sql
-create table public.pda_cache (
-  endpoint text primary key,
-  payload jsonb not null,
-  fetched_at timestamptz not null default now()
-);
-alter table public.pda_cache enable row level security;
--- sem policies: somente service_role (edge function) acessa
-create index on public.pda_cache (fetched_at);
+```
+Meta Mensal = Saldo Atual ÷ Meses Restantes de Licença
+Comparativo = Consumo Último Mês ÷ Meta Mensal
 ```
 
-### 2. Edge function `pda-proxy`
+Regras:
+- 🟢 **Verde (ok)** — Comparativo > 1.10 (consumindo acima do necessário, vai precisar recarregar)
+- 🟡 **Amarelo (warning)** — Comparativo entre 0.90 e 1.10 (no ritmo exato)
+- 🔴 **Vermelho (critical)** — Comparativo < 0.90 (abaixo do ritmo, saldo vai sobrar)
+- ⚫ **Expirado** — `daysUntilExpiry <= 0`
+- **Sem dados** — Se não houver consumo do último mês ou meses restantes ≤ 0 ou saldo = 0 → tratar como `warning` com label "Sem dados" (ou neutro), pra não falsear a contagem.
 
-- Aceitar `{ endpoint, force?: boolean }` no body.
-- Antes do `fetchPda`, consultar `pda_cache` usando `SUPABASE_SERVICE_ROLE_KEY`.
-- TTL por endpoint:
-  - `AccountSubBaseDetail` → 6h
-  - `GetBasesByUser` → 6h
-  - `CreditBalance/base/*` → 1h
-  - `CreditConsumeMovement` → 30 min
-- Se cache válido e `!force` → retorna `payload` direto (campo extra `_cachedAt`).
-- Após resposta OK da PDA, faz `upsert` em `pda_cache`.
-- `force=true` ignora cache na leitura mas continua gravando. Limitar `force` a admins (checar JWT role) para evitar abuso.
+## Onde mudar
 
-### 3. Front-end
+### 1. `src/hooks/useSinaleiraPda.ts`
 
-- `pdaApi.ts`: aceitar parâmetro opcional `force` em `pdaFetch` e propagar.
-- `useSinaleiraPda.ts`: expor `refresh(force = false)`. Botão "Atualizar" padrão usa cache; segundo clique ou opção "Forçar atualização" envia `force=true`.
-- Mostrar `lastUpdated` vindo do `_cachedAt` quando disponível, para o usuário saber a idade dos dados.
+- Adicionar ao tipo `PdaBase`:
+  - `lastMonthConsumption: number`
+  - `monthlyTarget: number`
+  - `consumptionRatio: number | null`
+  - `monthsRemaining: number`
+- Substituir `calcStatus(daysUntilExpiry, usedPercent)` por `calcStatus(daysUntilExpiry, ratio)` aplicando as faixas acima.
+- Calcular `lastMonthConsumption` a partir de `movements`: somar `amount` (consumo) por `baseId` cujo `date` esteja nos últimos 30 dias (apenas tipos de consumo — ignorar recargas/créditos positivos; usar `Math.abs` se vierem negativos).
+- Calcular `monthsRemaining = max(daysUntilExpiry / 30, 0)`.
+- Calcular `monthlyTarget = monthsRemaining > 0 ? availableCredits / monthsRemaining : 0`.
+- Como movimentações chegam após os saldos, recalcular status das bases num `useEffect`/passo extra quando `movements` chegam — atualizar `setBases` mesclando `lastMonthConsumption`, `monthlyTarget`, `consumptionRatio`, `status`.
 
-### 4. Observabilidade
+### 2. `src/components/customer-success/SinaleiraPda.tsx`
 
-- Log `[pda-proxy] cache hit/miss endpoint=... age=...s` para validar economia.
+- Na tabela "Bases", trocar a coluna **Uso** (atualmente `usedPercent`) por:
+  - **Meta mensal** — `monthlyTarget.toLocaleString()` créditos/mês
+  - **Consumo último mês** — `lastMonthConsumption.toLocaleString()`
+  - **Ritmo** — badge mostrando o `consumptionRatio` em % (ex: "120%") com a cor da sinaleira
+- Ajustar tooltip/legenda dos cards de métrica para refletir a nova semântica (Verde = no caminho / Amarelo = atenção / Vermelho = saldo sobrando).
+- Manter filtro de "Uso (%)" mas apontando agora para `consumptionRatio` (renomear label para "Ritmo (%)").
 
-## Impacto esperado
+### 3. Manter
 
-Com TTL de 6h em bases e 1h em saldos, a Sinaleira passa de `3+N` calls por refresh para **0 calls** na maioria das aberturas, e ~`3+N` calls a cada 1–6h por workspace, independentemente de quantos usuários acessem.
+- `expirationDate`, `availableCredits`, `totalCredits` e demais campos seguem como hoje.
+- Filtros existentes continuam funcionando; apenas o filtro de uso passa a operar sobre o ratio.
 
-## Pontos para confirmar
+## Observação sobre dados
 
-1. TTL aceitáveis (6h bases / 1h saldos / 30min movimentos)?
-2. "Forçar atualização" restrito a admins, ou disponível para todos com debounce?
+A API `CreditConsumeMovement` retorna movimentações com `amount`. Vou assumir que valores de consumo são identificáveis pelo `type/movementType` (ex: contém "consume"/"consumo") ou pelo sinal. Se todos os registros do endpoint já forem consumos (como o próprio nome sugere), basta somar `amount` dos últimos 30 dias por base.
