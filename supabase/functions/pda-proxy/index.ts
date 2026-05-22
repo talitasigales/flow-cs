@@ -1,3 +1,5 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
 const PDA_BASE = "https://integrations.apispda.com";
 
 const CORS_HEADERS = {
@@ -7,6 +9,40 @@ const CORS_HEADERS = {
 };
 
 let cachedToken: { value: string; expiresAt: number; userId: string | null } | null = null;
+
+const supabaseAdmin = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+);
+
+// TTL por endpoint, em segundos. PDA pediu para reduzirmos chamadas.
+function getTtlSeconds(endpoint: string): number {
+  if (endpoint.includes("GetBasesByUser")) return 6 * 3600;            // 6h
+  if (endpoint.includes("AccountSubBaseDetail")) return 6 * 3600;      // 6h
+  if (endpoint.startsWith("/api/credit/v1/CreditBalance/base/")) return 3600; // 1h
+  if (endpoint.includes("CreditConsumeMovement")) return 30 * 60;      // 30 min
+  return 30 * 60;
+}
+
+async function readCache(endpoint: string): Promise<{ payload: unknown; fetched_at: string } | null> {
+  const { data, error } = await supabaseAdmin
+    .from("pda_cache")
+    .select("payload, fetched_at")
+    .eq("endpoint", endpoint)
+    .maybeSingle();
+  if (error) {
+    console.warn("[pda-proxy] cache read error", error.message);
+    return null;
+  }
+  return data ?? null;
+}
+
+async function writeCache(endpoint: string, payload: unknown) {
+  const { error } = await supabaseAdmin
+    .from("pda_cache")
+    .upsert({ endpoint, payload, fetched_at: new Date().toISOString() }, { onConflict: "endpoint" });
+  if (error) console.warn("[pda-proxy] cache write error", error.message);
+}
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -82,8 +118,6 @@ async function getPdaToken(forceRefresh = false): Promise<string> {
     ud.id ?? ud.Id ?? ud.userId ?? ud.UserId ?? ud.userID ?? ud.UserID ??
     data.userId ?? data.UserId ?? data.id ?? data.Id ?? null;
 
-  console.log("[pda-proxy] resolved userId:", userId, "userDetails keys:", Object.keys(ud));
-
   cachedToken = { value: data.token, expiresAt: Date.now() + 3500 * 1000, userId };
   return data.token;
 }
@@ -109,13 +143,30 @@ async function fetchPda(endpoint: string) {
   return pdaRes;
 }
 
+function trimPayload(rawEndpoint: string, payload: unknown): unknown {
+  // GetBasesByUser retorna milhares de campos por base; mantemos só o essencial.
+  if (rawEndpoint.includes("GetBasesByUser") && Array.isArray(payload)) {
+    return payload.map((item: any) => ({
+      baseId: item.baseId ?? item.BaseId,
+      baseName: item.baseName ?? item.BaseName,
+      creditsExpirationDate: item.creditsExpirationDate ?? item.CreditsExpirationDate ?? null,
+      expirationDate: item.expirationDate ?? item.ExpirationDate ?? null,
+      userLimit: item.userLimit ?? item.UserLimit ?? null,
+    }));
+  }
+  return payload;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
   }
 
   try {
-    const { endpoint: rawEndpoint } = await req.json();
+    const body = await req.json();
+    const rawEndpoint: string = body?.endpoint;
+    const force: boolean = body?.force === true;
+
     if (!rawEndpoint || typeof rawEndpoint !== "string" || !rawEndpoint.startsWith("/api/")) {
       return jsonResponse({ error: "Invalid endpoint param" }, 400);
     }
@@ -127,6 +178,26 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "PDA userId not available from login response" }, 500);
       }
       endpoint = endpoint.replace("{me}", userId).replace(/\/me$/, `/${userId}`);
+    }
+
+    // Chave de cache usa o endpoint original (com /me) para ser estável entre sessões.
+    const cacheKey = rawEndpoint;
+    const ttlSec = getTtlSeconds(rawEndpoint);
+
+    if (!force) {
+      const cached = await readCache(cacheKey);
+      if (cached) {
+        const ageMs = Date.now() - new Date(cached.fetched_at).getTime();
+        if (ageMs < ttlSec * 1000) {
+          console.log(`[pda-proxy] cache HIT ${cacheKey} age=${Math.round(ageMs / 1000)}s ttl=${ttlSec}s`);
+          return jsonResponse(cached.payload);
+        }
+        console.log(`[pda-proxy] cache STALE ${cacheKey} age=${Math.round(ageMs / 1000)}s`);
+      } else {
+        console.log(`[pda-proxy] cache MISS ${cacheKey}`);
+      }
+    } else {
+      console.log(`[pda-proxy] cache BYPASS (force=true) ${cacheKey}`);
     }
 
     const pdaRes = await fetchPda(endpoint);
@@ -144,26 +215,24 @@ Deno.serve(async (req) => {
         return jsonResponse(fallback);
       }
 
+      // Em caso de erro, se tivermos cache antigo, devolve para não quebrar a UI.
+      const stale = await readCache(cacheKey);
+      if (stale) {
+        console.warn(`[pda-proxy] returning STALE cache after upstream ${pdaRes.status} ${cacheKey}`);
+        return jsonResponse(stale.payload);
+      }
+
       return jsonResponse(
         { error: `PDA API error: ${pdaRes.status} on ${endpoint}`, details: payload },
         502,
       );
     }
 
-    // Para GetBasesByUser a resposta é enorme (5k+ bases). Reduzimos para os campos
-    // necessários para a sinaleira: baseId + datas de expiração.
-    if (rawEndpoint.includes("GetBasesByUser") && Array.isArray(payload)) {
-      const trimmed = payload.map((item: any) => ({
-        baseId: item.baseId ?? item.BaseId,
-        baseName: item.baseName ?? item.BaseName,
-        creditsExpirationDate: item.creditsExpirationDate ?? item.CreditsExpirationDate ?? null,
-        expirationDate: item.expirationDate ?? item.ExpirationDate ?? null,
-        userLimit: item.userLimit ?? item.UserLimit ?? null,
-      }));
-      return jsonResponse(trimmed);
-    }
+    const trimmed = trimPayload(rawEndpoint, payload);
+    // Grava no cache (fire-and-forget é tentador, mas await garante consistência sob baixa carga)
+    await writeCache(cacheKey, trimmed);
 
-    return jsonResponse(payload);
+    return jsonResponse(trimmed);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[pda-proxy] internal error", message);
