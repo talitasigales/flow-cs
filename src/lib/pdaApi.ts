@@ -2,6 +2,26 @@ import { supabase } from "@/integrations/supabase/client";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function getClientFallback(endpoint: string) {
+  if (endpoint === "/api/identity/v1/Accounts/AccountSubBaseDetail") {
+    return [];
+  }
+
+  if (endpoint === "/api/credit/v1/Credit/CreditConsumeMovement") {
+    return [];
+  }
+
+  if (endpoint.startsWith("/api/credit/v1/CreditBalance/base/")) {
+    return {
+      clientCreditBalance: [],
+      isLicense: false,
+      unavailable: true,
+    };
+  }
+
+  return null;
+}
+
 async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<any> {
   const { data, error } = await supabase.functions.invoke("pda-proxy", {
     body: { endpoint },
@@ -24,6 +44,13 @@ async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<a
   if ((isTransientBootError || isTransientUpstreamError) && retries > 0) {
     await wait(delayMs);
     return pdaFetch(endpoint, retries - 1, delayMs * 2);
+  }
+
+  if (isTransientBootError || isTransientUpstreamError) {
+    const fallback = getClientFallback(endpoint);
+    if (fallback !== null) {
+      return fallback;
+    }
   }
 
   if (error) throw new Error(error.message);
