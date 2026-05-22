@@ -1347,6 +1347,24 @@ export type Database = {
           },
         ]
       }
+      pda_cache: {
+        Row: {
+          endpoint: string
+          fetched_at: string
+          payload: Json
+        }
+        Insert: {
+          endpoint: string
+          fetched_at?: string
+          payload: Json
+        }
+        Update: {
+          endpoint?: string
+          fetched_at?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       pda_reports: {
         Row: {
           file_name: string
