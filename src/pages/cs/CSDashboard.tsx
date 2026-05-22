@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Building2, AlertTriangle, Users as UsersIcon, Activity, Upload } from 'lucide-react';
+import { Plus, Search, Building2, AlertTriangle, Users as UsersIcon, Activity, Upload, Gauge } from 'lucide-react';
 import { CompanyFormDialog } from '@/components/cs/CompanyFormDialog';
 import { HealthBadge } from '@/components/cs/HealthBadge';
 import { AlertsBanner } from '@/components/cs/AlertsBanner';
 import { CSUsageDashboard } from '@/components/cs/CSUsageDashboard';
+import { SinaleiraPda } from '@/components/customer-success/SinaleiraPda';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { calculateHealthScore, COMPANY_STATUS_LABELS } from '@/lib/cs/healthScore';
 import { toast } from 'sonner';
@@ -152,6 +153,7 @@ export default function CSDashboard() {
           <TabsList>
             <TabsTrigger value="timeline">Timeline & Touchpoints</TabsTrigger>
             <TabsTrigger value="usage">Uso de usuários</TabsTrigger>
+            <TabsTrigger value="sinaleira-pda"><Gauge className="w-4 h-4 mr-2" />Sinaleira PDA</TabsTrigger>
           </TabsList>
 
           <TabsContent value="timeline" className="space-y-6 mt-0">
@@ -246,6 +248,10 @@ export default function CSDashboard() {
 
           <TabsContent value="usage" className="mt-0">
             <CSUsageDashboard />
+          </TabsContent>
+
+          <TabsContent value="sinaleira-pda" className="mt-0">
+            <SinaleiraPda />
           </TabsContent>
         </Tabs>
       </div>
