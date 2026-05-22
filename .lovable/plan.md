@@ -1,47 +1,61 @@
-# Problema
+# Reduzir chamadas à API PDA com cache
 
-Na plataforma PDA, **créditos disponíveis** e **data de vencimento** aparecem no nível da **conta** (Account / CreditsPlan = 100, Vencimento 05/05/2027), não no nível de cada base. Hoje a integração tenta puxar:
+## Diagnóstico
 
-- `/api/credit/v1/CreditBalance/base/{baseId}` → retorna **403 Forbidden** (esse endpoint não é o correto para o tipo de conta CreditsPlan)
-- `/api/credit/v1/Credit/CreditConsumeMovement` → retorna **500**
+Hoje, **cada abertura/refresh da Sinaleira gasta várias chamadas reais à API da PDA**:
 
-Por causa disso, o `pda-proxy` aplica fallback `{availableCredits: 0, totalCredits: 0}` e a Sinaleira mostra tudo zerado. **Nunca chamamos o endpoint que de fato contém os dados que o PDA mostra na tela de Client Edition.**
+- `GET AccountSubBaseDetail` — 1 chamada
+- `GET GetBasesByUser/{userId}` — 1 chamada (resposta gigante)
+- `GET CreditConsumeMovement` — 1 chamada
+- `GET CreditBalance/base/{baseId}` — **N chamadas** (uma por base, hoje ~dezenas)
 
-# O que faltou na integração
+Total: ~`3 + N` requests por visualização. Não há cache: o edge function `pda-proxy` faz proxy direto, apenas cacheia o token de login. Qualquer usuário que abrir a página `/cs` dispara o ciclo completo. O botão "Atualizar" também.
 
-1. Não foi chamado o endpoint da **conta** (Account/CreditsPlan), que é onde a PDA armazena o saldo total e a data de vencimento do plano.
-2. Não foi chamado o endpoint correto de **saldo agregado** da conta — `CreditBalance/base/{id}` só funciona para contas tipo "Base/SubBase", não para "CreditsPlan".
-3. O endpoint de movimentações precisa de query params (`accountId`, `startDate`, `endDate`) — chamamos sem nenhum.
+## Solução: cache em Postgres com TTL
 
-# Plano
+Criar tabela `pda_cache` consultada pelo edge function antes de chamar a PDA. TTL configurável por endpoint (padrão 6h, movimentações 1h). Suporte a `force=true` para refresh manual real (com rate limit).
 
-## 1. Descobrir endpoints corretos via pda-proxy
-Adicionar logging temporário e testar (via `curl_edge_functions`) os endpoints candidatos da PDA:
-- `/api/identity/v1/Accounts/AccountDetail` (dados da conta + expirationDate)
-- `/api/credit/v1/CreditBalance/account` ou `/CreditBalance` (saldo agregado)
-- `/api/credit/v1/CreditPlan` ou similar (plano de créditos + vencimento)
+### 1. Migração — tabela de cache
 
-## 2. Atualizar `src/lib/pdaApi.ts`
-Adicionar funções:
-- `getAccountDetail()` → dados gerais da conta (nome, link, expirationDate, accountType)
-- `getAccountCreditBalance()` → créditos disponíveis/total/usados da conta inteira
-- `getCreditMovements({ startDate, endDate })` → passar período (últimos 30 dias por padrão)
+```sql
+create table public.pda_cache (
+  endpoint text primary key,
+  payload jsonb not null,
+  fetched_at timestamptz not null default now()
+);
+alter table public.pda_cache enable row level security;
+-- sem policies: somente service_role (edge function) acessa
+create index on public.pda_cache (fetched_at);
+```
 
-## 3. Refatorar `useSinaleiraPda.ts`
-- Buscar **uma vez** os dados da conta (saldo + vencimento) em vez de iterar por base.
-- Calcular `daysUntilExpiry` e `usedPercent` a partir do CreditsPlan da conta.
-- Manter a lista de subBases apenas para exibição (nomes/links), sem chamar `CreditBalance/base/{id}`.
-- Expor um novo objeto `account: { name, creditsPlan, available, total, used, expirationDate, daysUntilExpiry, status }` além de `bases[]`.
+### 2. Edge function `pda-proxy`
 
-## 4. Atualizar a UI do CS Dashboard / Sinaleira
-- Mostrar o card principal com **créditos da conta** e **vencimento do plano** (igual à tela do PDA).
-- Manter a tabela de bases como detalhamento, sem números de crédito por base (já que PDA não expõe isso para CreditsPlan).
+- Aceitar `{ endpoint, force?: boolean }` no body.
+- Antes do `fetchPda`, consultar `pda_cache` usando `SUPABASE_SERVICE_ROLE_KEY`.
+- TTL por endpoint:
+  - `AccountSubBaseDetail` → 6h
+  - `GetBasesByUser` → 6h
+  - `CreditBalance/base/*` → 1h
+  - `CreditConsumeMovement` → 30 min
+- Se cache válido e `!force` → retorna `payload` direto (campo extra `_cachedAt`).
+- Após resposta OK da PDA, faz `upsert` em `pda_cache`.
+- `force=true` ignora cache na leitura mas continua gravando. Limitar `force` a admins (checar JWT role) para evitar abuso.
 
-## 5. Remover fallback silencioso do pda-proxy para 403
-- Trocar fallback por erro explícito, para evitar mascarar problemas de endpoint errado no futuro.
-- Manter fallback apenas para 404 em `CreditConsumeMovement` quando não há movimentações.
+### 3. Front-end
 
-# Detalhes técnicos
+- `pdaApi.ts`: aceitar parâmetro opcional `force` em `pdaFetch` e propagar.
+- `useSinaleiraPda.ts`: expor `refresh(force = false)`. Botão "Atualizar" padrão usa cache; segundo clique ou opção "Forçar atualização" envia `force=true`.
+- Mostrar `lastUpdated` vindo do `_cachedAt` quando disponível, para o usuário saber a idade dos dados.
 
-- A confirmação dos paths corretos será feita chamando `pda-proxy` com endpoints candidatos e lendo a resposta real da PDA — sem documentação, é tentativa guiada por padrão REST (`/Accounts/AccountDetail`, `/CreditBalance/account/{id}`).
-- Caso nenhum endpoint adicional retorne 200, peço ao usuário a documentação da API PDA ou um print da seção de API/Swagger do PDA para mapear os paths exatos.
+### 4. Observabilidade
+
+- Log `[pda-proxy] cache hit/miss endpoint=... age=...s` para validar economia.
+
+## Impacto esperado
+
+Com TTL de 6h em bases e 1h em saldos, a Sinaleira passa de `3+N` calls por refresh para **0 calls** na maioria das aberturas, e ~`3+N` calls a cada 1–6h por workspace, independentemente de quantos usuários acessem.
+
+## Pontos para confirmar
+
+1. TTL aceitáveis (6h bases / 1h saldos / 30min movimentos)?
+2. "Forçar atualização" restrito a admins, ou disponível para todos com debounce?
