@@ -43,7 +43,7 @@ export function SinaleiraPda() {
         <CardContent className="p-6 text-destructive">
           Erro ao conectar com a API PDA: {error}
           <div className="mt-3">
-            <Button variant="outline" size="sm" onClick={refresh}>
+            <Button variant="outline" size="sm" onClick={() => refresh()}>
               <RefreshCw className="w-4 h-4 mr-2" /> Tentar novamente
             </Button>
           </div>
@@ -73,9 +73,14 @@ export function SinaleiraPda() {
             {lastUpdated && ` · Atualizado às ${lastUpdated.toLocaleTimeString("pt-BR")}`}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={refresh}>
-          <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => refresh(false)}>
+            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => refresh(true)} title="Ignora o cache e busca direto na PDA (use com moderação)">
+            Forçar
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
