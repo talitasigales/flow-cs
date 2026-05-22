@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RefreshCw, Filter, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge: string }> = {
   ok:       { label: "Normal",   dot: "bg-green-500",  badge: "bg-green-500/15 text-green-500 border-green-500/30" },
@@ -18,11 +21,58 @@ export function SinaleiraPda() {
   const { loading, error, bases, movements, lastUpdated, refresh } = useSinaleiraPda();
   const [selectedBase, setSelectedBase] = useState("all");
 
+  // Filters
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | SinaleiraStatus>("all");
+  const [expFrom, setExpFrom] = useState("");
+  const [expTo, setExpTo] = useState("");
+  const [creditsMin, setCreditsMin] = useState("");
+  const [creditsMax, setCreditsMax] = useState("");
+  const [usageMin, setUsageMin] = useState("");
+  const [usageMax, setUsageMax] = useState("");
+
+  const clearFilters = () => {
+    setSearch(""); setStatusFilter("all");
+    setExpFrom(""); setExpTo("");
+    setCreditsMin(""); setCreditsMax("");
+    setUsageMin(""); setUsageMax("");
+  };
+
+  const hasFilters =
+    search !== "" || statusFilter !== "all" ||
+    expFrom !== "" || expTo !== "" ||
+    creditsMin !== "" || creditsMax !== "" ||
+    usageMin !== "" || usageMax !== "";
+
+  const filteredBases = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const cMin = creditsMin === "" ? -Infinity : Number(creditsMin);
+    const cMax = creditsMax === "" ? Infinity : Number(creditsMax);
+    const uMin = usageMin === "" ? -Infinity : Number(usageMin);
+    const uMax = usageMax === "" ? Infinity : Number(usageMax);
+    const dFrom = expFrom ? new Date(expFrom).getTime() : null;
+    const dTo = expTo ? new Date(expTo).getTime() + 86400000 - 1 : null;
+
+    return bases.filter((b) => {
+      if (q && !`${b.baseName} ${b.accountName}`.toLowerCase().includes(q)) return false;
+      if (statusFilter !== "all" && b.status !== statusFilter) return false;
+      if (b.availableCredits < cMin || b.availableCredits > cMax) return false;
+      if (b.usedPercent < uMin || b.usedPercent > uMax) return false;
+      if (dFrom !== null || dTo !== null) {
+        if (!b.expirationDate) return false;
+        const t = new Date(b.expirationDate).getTime();
+        if (dFrom !== null && t < dFrom) return false;
+        if (dTo !== null && t > dTo) return false;
+      }
+      return true;
+    });
+  }, [bases, search, statusFilter, expFrom, expTo, creditsMin, creditsMax, usageMin, usageMax]);
+
   const summary = {
-    total:    bases.length,
-    ok:       bases.filter((b) => b.status === "ok").length,
-    warning:  bases.filter((b) => b.status === "warning").length,
-    critical: bases.filter((b) => b.status === "critical" || b.status === "expired").length,
+    total:    filteredBases.length,
+    ok:       filteredBases.filter((b) => b.status === "ok").length,
+    warning:  filteredBases.filter((b) => b.status === "warning").length,
+    critical: filteredBases.filter((b) => b.status === "critical" || b.status === "expired").length,
   };
 
   const filteredMovements =
@@ -58,7 +108,7 @@ export function SinaleiraPda() {
     { status: "critical" as const, value: summary.critical, desc: "bases que precisam de ação" },
   ];
 
-  const sortedBases = [...bases].sort((a, b) => {
+  const sortedBases = [...filteredBases].sort((a, b) => {
     const order: Record<SinaleiraStatus, number> = { expired: 0, critical: 1, warning: 2, ok: 3 };
     return order[a.status] - order[b.status];
   });
@@ -100,6 +150,73 @@ export function SinaleiraPda() {
           );
         })}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Filter className="w-4 h-4" /> Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Buscar base</Label>
+              <Input
+                placeholder="Nome da base ou conta"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Sinaleira</Label>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="ok">Normal</SelectItem>
+                  <SelectItem value="warning">Atenção</SelectItem>
+                  <SelectItem value="critical">Crítico</SelectItem>
+                  <SelectItem value="expired">Expirado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Expira de</Label>
+              <Input type="date" value={expFrom} onChange={(e) => setExpFrom(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Expira até</Label>
+              <Input type="date" value={expTo} onChange={(e) => setExpTo(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Créditos mín.</Label>
+              <Input type="number" min={0} value={creditsMin} onChange={(e) => setCreditsMin(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Créditos máx.</Label>
+              <Input type="number" min={0} value={creditsMax} onChange={(e) => setCreditsMax(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Uso mín. (%)</Label>
+              <Input type="number" min={0} max={100} value={usageMin} onChange={(e) => setUsageMin(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Uso máx. (%)</Label>
+              <Input type="number" min={0} max={100} value={usageMax} onChange={(e) => setUsageMax(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Exibindo {filteredBases.length} de {bases.length} bases
+            </span>
+            {hasFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters} className="gap-2">
+                <X className="w-4 h-4" /> Limpar filtros
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
