@@ -23,6 +23,12 @@ const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
 export function SinaleiraPda() {
   const { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh } = useSinaleiraPda();
   const [selectedBase, setSelectedBase] = useState("all");
+  const movementsRef = useRef<HTMLDivElement>(null);
+
+  const goToMovements = (baseId: string) => {
+    setSelectedBase(baseId);
+    setTimeout(() => movementsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
 
   // Filters
   const [search, setSearch] = useState("");
