@@ -7,7 +7,7 @@ import {
   type PdaSubBaseDetail,
 } from "@/lib/pdaApi";
 
-export type SinaleiraStatus = "ok" | "warning" | "critical" | "expired";
+export type SinaleiraStatus = "ok" | "warning" | "critical" | "expired" | "unknown";
 
 export interface PdaBase {
   baseId: string;
@@ -21,6 +21,10 @@ export interface PdaBase {
   usedCredits: number;
   daysUntilExpiry: number;
   usedPercent: number;
+  monthsRemaining: number;
+  monthlyTarget: number;
+  lastMonthConsumption: number;
+  consumptionRatio: number | null;
   status: SinaleiraStatus;
   unavailable?: boolean;
 }
@@ -33,11 +37,36 @@ export interface PdaMovement {
   amount: number;
 }
 
-function calcStatus(daysUntilExpiry: number, usedPercent: number): SinaleiraStatus {
-  if (daysUntilExpiry <= 0) return "expired";
-  if (daysUntilExpiry <= 15 || usedPercent >= 90) return "critical";
-  if (daysUntilExpiry <= 30 || usedPercent >= 75) return "warning";
-  return "ok";
+/**
+ * Sinaleira baseada no ritmo de consumo:
+ *   Meta Mensal = Saldo Atual / Meses Restantes de Licença
+ *   Ratio = Consumo Último Mês / Meta Mensal
+ * - Verde (ok)       : ratio > 1.10  (consumindo acima do necessário)
+ * - Amarelo (warn)   : 0.90 <= ratio <= 1.10 (no ritmo exato)
+ * - Vermelho (crit)  : ratio < 0.90 (saldo vai sobrar)
+ * - Expirado         : licença vencida
+ * - Unknown          : sem dados suficientes
+ */
+function calcStatus(daysUntilExpiry: number, ratio: number | null): SinaleiraStatus {
+  if (isFinite(daysUntilExpiry) && daysUntilExpiry <= 0) return "expired";
+  if (ratio === null || !isFinite(ratio)) return "unknown";
+  if (ratio > 1.1) return "ok";
+  if (ratio >= 0.9) return "warning";
+  return "critical";
+}
+
+function computeMetrics(
+  availableCredits: number,
+  daysUntilExpiry: number,
+  lastMonthConsumption: number,
+) {
+  const monthsRemaining = isFinite(daysUntilExpiry) ? Math.max(daysUntilExpiry / 30, 0) : 0;
+  const monthlyTarget = monthsRemaining > 0 ? availableCredits / monthsRemaining : 0;
+  const consumptionRatio =
+    monthlyTarget > 0 && lastMonthConsumption >= 0
+      ? lastMonthConsumption / monthlyTarget
+      : null;
+  return { monthsRemaining, monthlyTarget, consumptionRatio };
 }
 
 async function mapWithConcurrency<T, R>(items: T[], concurrency: number, mapper: (item: T) => Promise<R>) {
@@ -62,7 +91,6 @@ export function useSinaleiraPda() {
       setLoading(true);
       setError(null);
 
-      // 1) Lista de bases + expirações: rápido (cache de 6h). Renderiza assim que chegar.
       const [subBases, basesByUser] = await Promise.all([
         getAccountBases(force),
         getBasesByUser(force).catch((e: any) => {
@@ -91,12 +119,12 @@ export function useSinaleiraPda() {
       }
       const uniqueBases = Array.from(basesMap.values());
 
-      // Render inicial sem saldos: usuário já vê as bases.
       const skeleton: PdaBase[] = uniqueBases.map((b) => {
         const expirationDate = expirationMap.get(b.baseId) ?? null;
         const daysUntilExpiry = expirationDate
           ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
           : Infinity;
+        const { monthsRemaining, monthlyTarget, consumptionRatio } = computeMetrics(0, daysUntilExpiry, 0);
         return {
           baseId: b.baseId,
           baseName: (b.baseName || "").trim(),
@@ -109,7 +137,11 @@ export function useSinaleiraPda() {
           usedCredits: 0,
           usedPercent: 0,
           daysUntilExpiry,
-          status: calcStatus(daysUntilExpiry, 0),
+          monthsRemaining,
+          monthlyTarget,
+          lastMonthConsumption: 0,
+          consumptionRatio,
+          status: calcStatus(daysUntilExpiry, consumptionRatio),
           unavailable: true,
         };
       });
@@ -117,7 +149,7 @@ export function useSinaleiraPda() {
       setLastUpdated(new Date());
       setLoading(false);
 
-      // 2) Saldos em background: atualiza cada base individualmente conforme chega.
+      // Saldos em background
       mapWithConcurrency(uniqueBases, 5, async (b) => {
         const balRes = await getCreditBalance(b.baseId, force).catch(() => null);
         const entries = balRes?.clientCreditBalance ?? [];
@@ -132,37 +164,70 @@ export function useSinaleiraPda() {
         const unavailable = balRes === null;
 
         setBases((prev) =>
-          prev.map((p) =>
-            p.baseId === b.baseId
-              ? {
-                  ...p,
-                  availableCredits: remaining,
-                  totalCredits: total,
-                  usedCredits: spent,
-                  usedPercent,
-                  daysUntilExpiry,
-                  status: calcStatus(daysUntilExpiry, usedPercent),
-                  unavailable,
-                }
-              : p,
-          ),
+          prev.map((p) => {
+            if (p.baseId !== b.baseId) return p;
+            const { monthsRemaining, monthlyTarget, consumptionRatio } = computeMetrics(
+              remaining,
+              daysUntilExpiry,
+              p.lastMonthConsumption,
+            );
+            return {
+              ...p,
+              availableCredits: remaining,
+              totalCredits: total,
+              usedCredits: spent,
+              usedPercent,
+              daysUntilExpiry,
+              monthsRemaining,
+              monthlyTarget,
+              consumptionRatio,
+              status: calcStatus(daysUntilExpiry, consumptionRatio),
+              unavailable,
+            };
+          }),
         );
-      }).then(() => {
-        setLastUpdated(new Date());
-      });
+      }).then(() => setLastUpdated(new Date()));
 
-      // 3) Movimentações: também em background.
+      // Movimentações
       getCreditMovements(force)
         .then((movs) => {
           const movsArr = Array.isArray(movs) ? movs : ((movs as any)?.data ?? []);
-          setMovements(
-            movsArr.map((m: any) => ({
-              date: m.date || m.createdAt,
-              baseId: m.baseId,
-              baseName: m.baseName,
-              type: m.movementType || m.type,
-              amount: m.amount || m.credits,
-            })),
+          const normalized: PdaMovement[] = movsArr.map((m: any) => ({
+            date: m.date || m.createdAt,
+            baseId: m.baseId,
+            baseName: m.baseName,
+            type: m.movementType || m.type,
+            amount: Number(m.amount ?? m.credits ?? 0),
+          }));
+          setMovements(normalized);
+
+          // Agrega consumo dos últimos 30 dias por base
+          const cutoff = Date.now() - 30 * 86400000;
+          const consumptionByBase = new Map<string, number>();
+          for (const m of normalized) {
+            if (!m.baseId || !m.date) continue;
+            const t = new Date(m.date).getTime();
+            if (!isFinite(t) || t < cutoff) continue;
+            consumptionByBase.set(m.baseId, (consumptionByBase.get(m.baseId) ?? 0) + Math.abs(m.amount));
+          }
+
+          setBases((prev) =>
+            prev.map((p) => {
+              const lastMonthConsumption = consumptionByBase.get(p.baseId) ?? 0;
+              const { monthsRemaining, monthlyTarget, consumptionRatio } = computeMetrics(
+                p.availableCredits,
+                p.daysUntilExpiry,
+                lastMonthConsumption,
+              );
+              return {
+                ...p,
+                lastMonthConsumption,
+                monthsRemaining,
+                monthlyTarget,
+                consumptionRatio,
+                status: calcStatus(p.daysUntilExpiry, consumptionRatio),
+              };
+            }),
           );
         })
         .catch((e: any) => {
