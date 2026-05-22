@@ -188,6 +188,21 @@ export function SinaleiraPda() {
           </div>
         )}
 
+        {!movementsAvailable && !loading && (
+          <Card className="border-yellow-500/40 bg-yellow-500/5">
+            <CardContent className="p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-yellow-500">Sem dados de movimentação</p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  A API de movimentações da PDA retornou vazio. O ritmo de consumo não pode ser calculado, então a sinaleira fica em "sem dados".
+                  Verifique permissões da conta PDA ou contate o suporte para liberar o endpoint <code>CreditConsumeMovement</code>.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
