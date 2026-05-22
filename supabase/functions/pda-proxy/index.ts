@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
 const PDA_BASE = "https://integrations.apispda.com";
 
 const CORS_HEADERS = {
@@ -93,7 +91,7 @@ async function fetchPda(endpoint: string) {
   return pdaRes;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
   }
