@@ -3,7 +3,6 @@ import {
   getAccountBases,
   getCreditBalance,
   getCreditMovements,
-  getAccount,
   type PdaSubBaseDetail,
 } from "@/lib/pdaApi";
 
@@ -68,13 +67,10 @@ export function useSinaleiraPda() {
       }
       const uniqueBases = Array.from(basesMap.values());
 
-      // Para cada base: busca saldo + account (em paralelo, tolerando 403/404 por base)
+      // Para cada base: busca saldo; a API de account detalhada retorna 403 para parte das contas
       const enriched = await Promise.all(
         uniqueBases.map(async (b): Promise<PdaBase> => {
-          const [balRes, accRes] = await Promise.all([
-            getCreditBalance(b.baseId).catch(() => null),
-            getAccount(b.accountId).catch(() => null),
-          ]);
+          const balRes = await getCreditBalance(b.baseId).catch(() => null);
 
           // Soma todas as subBases retornadas em clientCreditBalance
           const entries = balRes?.clientCreditBalance ?? [];
@@ -83,8 +79,8 @@ export function useSinaleiraPda() {
           const total = remaining + spent;
           const usedPercent = total > 0 ? Math.round((spent / total) * 100) : 0;
 
-          // PDA não expõe expirationDate em Accounts/{id}; usamos null até descobrirmos o endpoint
-          const expirationDate: string | null = (accRes as any)?.expirationDate ?? null;
+          // Ainda não temos o endpoint correto de expiração; evitamos a chamada inválida de account detail
+          const expirationDate: string | null = null;
           const daysUntilExpiry = expirationDate
             ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
             : Infinity;
