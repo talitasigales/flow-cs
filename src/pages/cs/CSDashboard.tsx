@@ -249,6 +249,10 @@ export default function CSDashboard() {
           <TabsContent value="usage" className="mt-0">
             <CSUsageDashboard />
           </TabsContent>
+
+          <TabsContent value="sinaleira-pda" className="mt-0">
+            <SinaleiraPda />
+          </TabsContent>
         </Tabs>
       </div>
 
