@@ -77,8 +77,12 @@ async function getPdaToken(forceRefresh = false): Promise<string> {
     throw new Error("PDA login succeeded without token");
   }
 
+  console.log("[pda-proxy] login response keys:", Object.keys(data));
+
   const userId =
-    data.userId ?? data.UserId ?? data.id ?? data.Id ?? data.user?.id ?? data.user?.Id ?? null;
+    data.userId ?? data.UserId ?? data.id ?? data.Id ??
+    data.user?.id ?? data.user?.Id ?? data.User?.id ?? data.User?.Id ??
+    data.userInfo?.id ?? data.UserInfo?.Id ?? null;
 
   cachedToken = { value: data.token, expiresAt: Date.now() + 3500 * 1000, userId };
   return data.token;
