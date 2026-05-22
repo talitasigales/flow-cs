@@ -362,7 +362,7 @@ export function SinaleiraPda() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card ref={movementsRef}>
           <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
             <CardTitle className="text-base">Movimentações de crédito</CardTitle>
             <select
