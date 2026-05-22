@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Filter, X, Info } from "lucide-react";
-import { useMemo, useState } from "react";
+import { RefreshCw, Filter, X, Info, AlertCircle } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge: string }> = {
@@ -21,8 +21,14 @@ const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge
 const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
 
 export function SinaleiraPda() {
-  const { loading, error, bases, movements, lastUpdated, refresh } = useSinaleiraPda();
+  const { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh } = useSinaleiraPda();
   const [selectedBase, setSelectedBase] = useState("all");
+  const movementsRef = useRef<HTMLDivElement>(null);
+
+  const goToMovements = (baseId: string) => {
+    setSelectedBase(baseId);
+    setTimeout(() => movementsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
 
   // Filters
   const [search, setSearch] = useState("");
@@ -182,6 +188,21 @@ export function SinaleiraPda() {
           </div>
         )}
 
+        {!movementsAvailable && !loading && (
+          <Card className="border-yellow-500/40 bg-yellow-500/5">
+            <CardContent className="p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-yellow-500">Sem dados de movimentação</p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  A API de movimentações da PDA retornou vazio. O ritmo de consumo não pode ser calculado, então a sinaleira fica em "sem dados".
+                  Verifique permissões da conta PDA ou contate o suporte para liberar o endpoint <code>CreditConsumeMovement</code>.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -278,7 +299,11 @@ export function SinaleiraPda() {
                   const cfg = STATUS_CONFIG[base.status] ?? STATUS_CONFIG.unknown;
                   const ratioPct = base.consumptionRatio !== null ? Math.round(base.consumptionRatio * 100) : null;
                   return (
-                    <TableRow key={base.baseId}>
+                    <TableRow
+                      key={base.baseId}
+                      className="cursor-pointer hover:bg-muted/40"
+                      onClick={() => goToMovements(base.baseId)}
+                    >
                       <TableCell>
                         <p className="font-medium">{base.baseName}</p>
                         <p className="text-xs text-muted-foreground">{base.accountName}</p>
@@ -337,7 +362,7 @@ export function SinaleiraPda() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card ref={movementsRef}>
           <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
             <CardTitle className="text-base">Movimentações de crédito</CardTitle>
             <select

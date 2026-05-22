@@ -84,6 +84,7 @@ export function useSinaleiraPda() {
   const [error, setError] = useState<string | null>(null);
   const [bases, setBases] = useState<PdaBase[]>([]);
   const [movements, setMovements] = useState<PdaMovement[]>([]);
+  const [movementsAvailable, setMovementsAvailable] = useState<boolean>(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   async function fetchData(force = false) {
@@ -200,6 +201,21 @@ export function useSinaleiraPda() {
             amount: Number(m.amount ?? m.credits ?? 0),
           }));
           setMovements(normalized);
+          const hasData = normalized.length > 0;
+          setMovementsAvailable(hasData);
+
+          if (!hasData) {
+            // Sem dados de movimentação → sinaleira fica "sem dados" em vez de crítico falso
+            setBases((prev) =>
+              prev.map((p) => ({
+                ...p,
+                lastMonthConsumption: 0,
+                consumptionRatio: null,
+                status: isFinite(p.daysUntilExpiry) && p.daysUntilExpiry <= 0 ? "expired" : "unknown",
+              })),
+            );
+            return;
+          }
 
           // Agrega consumo dos últimos 30 dias por base
           const cutoff = Date.now() - 30 * 86400000;
@@ -232,6 +248,7 @@ export function useSinaleiraPda() {
         })
         .catch((e: any) => {
           console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
+          setMovementsAvailable(false);
         });
     } catch (err: any) {
       setError(err.message);
@@ -240,5 +257,5 @@ export function useSinaleiraPda() {
   }
 
   useEffect(() => { fetchData(); }, []);
-  return { loading, error, bases, movements, lastUpdated, refresh: fetchData };
+  return { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh: fetchData };
 }
