@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getToken, getAccountBases, getCreditBalance, getCreditMovements } from "@/lib/pdaApi";
+import { getAccountBases, getCreditBalance, getCreditMovements } from "@/lib/pdaApi";
 
 export type SinaleiraStatus = "ok" | "warning" | "critical" | "expired";
 
@@ -43,10 +43,9 @@ export function useSinaleiraPda() {
       setLoading(true);
       setError(null);
 
-      const token = await getToken();
       const [accounts, movs] = await Promise.all([
-        getAccountBases(token),
-        getCreditMovements(token),
+        getAccountBases(),
+        getCreditMovements(),
       ]);
 
       const accountsArr = Array.isArray(accounts) ? accounts : (accounts?.data ?? []);
@@ -60,7 +59,7 @@ export function useSinaleiraPda() {
       );
 
       const balances = await Promise.all(
-        rawBases.map((b: any) => getCreditBalance(token, b.baseId).catch(() => ({})))
+        rawBases.map((b: any) => getCreditBalance(b.baseId).catch(() => ({})))
       );
 
       const enriched: PdaBase[] = rawBases.map((b: any, i: number) => {
