@@ -49,14 +49,21 @@ export function useSinaleiraPda() {
       ]);
 
       const accountsArr = Array.isArray(accounts) ? accounts : (accounts?.data ?? []);
-      const rawBases = accountsArr.flatMap((acc: any) =>
-        (acc.bases || acc.subBases || []).map((b: any) => ({
-          baseId: b.baseId || b.id,
-          baseName: b.baseName || b.name,
-          accountName: acc.accountName || acc.name,
-          expirationDate: b.expirationDate || acc.expirationDate,
-        }))
-      );
+      // PDA retorna lista plana: cada item é uma subBase. Agrupamos por baseId.
+      const basesMap = new Map<string, any>();
+      for (const item of accountsArr) {
+        const baseId = item.baseId || item.id;
+        if (!baseId) continue;
+        if (!basesMap.has(baseId)) {
+          basesMap.set(baseId, {
+            baseId,
+            baseName: (item.baseName || item.name || "").trim(),
+            accountName: item.subBaseName || item.accountName || item.link || "",
+            expirationDate: item.expirationDate,
+          });
+        }
+      }
+      const rawBases = Array.from(basesMap.values());
 
       const balances = await Promise.all(
         rawBases.map((b: any) => getCreditBalance(b.baseId).catch(() => ({})))
