@@ -45,7 +45,10 @@ export function useSinaleiraPda() {
 
       const [accounts, movs] = await Promise.all([
         getAccountBases(),
-        getCreditMovements(),
+        getCreditMovements().catch((e) => {
+          console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
+          return [];
+        }),
       ]);
 
       const accountsArr = Array.isArray(accounts) ? accounts : (accounts?.data ?? []);
