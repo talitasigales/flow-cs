@@ -299,7 +299,11 @@ export function SinaleiraPda() {
                   const cfg = STATUS_CONFIG[base.status] ?? STATUS_CONFIG.unknown;
                   const ratioPct = base.consumptionRatio !== null ? Math.round(base.consumptionRatio * 100) : null;
                   return (
-                    <TableRow key={base.baseId}>
+                    <TableRow
+                      key={base.baseId}
+                      className="cursor-pointer hover:bg-muted/40"
+                      onClick={() => goToMovements(base.baseId)}
+                    >
                       <TableCell>
                         <p className="font-medium">{base.baseName}</p>
                         <p className="text-xs text-muted-foreground">{base.accountName}</p>
