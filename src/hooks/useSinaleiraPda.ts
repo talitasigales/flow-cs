@@ -62,19 +62,15 @@ export function useSinaleiraPda() {
       setLoading(true);
       setError(null);
 
-      const [subBases, basesByUser, movs] = await Promise.all([
+      // 1) Lista de bases + expirações: rápido (cache de 6h). Renderiza assim que chegar.
+      const [subBases, basesByUser] = await Promise.all([
         getAccountBases(force),
         getBasesByUser(force).catch((e: any) => {
           console.warn("[Sinaleira PDA] GetBasesByUser indisponível:", e.message);
           return [];
         }),
-        getCreditMovements(force).catch((e: any) => {
-          console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
-          return [];
-        }),
       ]);
 
-      // Mapa baseId -> data de expiração (vinda de GetBasesByUser)
       const expirationMap = new Map<string, string | null>();
       for (const item of basesByUser) {
         const id = item.baseId ?? item.BaseId;
@@ -88,7 +84,6 @@ export function useSinaleiraPda() {
         expirationMap.set(id, exp);
       }
 
-      // Agrupa subBases por baseId (PDA retorna lista plana de subBases)
       const basesMap = new Map<string, PdaSubBaseDetail>();
       for (const item of subBases) {
         if (!item.baseId) continue;
@@ -96,57 +91,85 @@ export function useSinaleiraPda() {
       }
       const uniqueBases = Array.from(basesMap.values());
 
-      // Para cada base: busca saldo; a API de account detalhada retorna 403 para parte das contas
-      const enriched = await mapWithConcurrency(uniqueBases, 3, async (b): Promise<PdaBase> => {
-          const balRes = await getCreditBalance(b.baseId, force).catch(() => null);
-
-          // Soma todas as subBases retornadas em clientCreditBalance
-          const entries = balRes?.clientCreditBalance ?? [];
-          const remaining = entries.reduce((s, e) => s + (e.remainingCredits ?? 0), 0);
-          const spent = entries.reduce((s, e) => s + (e.spentCredits ?? 0), 0);
-          const total = remaining + spent;
-          const usedPercent = total > 0 ? Math.round((spent / total) * 100) : 0;
-
-          const expirationDate: string | null = expirationMap.get(b.baseId) ?? null;
-          const daysUntilExpiry = expirationDate
-            ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
-            : Infinity;
-
-          const unavailable = balRes === null;
-
-          return {
-            baseId: b.baseId,
-            baseName: (b.baseName || "").trim(),
-            accountName: b.subBaseName || b.link,
-            accountId: b.accountId,
-            link: b.link,
-            expirationDate,
-            availableCredits: remaining,
-            totalCredits: total,
-            usedCredits: spent,
-            usedPercent,
-            daysUntilExpiry,
-            status: calcStatus(daysUntilExpiry, usedPercent),
-            unavailable,
-          };
-        });
-
-      setBases(enriched);
-
-      const movsArr = Array.isArray(movs) ? movs : ((movs as any)?.data ?? []);
-      setMovements(
-        movsArr.map((m: any) => ({
-          date: m.date || m.createdAt,
-          baseId: m.baseId,
-          baseName: m.baseName,
-          type: m.movementType || m.type,
-          amount: m.amount || m.credits,
-        }))
-      );
+      // Render inicial sem saldos: usuário já vê as bases.
+      const skeleton: PdaBase[] = uniqueBases.map((b) => {
+        const expirationDate = expirationMap.get(b.baseId) ?? null;
+        const daysUntilExpiry = expirationDate
+          ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
+          : Infinity;
+        return {
+          baseId: b.baseId,
+          baseName: (b.baseName || "").trim(),
+          accountName: b.subBaseName || b.link,
+          accountId: b.accountId,
+          link: b.link,
+          expirationDate,
+          availableCredits: 0,
+          totalCredits: 0,
+          usedCredits: 0,
+          usedPercent: 0,
+          daysUntilExpiry,
+          status: calcStatus(daysUntilExpiry, 0),
+          unavailable: true,
+        };
+      });
+      setBases(skeleton);
       setLastUpdated(new Date());
+      setLoading(false);
+
+      // 2) Saldos em background: atualiza cada base individualmente conforme chega.
+      mapWithConcurrency(uniqueBases, 5, async (b) => {
+        const balRes = await getCreditBalance(b.baseId, force).catch(() => null);
+        const entries = balRes?.clientCreditBalance ?? [];
+        const remaining = entries.reduce((s, e) => s + (e.remainingCredits ?? 0), 0);
+        const spent = entries.reduce((s, e) => s + (e.spentCredits ?? 0), 0);
+        const total = remaining + spent;
+        const usedPercent = total > 0 ? Math.round((spent / total) * 100) : 0;
+        const expirationDate: string | null = expirationMap.get(b.baseId) ?? null;
+        const daysUntilExpiry = expirationDate
+          ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
+          : Infinity;
+        const unavailable = balRes === null;
+
+        setBases((prev) =>
+          prev.map((p) =>
+            p.baseId === b.baseId
+              ? {
+                  ...p,
+                  availableCredits: remaining,
+                  totalCredits: total,
+                  usedCredits: spent,
+                  usedPercent,
+                  daysUntilExpiry,
+                  status: calcStatus(daysUntilExpiry, usedPercent),
+                  unavailable,
+                }
+              : p,
+          ),
+        );
+      }).then(() => {
+        setLastUpdated(new Date());
+      });
+
+      // 3) Movimentações: também em background.
+      getCreditMovements(force)
+        .then((movs) => {
+          const movsArr = Array.isArray(movs) ? movs : ((movs as any)?.data ?? []);
+          setMovements(
+            movsArr.map((m: any) => ({
+              date: m.date || m.createdAt,
+              baseId: m.baseId,
+              baseName: m.baseName,
+              type: m.movementType || m.type,
+              amount: m.amount || m.credits,
+            })),
+          );
+        })
+        .catch((e: any) => {
+          console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
+        });
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   }
