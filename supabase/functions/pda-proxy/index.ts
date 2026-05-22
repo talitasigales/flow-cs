@@ -127,20 +127,34 @@ async function getPdaUserId(): Promise<string | null> {
   return cachedToken?.userId ?? null;
 }
 
-async function fetchPda(endpoint: string) {
+async function fetchPda(endpoint: string, timeoutMs = 15000) {
   let token = await getPdaToken();
-  let pdaRes = await fetch(`${PDA_BASE}${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const doFetch = (tk: string) => fetch(`${PDA_BASE}${endpoint}`, {
+    headers: { Authorization: `Bearer ${tk}` },
+    signal: AbortSignal.timeout(timeoutMs),
   });
+
+  let pdaRes = await doFetch(token);
 
   if (pdaRes.status === 401) {
     token = await getPdaToken(true);
-    pdaRes = await fetch(`${PDA_BASE}${endpoint}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    pdaRes = await doFetch(token);
   }
 
   return pdaRes;
+}
+
+async function refreshInBackground(rawEndpoint: string, endpoint: string) {
+  try {
+    const pdaRes = await fetchPda(endpoint);
+    if (!pdaRes.ok) return;
+    const payload = await parsePdaBody(pdaRes);
+    const trimmed = trimPayload(rawEndpoint, payload);
+    await writeCache(rawEndpoint, trimmed);
+    console.log(`[pda-proxy] background refresh OK ${rawEndpoint}`);
+  } catch (e) {
+    console.warn(`[pda-proxy] background refresh failed ${rawEndpoint}:`, (e as Error).message);
+  }
 }
 
 function trimPayload(rawEndpoint: string, payload: unknown): unknown {
