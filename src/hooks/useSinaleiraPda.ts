@@ -257,5 +257,5 @@ export function useSinaleiraPda() {
   }
 
   useEffect(() => { fetchData(); }, []);
-  return { loading, error, bases, movements, lastUpdated, refresh: fetchData };
+  return { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh: fetchData };
 }
