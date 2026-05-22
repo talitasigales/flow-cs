@@ -127,20 +127,34 @@ async function getPdaUserId(): Promise<string | null> {
   return cachedToken?.userId ?? null;
 }
 
-async function fetchPda(endpoint: string) {
+async function fetchPda(endpoint: string, timeoutMs = 15000) {
   let token = await getPdaToken();
-  let pdaRes = await fetch(`${PDA_BASE}${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const doFetch = (tk: string) => fetch(`${PDA_BASE}${endpoint}`, {
+    headers: { Authorization: `Bearer ${tk}` },
+    signal: AbortSignal.timeout(timeoutMs),
   });
+
+  let pdaRes = await doFetch(token);
 
   if (pdaRes.status === 401) {
     token = await getPdaToken(true);
-    pdaRes = await fetch(`${PDA_BASE}${endpoint}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    pdaRes = await doFetch(token);
   }
 
   return pdaRes;
+}
+
+async function refreshInBackground(rawEndpoint: string, endpoint: string) {
+  try {
+    const pdaRes = await fetchPda(endpoint);
+    if (!pdaRes.ok) return;
+    const payload = await parsePdaBody(pdaRes);
+    const trimmed = trimPayload(rawEndpoint, payload);
+    await writeCache(rawEndpoint, trimmed);
+    console.log(`[pda-proxy] background refresh OK ${rawEndpoint}`);
+  } catch (e) {
+    console.warn(`[pda-proxy] background refresh failed ${rawEndpoint}:`, (e as Error).message);
+  }
 }
 
 function trimPayload(rawEndpoint: string, payload: unknown): unknown {
@@ -192,7 +206,16 @@ Deno.serve(async (req) => {
           console.log(`[pda-proxy] cache HIT ${cacheKey} age=${Math.round(ageMs / 1000)}s ttl=${ttlSec}s`);
           return jsonResponse(cached.payload);
         }
-        console.log(`[pda-proxy] cache STALE ${cacheKey} age=${Math.round(ageMs / 1000)}s`);
+        // STALE → devolve agora e atualiza em background (stale-while-revalidate)
+        console.log(`[pda-proxy] cache SWR ${cacheKey} age=${Math.round(ageMs / 1000)}s`);
+        // @ts-ignore Deno EdgeRuntime
+        if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
+          // @ts-ignore
+          EdgeRuntime.waitUntil(refreshInBackground(cacheKey, endpoint));
+        } else {
+          refreshInBackground(cacheKey, endpoint);
+        }
+        return jsonResponse(cached.payload);
       } else {
         console.log(`[pda-proxy] cache MISS ${cacheKey}`);
       }
@@ -200,32 +223,34 @@ Deno.serve(async (req) => {
       console.log(`[pda-proxy] cache BYPASS (force=true) ${cacheKey}`);
     }
 
-    const pdaRes = await fetchPda(endpoint);
+    let pdaRes: Response;
+    try {
+      pdaRes = await fetchPda(endpoint);
+    } catch (fetchErr) {
+      console.error("[pda-proxy] upstream fetch threw", (fetchErr as Error).message);
+      const fallback = getEndpointFallback(endpoint, 0);
+      const stale = await readCache(cacheKey);
+      if (stale) {
+        console.warn(`[pda-proxy] returning STALE cache after fetch error ${cacheKey}`);
+        return jsonResponse(stale.payload);
+      }
+      if (fallback !== null) return jsonResponse(fallback);
+      return jsonResponse({ error: `PDA fetch failed: ${(fetchErr as Error).message}` }, 502);
+    }
+
     const payload = await parsePdaBody(pdaRes);
 
     if (!pdaRes.ok) {
-      console.error("[pda-proxy] upstream error", {
-        endpoint,
-        status: pdaRes.status,
-        payload,
-      });
-
-      const fallback = getEndpointFallback(endpoint, pdaRes.status);
-      if (fallback !== null) {
-        return jsonResponse(fallback);
-      }
-
+      console.error("[pda-proxy] upstream error", { endpoint, status: pdaRes.status, payload });
       // Em caso de erro, se tivermos cache antigo, devolve para não quebrar a UI.
       const stale = await readCache(cacheKey);
       if (stale) {
         console.warn(`[pda-proxy] returning STALE cache after upstream ${pdaRes.status} ${cacheKey}`);
         return jsonResponse(stale.payload);
       }
-
-      return jsonResponse(
-        { error: `PDA API error: ${pdaRes.status} on ${endpoint}`, details: payload },
-        502,
-      );
+      const fallback = getEndpointFallback(endpoint, pdaRes.status);
+      if (fallback !== null) return jsonResponse(fallback);
+      return jsonResponse({ error: `PDA API error: ${pdaRes.status} on ${endpoint}`, details: payload }, 502);
     }
 
     const trimmed = trimPayload(rawEndpoint, payload);
