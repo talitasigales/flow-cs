@@ -120,3 +120,22 @@ export async function getCreditBalance(baseId: string): Promise<PdaCreditBalance
 export async function getCreditMovements() {
   return pdaFetch("/api/credit/v1/Credit/CreditConsumeMovement");
 }
+
+export interface PdaBaseByUser {
+  baseId?: string;
+  BaseId?: string;
+  baseName?: string;
+  BaseName?: string;
+  accountId?: string;
+  AccountId?: string;
+  creditsExpirationDate?: string | null;
+  CreditsExpirationDate?: string | null;
+  expirationDate?: string | null;
+  ExpirationDate?: string | null;
+}
+
+export async function getBasesByUser(): Promise<PdaBaseByUser[]> {
+  const data = await pdaFetch("/api/client/v1/Client/GetBasesByUser/me").catch(() => null);
+  if (!data) return [];
+  return Array.isArray(data) ? data : (data?.data ?? []);
+}

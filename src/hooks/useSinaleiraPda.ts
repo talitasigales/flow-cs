@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   getAccountBases,
+  getBasesByUser,
   getCreditBalance,
   getCreditMovements,
   type PdaSubBaseDetail,
@@ -61,13 +62,31 @@ export function useSinaleiraPda() {
       setLoading(true);
       setError(null);
 
-      const [subBases, movs] = await Promise.all([
+      const [subBases, basesByUser, movs] = await Promise.all([
         getAccountBases(),
+        getBasesByUser().catch((e: any) => {
+          console.warn("[Sinaleira PDA] GetBasesByUser indisponível:", e.message);
+          return [];
+        }),
         getCreditMovements().catch((e: any) => {
           console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
           return [];
         }),
       ]);
+
+      // Mapa baseId -> data de expiração (vinda de GetBasesByUser)
+      const expirationMap = new Map<string, string | null>();
+      for (const item of basesByUser) {
+        const id = item.baseId ?? item.BaseId;
+        if (!id) continue;
+        const exp =
+          item.creditsExpirationDate ??
+          item.CreditsExpirationDate ??
+          item.expirationDate ??
+          item.ExpirationDate ??
+          null;
+        expirationMap.set(id, exp);
+      }
 
       // Agrupa subBases por baseId (PDA retorna lista plana de subBases)
       const basesMap = new Map<string, PdaSubBaseDetail>();
@@ -88,8 +107,7 @@ export function useSinaleiraPda() {
           const total = remaining + spent;
           const usedPercent = total > 0 ? Math.round((spent / total) * 100) : 0;
 
-          // Ainda não temos o endpoint correto de expiração; evitamos a chamada inválida de account detail
-          const expirationDate: string | null = null;
+          const expirationDate: string | null = expirationMap.get(b.baseId) ?? null;
           const daysUntilExpiry = expirationDate
             ? Math.ceil((new Date(expirationDate).getTime() - Date.now()) / 86400000)
             : Infinity;
