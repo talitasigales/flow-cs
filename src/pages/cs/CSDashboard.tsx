@@ -153,6 +153,7 @@ export default function CSDashboard() {
           <TabsList>
             <TabsTrigger value="timeline">Timeline & Touchpoints</TabsTrigger>
             <TabsTrigger value="usage">Uso de usuários</TabsTrigger>
+            <TabsTrigger value="sinaleira-pda"><Gauge className="w-4 h-4 mr-2" />Sinaleira PDA</TabsTrigger>
           </TabsList>
 
           <TabsContent value="timeline" className="space-y-6 mt-0">
