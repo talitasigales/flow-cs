@@ -6,7 +6,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-let cachedToken: { value: string; expiresAt: number } | null = null;
+let cachedToken: { value: string; expiresAt: number; userId: string | null } | null = null;
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -77,8 +77,20 @@ async function getPdaToken(forceRefresh = false): Promise<string> {
     throw new Error("PDA login succeeded without token");
   }
 
-  cachedToken = { value: data.token, expiresAt: Date.now() + 3500 * 1000 };
+  const ud = data.userDetails ?? data.UserDetails ?? {};
+  const userId =
+    ud.id ?? ud.Id ?? ud.userId ?? ud.UserId ?? ud.userID ?? ud.UserID ??
+    data.userId ?? data.UserId ?? data.id ?? data.Id ?? null;
+
+  console.log("[pda-proxy] resolved userId:", userId, "userDetails keys:", Object.keys(ud));
+
+  cachedToken = { value: data.token, expiresAt: Date.now() + 3500 * 1000, userId };
   return data.token;
+}
+
+async function getPdaUserId(): Promise<string | null> {
+  await getPdaToken();
+  return cachedToken?.userId ?? null;
 }
 
 async function fetchPda(endpoint: string) {
@@ -103,9 +115,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { endpoint } = await req.json();
-    if (!endpoint || typeof endpoint !== "string" || !endpoint.startsWith("/api/")) {
+    const { endpoint: rawEndpoint } = await req.json();
+    if (!rawEndpoint || typeof rawEndpoint !== "string" || !rawEndpoint.startsWith("/api/")) {
       return jsonResponse({ error: "Invalid endpoint param" }, 400);
+    }
+
+    let endpoint = rawEndpoint;
+    if (endpoint.includes("{me}") || endpoint.endsWith("/me")) {
+      const userId = await getPdaUserId();
+      if (!userId) {
+        return jsonResponse({ error: "PDA userId not available from login response" }, 500);
+      }
+      endpoint = endpoint.replace("{me}", userId).replace(/\/me$/, `/${userId}`);
     }
 
     const pdaRes = await fetchPda(endpoint);
