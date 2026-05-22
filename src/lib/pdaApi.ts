@@ -35,13 +35,14 @@ export interface PdaCreditBalanceResponse {
 }
 
 export interface PdaAccount {
-  id: string;
-  baseId: string;
-  email: string;
-  active: boolean;
-  creationDate: string;
-  modificationDate: string;
-  multiregion: boolean;
+  id: string | null;
+  baseId?: string;
+  email?: string;
+  active?: boolean;
+  creationDate?: string;
+  modificationDate?: string;
+  multiregion?: boolean;
+  unavailable?: boolean;
 }
 
 export async function getAccountBases(): Promise<PdaSubBaseDetail[]> {
