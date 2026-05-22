@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Filter, X, Info } from "lucide-react";
-import { useMemo, useState } from "react";
+import { RefreshCw, Filter, X, Info, AlertCircle } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge: string }> = {
