@@ -22,10 +22,11 @@ function getClientFallback(endpoint: string) {
   return null;
 }
 
-async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<any> {
+async function pdaFetch(endpoint: string, options: { force?: boolean } = {}, retries = 3, delayMs = 500): Promise<any> {
+  const { force = false } = options;
   try {
     const { data, error } = await supabase.functions.invoke("pda-proxy", {
-      body: { endpoint },
+      body: { endpoint, force },
     });
 
     const message = error?.message || data?.error;
@@ -44,7 +45,7 @@ async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<a
 
     if ((isTransientBootError || isTransientUpstreamError) && retries > 0) {
       await wait(delayMs);
-      return pdaFetch(endpoint, retries - 1, delayMs * 2);
+      return pdaFetch(endpoint, options, retries - 1, delayMs * 2);
     }
 
     if (isTransientBootError || isTransientUpstreamError) {
@@ -69,7 +70,7 @@ async function pdaFetch(endpoint: string, retries = 3, delayMs = 500): Promise<a
 
     if (isTransientInvokeError && retries > 0) {
       await wait(delayMs);
-      return pdaFetch(endpoint, retries - 1, delayMs * 2);
+      return pdaFetch(endpoint, options, retries - 1, delayMs * 2);
     }
 
     if (isTransientInvokeError) {
@@ -108,17 +109,17 @@ export interface PdaCreditBalanceResponse {
   unavailable?: boolean;
 }
 
-export async function getAccountBases(): Promise<PdaSubBaseDetail[]> {
-  const data = await pdaFetch("/api/identity/v1/Accounts/AccountSubBaseDetail");
+export async function getAccountBases(force = false): Promise<PdaSubBaseDetail[]> {
+  const data = await pdaFetch("/api/identity/v1/Accounts/AccountSubBaseDetail", { force });
   return Array.isArray(data) ? data : (data?.data ?? []);
 }
 
-export async function getCreditBalance(baseId: string): Promise<PdaCreditBalanceResponse> {
-  return pdaFetch(`/api/credit/v1/CreditBalance/base/${baseId}`);
+export async function getCreditBalance(baseId: string, force = false): Promise<PdaCreditBalanceResponse> {
+  return pdaFetch(`/api/credit/v1/CreditBalance/base/${baseId}`, { force });
 }
 
-export async function getCreditMovements() {
-  return pdaFetch("/api/credit/v1/Credit/CreditConsumeMovement");
+export async function getCreditMovements(force = false) {
+  return pdaFetch("/api/credit/v1/Credit/CreditConsumeMovement", { force });
 }
 
 export interface PdaBaseByUser {
@@ -134,8 +135,8 @@ export interface PdaBaseByUser {
   ExpirationDate?: string | null;
 }
 
-export async function getBasesByUser(): Promise<PdaBaseByUser[]> {
-  const data = await pdaFetch("/api/client/v1/Client/GetBasesByUser/me").catch(() => null);
+export async function getBasesByUser(force = false): Promise<PdaBaseByUser[]> {
+  const data = await pdaFetch("/api/client/v1/Client/GetBasesByUser/me", { force }).catch(() => null);
   if (!data) return [];
   return Array.isArray(data) ? data : (data?.data ?? []);
 }

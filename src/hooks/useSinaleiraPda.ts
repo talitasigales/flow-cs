@@ -57,18 +57,18 @@ export function useSinaleiraPda() {
   const [movements, setMovements] = useState<PdaMovement[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  async function fetchData() {
+  async function fetchData(force = false) {
     try {
       setLoading(true);
       setError(null);
 
       const [subBases, basesByUser, movs] = await Promise.all([
-        getAccountBases(),
-        getBasesByUser().catch((e: any) => {
+        getAccountBases(force),
+        getBasesByUser(force).catch((e: any) => {
           console.warn("[Sinaleira PDA] GetBasesByUser indisponível:", e.message);
           return [];
         }),
-        getCreditMovements().catch((e: any) => {
+        getCreditMovements(force).catch((e: any) => {
           console.warn("[Sinaleira PDA] Movimentações indisponíveis:", e.message);
           return [];
         }),
@@ -98,7 +98,7 @@ export function useSinaleiraPda() {
 
       // Para cada base: busca saldo; a API de account detalhada retorna 403 para parte das contas
       const enriched = await mapWithConcurrency(uniqueBases, 3, async (b): Promise<PdaBase> => {
-          const balRes = await getCreditBalance(b.baseId).catch(() => null);
+          const balRes = await getCreditBalance(b.baseId, force).catch(() => null);
 
           // Soma todas as subBases retornadas em clientCreditBalance
           const entries = balRes?.clientCreditBalance ?? [];
