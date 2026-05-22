@@ -150,6 +150,19 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Para GetBasesByUser a resposta é enorme (5k+ bases). Reduzimos para os campos
+    // necessários para a sinaleira: baseId + datas de expiração.
+    if (rawEndpoint.includes("GetBasesByUser") && Array.isArray(payload)) {
+      const trimmed = payload.map((item: any) => ({
+        baseId: item.baseId ?? item.BaseId,
+        baseName: item.baseName ?? item.BaseName,
+        creditsExpirationDate: item.creditsExpirationDate ?? item.CreditsExpirationDate ?? null,
+        expirationDate: item.expirationDate ?? item.ExpirationDate ?? null,
+        userLimit: item.userLimit ?? item.UserLimit ?? null,
+      }));
+      return jsonResponse(trimmed);
+    }
+
     return jsonResponse(payload);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
