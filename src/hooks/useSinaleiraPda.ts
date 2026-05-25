@@ -35,7 +35,9 @@ export interface PdaMovement {
   baseName: string;
   type: string;
   amount: number;
+  reason?: string;
 }
+
 
 /**
  * Sinaleira baseada no ritmo de consumo:
