@@ -27,12 +27,29 @@ const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
 export function SinaleiraPda() {
   const { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh } = useSinaleiraPda();
   const [selectedBase, setSelectedBase] = useState("all");
+  const [drawerBase, setDrawerBase] = useState<PdaBase | null>(null);
   const movementsRef = useRef<HTMLDivElement>(null);
 
   const goToMovements = (baseId: string) => {
     setSelectedBase(baseId);
     setTimeout(() => movementsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
+
+  const openDrawer = (base: PdaBase) => {
+    setDrawerBase(base);
+    setSelectedBase(base.baseId);
+  };
+
+  const drawerMovements = useMemo(
+    () =>
+      drawerBase
+        ? movements
+            .filter((m) => m.baseId === drawerBase.baseId)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        : [],
+    [drawerBase, movements],
+  );
+
 
   // Filters
   const [search, setSearch] = useState("");
