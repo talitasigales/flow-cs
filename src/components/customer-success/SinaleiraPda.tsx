@@ -323,8 +323,9 @@ export function SinaleiraPda() {
                     <TableRow
                       key={base.baseId}
                       className="cursor-pointer hover:bg-muted/40"
-                      onClick={() => goToMovements(base.baseId)}
+                      onClick={() => openDrawer(base)}
                     >
+
                       <TableCell>
                         <p className="font-medium">{base.baseName}</p>
                         <p className="text-xs text-muted-foreground">{base.accountName}</p>
