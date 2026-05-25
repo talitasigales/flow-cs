@@ -256,7 +256,7 @@ export function AppSidebar() {
                 totalCommunityBadge > 0 ? totalCommunityBadge : (communityNotActivated ? -1 : 0),
               )}
               {renderCollapsible('Academy', Award, openPrograms, setOpenPrograms, isInAcademy, allAcademySubItems, 3)}
-              {isAdmin && renderTopLevelItem('Customer Success', Headset, '/cs', 4)}
+              {(isAdmin || hasCSAccess) && renderTopLevelItem('Customer Success', Headset, '/cs', 4)}
               {renderTopLevelItem('Meu Perfil', User, '/profile', 5)}
             </SidebarMenu>
           </SidebarGroupContent>
