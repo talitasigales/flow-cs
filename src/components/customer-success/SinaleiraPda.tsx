@@ -6,9 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Filter, X, Info, AlertCircle } from "lucide-react";
+import { RefreshCw, Filter, X, Info, AlertCircle, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { PdaBase } from "@/hooks/useSinaleiraPda";
+
 
 const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge: string }> = {
   ok:       { label: "Verde",    dot: "bg-green-500",  badge: "bg-green-500/15 text-green-500 border-green-500/30" },
