@@ -6,9 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Filter, X, Info, AlertCircle } from "lucide-react";
+import { RefreshCw, Filter, X, Info, AlertCircle, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { PdaBase } from "@/hooks/useSinaleiraPda";
+
 
 const STATUS_CONFIG: Record<SinaleiraStatus, { label: string; dot: string; badge: string }> = {
   ok:       { label: "Verde",    dot: "bg-green-500",  badge: "bg-green-500/15 text-green-500 border-green-500/30" },
@@ -23,12 +27,29 @@ const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
 export function SinaleiraPda() {
   const { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh } = useSinaleiraPda();
   const [selectedBase, setSelectedBase] = useState("all");
+  const [drawerBase, setDrawerBase] = useState<PdaBase | null>(null);
   const movementsRef = useRef<HTMLDivElement>(null);
 
   const goToMovements = (baseId: string) => {
     setSelectedBase(baseId);
     setTimeout(() => movementsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
+
+  const openDrawer = (base: PdaBase) => {
+    setDrawerBase(base);
+    setSelectedBase(base.baseId);
+  };
+
+  const drawerMovements = useMemo(
+    () =>
+      drawerBase
+        ? movements
+            .filter((m) => m.baseId === drawerBase.baseId)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        : [],
+    [drawerBase, movements],
+  );
+
 
   // Filters
   const [search, setSearch] = useState("");
@@ -302,8 +323,9 @@ export function SinaleiraPda() {
                     <TableRow
                       key={base.baseId}
                       className="cursor-pointer hover:bg-muted/40"
-                      onClick={() => goToMovements(base.baseId)}
+                      onClick={() => openDrawer(base)}
                     >
+
                       <TableCell>
                         <p className="font-medium">{base.baseName}</p>
                         <p className="text-xs text-muted-foreground">{base.accountName}</p>
@@ -407,7 +429,88 @@ export function SinaleiraPda() {
             </Table>
           </CardContent>
         </Card>
+
+        <Sheet open={!!drawerBase} onOpenChange={(o) => !o && setDrawerBase(null)}>
+          <SheetContent side="right" className="w-full sm:max-w-xl flex flex-col">
+            {drawerBase && (
+              <>
+                <SheetHeader>
+                  <SheetTitle>{drawerBase.baseName}</SheetTitle>
+                  <SheetDescription>
+                    {drawerBase.accountName} · Saldo {fmt(drawerBase.availableCredits)} créditos
+                  </SheetDescription>
+                </SheetHeader>
+
+                <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                  <div className="rounded-md border p-2">
+                    <p className="text-[10px] text-muted-foreground uppercase">Meta/mês</p>
+                    <p className="text-sm font-semibold">{drawerBase.monthlyTarget > 0 ? fmt(drawerBase.monthlyTarget) : "—"}</p>
+                  </div>
+                  <div className="rounded-md border p-2">
+                    <p className="text-[10px] text-muted-foreground uppercase">Consumo 30d</p>
+                    <p className="text-sm font-semibold">{fmt(drawerBase.lastMonthConsumption)}</p>
+                  </div>
+                  <div className="rounded-md border p-2">
+                    <p className="text-[10px] text-muted-foreground uppercase">Ritmo</p>
+                    <p className="text-sm font-semibold">
+                      {drawerBase.consumptionRatio !== null ? `${Math.round(drawerBase.consumptionRatio * 100)}%` : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 mb-2 flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">Movimentações detalhadas</h4>
+                  <span className="text-xs text-muted-foreground">{drawerMovements.length} registro(s)</span>
+                </div>
+
+                <ScrollArea className="flex-1 -mx-6 px-6">
+                  {drawerMovements.length === 0 ? (
+                    <div className="text-center text-sm text-muted-foreground py-12">
+                      Nenhuma movimentação para esta base.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 pb-6">
+                      {drawerMovements.map((mov, i) => {
+                        const isCredit = mov.amount >= 0;
+                        return (
+                          <div
+                            key={i}
+                            className="flex items-start gap-3 rounded-md border p-3"
+                          >
+                            {isCredit ? (
+                              <ArrowUpCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                            ) : (
+                              <ArrowDownCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs text-muted-foreground">
+                                  {mov.date ? new Date(mov.date).toLocaleString("pt-BR") : "—"}
+                                </p>
+                                <span className={`text-sm font-semibold ${isCredit ? "text-green-500" : "text-red-500"}`}>
+                                  {isCredit ? "+" : ""}{fmt(mov.amount)}
+                                </span>
+                              </div>
+                              <p className="text-sm font-medium mt-0.5">
+                                {isCredit ? "Crédito" : "Débito"}
+                                {mov.type ? ` · ${mov.type}` : ""}
+                              </p>
+                              {mov.reason && (
+                                <p className="text-xs text-muted-foreground mt-1 break-words">{mov.reason}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+              </>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
+
     </TooltipProvider>
   );
 }

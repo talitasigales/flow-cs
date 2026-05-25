@@ -35,7 +35,9 @@ export interface PdaMovement {
   baseName: string;
   type: string;
   amount: number;
+  reason?: string;
 }
+
 
 /**
  * Sinaleira baseada no ritmo de consumo:
@@ -199,7 +201,9 @@ export function useSinaleiraPda() {
             baseName: m.baseName,
             type: m.movementType || m.type,
             amount: Number(m.amount ?? m.credits ?? 0),
+            reason: m.description ?? m.reason ?? m.motivo ?? m.observation ?? m.note ?? m.consumeDescription ?? undefined,
           }));
+
           setMovements(normalized);
           const hasData = normalized.length > 0;
           setMovementsAvailable(hasData);
