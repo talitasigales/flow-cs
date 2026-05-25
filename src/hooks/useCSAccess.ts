@@ -14,27 +14,33 @@ interface CSAccess {
 }
 
 export function useCSAccess(): CSAccess {
-  const { user } = useAuth();
-  const { isAdmin } = useIsAdmin();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [csRole, setCsRole] = useState<CSRole | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       setCsRole(null);
-      setLoading(false);
+      setRoleLoading(false);
       return;
     }
     (async () => {
-      const { data } = await (supabase as any)
+      setRoleLoading(true);
+      const { data, error } = await (supabase as any)
         .from('cs_user_access')
         .select('cs_role')
         .eq('user_id', user.id)
         .maybeSingle();
+      if (error) console.error('[useCSAccess]', error);
       setCsRole((data?.cs_role as CSRole) ?? null);
-      setLoading(false);
+      setRoleLoading(false);
     })();
-  }, [user]);
+  }, [user, authLoading]);
+
+  const loading = authLoading || adminLoading || roleLoading;
+
 
   const hasAccess = isAdmin || csRole !== null;
   const canManage = isAdmin || csRole === 'cs_admin';
