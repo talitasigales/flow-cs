@@ -81,13 +81,45 @@ async function mapWithConcurrency<T, R>(items: T[], concurrency: number, mapper:
   return results;
 }
 
+const STORAGE_KEY = "sinaleira-pda-cache-v1";
+
+type PersistedCache = {
+  bases: PdaBase[];
+  movements: PdaMovement[];
+  movementsAvailable: boolean;
+  lastUpdated: string | null;
+};
+
+function loadPersisted(): PersistedCache | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PersistedCache;
+  } catch {
+    return null;
+  }
+}
+
+function savePersisted(data: PersistedCache) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore quota errors
+  }
+}
+
 export function useSinaleiraPda() {
-  const [loading, setLoading] = useState(true);
+  const persisted = typeof window !== "undefined" ? loadPersisted() : null;
+  const hasPersisted = !!persisted && persisted.bases.length > 0;
+
+  const [loading, setLoading] = useState(!hasPersisted);
   const [error, setError] = useState<string | null>(null);
-  const [bases, setBases] = useState<PdaBase[]>([]);
-  const [movements, setMovements] = useState<PdaMovement[]>([]);
-  const [movementsAvailable, setMovementsAvailable] = useState<boolean>(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [bases, setBases] = useState<PdaBase[]>(persisted?.bases ?? []);
+  const [movements, setMovements] = useState<PdaMovement[]>(persisted?.movements ?? []);
+  const [movementsAvailable, setMovementsAvailable] = useState<boolean>(persisted?.movementsAvailable ?? true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(
+    persisted?.lastUpdated ? new Date(persisted.lastUpdated) : null,
+  );
 
   async function fetchData(force = false) {
     try {
@@ -260,6 +292,22 @@ export function useSinaleiraPda() {
     }
   }
 
-  useEffect(() => { fetchData(); }, []);
+  // Só busca automaticamente se não houver cache persistido. Após isso, atualização é manual.
+  useEffect(() => {
+    if (!hasPersisted) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persiste estado no localStorage para sobreviver a navegação/fechamento do navegador.
+  useEffect(() => {
+    if (loading) return;
+    if (bases.length === 0) return;
+    savePersisted({
+      bases,
+      movements,
+      movementsAvailable,
+      lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
+    });
+  }, [bases, movements, movementsAvailable, lastUpdated, loading]);
   return { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh: fetchData };
 }
