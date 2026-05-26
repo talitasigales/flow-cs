@@ -22,24 +22,27 @@ export function useCSAccess(): CSAccess {
     enabled: !!user?.id && !authLoading,
     staleTime: 60_000,
     queryFn: async (): Promise<CSRole | null> => {
+      if (!user?.id) return null;
+
       const { data, error } = await (supabase as any)
         .from('cs_user_access')
         .select('cs_role')
         .eq('user_id', user!.id)
-        .maybeSingle();
+        .limit(1);
+
       if (error) {
         console.error('[useCSAccess]', error);
         return null;
       }
-      return (data?.cs_role as CSRole) ?? null;
+
+      const accessRow = Array.isArray(data) ? data[0] : data;
+      return (accessRow?.cs_role as CSRole) ?? null;
     },
   });
 
   // While we don't have a definitive answer yet, treat as loading.
   // This prevents premature "no access" redirects right after mount.
-  const roleLoading = !user
-    ? authLoading
-    : (roleQueryLoading || !isFetched);
+  const roleLoading = !!user?.id && (roleQueryLoading || !isFetched);
 
   const loading = authLoading || adminLoading || roleLoading;
 
