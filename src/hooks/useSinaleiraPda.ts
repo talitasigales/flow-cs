@@ -292,6 +292,22 @@ export function useSinaleiraPda() {
     }
   }
 
-  useEffect(() => { fetchData(); }, []);
+  // Só busca automaticamente se não houver cache persistido. Após isso, atualização é manual.
+  useEffect(() => {
+    if (!hasPersisted) fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persiste estado no localStorage para sobreviver a navegação/fechamento do navegador.
+  useEffect(() => {
+    if (loading) return;
+    if (bases.length === 0) return;
+    savePersisted({
+      bases,
+      movements,
+      movementsAvailable,
+      lastUpdated: lastUpdated ? lastUpdated.toISOString() : null,
+    });
+  }, [bases, movements, movementsAvailable, lastUpdated, loading]);
   return { loading, error, bases, movements, movementsAvailable, lastUpdated, refresh: fetchData };
 }
