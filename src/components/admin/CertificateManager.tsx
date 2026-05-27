@@ -415,8 +415,8 @@ export function CertificateManager({ programId, classes }: Props) {
           </div>
         </CardHeader>
         <CardContent>
-          {enrollments.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Nenhum aluno matriculado.</p>
+          {rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Nenhum aluno matriculado nem certificado emitido.</p>
           ) : (
             <>
               <Table>
@@ -433,7 +433,7 @@ export function CertificateManager({ programId, classes }: Props) {
                     <TableHead>Status</TableHead>
                     <TableHead className="w-10">
                       <Checkbox
-                        checked={selectedForEmail.length === enabledCerts.length && enabledCerts.length > 0}
+                        checked={selectedForEmail.length === allCerts.length && allCerts.length > 0}
                         onCheckedChange={selectAllForEmail}
                       />
                     </TableHead>
@@ -441,27 +441,31 @@ export function CertificateManager({ programId, classes }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {enrollments.map((enr: any) => {
-                    const cert = getCertForEnrollment(enr.id);
+                  {rows.map((row: any) => {
+                    const cert = row.cert;
                     const hasCert = !!cert;
+                    const canSelectForEnable = !hasCert && !!row.enrollmentId;
                     return (
-                      <TableRow key={enr.id}>
+                      <TableRow key={row.key}>
                         <TableCell>
                           {hasCert ? (
                             <Check className="w-4 h-4 text-primary" />
-                          ) : (
+                          ) : canSelectForEnable ? (
                             <Checkbox
-                              checked={selectedStudents.includes(enr.id)}
-                              onCheckedChange={() => toggleStudent(enr.id)}
+                              checked={selectedStudents.includes(row.enrollmentId)}
+                              onCheckedChange={() => toggleStudent(row.enrollmentId)}
                             />
-                          )}
+                          ) : null}
                         </TableCell>
-                        <TableCell className="font-medium">{enr.profile?.full_name || '—'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{enr.profile?.email || '—'}</TableCell>
+                        <TableCell className="font-medium">{row.profile?.full_name || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{row.profile?.email || '—'}</TableCell>
                         <TableCell>
                           {hasCert ? (
                             <div className="flex items-center gap-2 flex-wrap">
                               <Badge className="bg-primary/10 text-primary border-0">Habilitado</Badge>
+                              {!row.enrollmentId && (
+                                <Badge variant="outline" className="text-[10px]">Sem matrícula</Badge>
+                              )}
                               {cert.generated_at && (
                                 <Badge variant="outline" className="text-[10px]">Gerado</Badge>
                               )}
@@ -489,7 +493,7 @@ export function CertificateManager({ programId, classes }: Props) {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDownloadPdf(cert, enr.profile?.full_name || 'Aluno')}
+                              onClick={() => handleDownloadPdf(cert, row.profile?.full_name || 'Aluno')}
                               disabled={generatingPdf === cert.id}
                               title="Baixar certificado PDF"
                             >
@@ -508,7 +512,8 @@ export function CertificateManager({ programId, classes }: Props) {
               </Table>
 
               <div className="flex justify-between mt-4 gap-2 flex-wrap">
-                {enabledCerts.length > 0 && (
+                {allCerts.length > 0 && (
+
                   <Button
                     onClick={handleSendEmails}
                     disabled={sendingEmail || selectedForEmail.length === 0}
