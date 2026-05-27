@@ -232,10 +232,11 @@ export function CertificateManager({ programId, classes }: Props) {
       for (const certId of selectedForEmail) {
         const cert = certificates.find((c: any) => c.id === certId);
         if (!cert) continue;
-        const enr = enrollments.find((e: any) => e.id === cert.enrollment_id);
-        const studentName = enr?.profile?.full_name || 'Aluno';
-        const studentEmail = enr?.profile?.email;
+        const profile = (profilesMap as Map<string, any>).get(cert.user_id);
+        const studentName = profile?.full_name || 'Aluno';
+        const studentEmail = profile?.email;
         if (!studentEmail) continue;
+
 
         // Generate PDF blob
         const blob = await generateCertificatePdfBlob(buildCertData(cert, studentName));
