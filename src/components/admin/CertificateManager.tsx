@@ -509,6 +509,8 @@ export function CertificateManager({ programId, classes }: Props) {
                               )}
                               <span className="text-[10px] text-muted-foreground">{cert.certificate_code}</span>
                             </div>
+                          ) : row.isPending ? (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-600/40">Pré-matriculado</Badge>
                           ) : (
                             <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
                           )}
