@@ -63,30 +63,72 @@ export function CertificateManager({ programId, classes }: Props) {
         query = query.eq('class_id', selectedClassId);
       }
       const { data: enrs } = await query;
-      if (!enrs || enrs.length === 0) return [];
-      const userIds = [...new Set(enrs.map(e => e.user_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .in('user_id', userIds);
-      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-      return enrs.map(e => ({ ...e, profile: profileMap.get(e.user_id) }));
+      return enrs || [];
     },
   });
 
   const { data: certificates = [], refetch: refetchCerts } = useQuery({
-    queryKey: ['cert-list', programId],
+    queryKey: ['cert-list', programId, selectedClassId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      let query = (supabase as any)
         .from('certificates')
         .select('*')
         .eq('program_id', programId);
+      if (selectedClassId && selectedClassId !== 'all') {
+        query = query.eq('class_id', selectedClassId);
+      }
+      const { data } = await query;
       return data || [];
     },
   });
 
+  // Fetch profiles for any user_id appearing in enrollments OR certificates
+  const profileUserIds = [
+    ...new Set<string>([
+      ...enrollments.map((e: any) => e.user_id),
+      ...certificates.map((c: any) => c.user_id).filter(Boolean),
+    ]),
+  ];
+
+  const { data: profilesMap = new Map() } = useQuery({
+    queryKey: ['cert-profiles', profileUserIds.sort().join(',')],
+    enabled: profileUserIds.length > 0,
+    queryFn: async () => {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', profileUserIds);
+      return new Map((profiles || []).map((p: any) => [p.user_id, p]));
+    },
+  });
+
+  // Build unified rows: enrollments + certificates without matching enrollment
+  const rows = (() => {
+    const enrolledIds = new Set(enrollments.map((e: any) => e.id));
+    const enrollmentRows = enrollments.map((e: any) => ({
+      key: `enr-${e.id}`,
+      enrollmentId: e.id,
+      userId: e.user_id,
+      classId: e.class_id,
+      profile: (profilesMap as Map<string, any>).get(e.user_id),
+      cert: certificates.find((c: any) => c.enrollment_id === e.id),
+    }));
+    const orphanCertRows = certificates
+      .filter((c: any) => !c.enrollment_id || !enrolledIds.has(c.enrollment_id))
+      .map((c: any) => ({
+        key: `cert-${c.id}`,
+        enrollmentId: c.enrollment_id || null,
+        userId: c.user_id,
+        classId: c.class_id,
+        profile: (profilesMap as Map<string, any>).get(c.user_id),
+        cert: c,
+      }));
+    return [...enrollmentRows, ...orphanCertRows];
+  })();
+
   const getCertForEnrollment = (enrollmentId: string) =>
     certificates.find((c: any) => c.enrollment_id === enrollmentId);
+
 
   const handleUploadSignature = async () => {
     if (!signatureFile) return;
