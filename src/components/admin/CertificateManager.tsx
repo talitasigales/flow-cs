@@ -82,6 +82,21 @@ export function CertificateManager({ programId, classes }: Props) {
     },
   });
 
+  const { data: pendingEnrollments = [] } = useQuery({
+    queryKey: ['cert-pending-enrollments', programId, selectedClassId],
+    queryFn: async () => {
+      let query = (supabase as any)
+        .from('pending_enrollments')
+        .select('id, email, full_name, class_id')
+        .eq('program_id', programId);
+      if (selectedClassId && selectedClassId !== 'all') {
+        query = query.eq('class_id', selectedClassId);
+      }
+      const { data } = await query;
+      return data || [];
+    },
+  });
+
   // Fetch profiles for any user_id appearing in enrollments OR certificates
   const profileUserIds = [
     ...new Set<string>([
@@ -102,9 +117,14 @@ export function CertificateManager({ programId, classes }: Props) {
     },
   });
 
-  // Build unified rows: enrollments + certificates without matching enrollment
+  // Build unified rows: enrollments + orphan certificates + pending enrollments
   const rows = (() => {
     const enrolledIds = new Set(enrollments.map((e: any) => e.id));
+    const enrolledEmails = new Set(
+      enrollments
+        .map((e: any) => (profilesMap as Map<string, any>).get(e.user_id)?.email?.toLowerCase())
+        .filter(Boolean)
+    );
     const enrollmentRows = enrollments.map((e: any) => ({
       key: `enr-${e.id}`,
       enrollmentId: e.id,
@@ -112,6 +132,7 @@ export function CertificateManager({ programId, classes }: Props) {
       classId: e.class_id,
       profile: (profilesMap as Map<string, any>).get(e.user_id),
       cert: certificates.find((c: any) => c.enrollment_id === e.id),
+      isPending: false,
     }));
     const orphanCertRows = certificates
       .filter((c: any) => !c.enrollment_id || !enrolledIds.has(c.enrollment_id))
@@ -122,8 +143,20 @@ export function CertificateManager({ programId, classes }: Props) {
         classId: c.class_id,
         profile: (profilesMap as Map<string, any>).get(c.user_id),
         cert: c,
+        isPending: false,
       }));
-    return [...enrollmentRows, ...orphanCertRows];
+    const pendingRows = (pendingEnrollments as any[])
+      .filter((p: any) => !enrolledEmails.has(p.email?.toLowerCase()))
+      .map((p: any) => ({
+        key: `pend-${p.id}`,
+        enrollmentId: null,
+        userId: null,
+        classId: p.class_id,
+        profile: { full_name: p.full_name, email: p.email },
+        cert: null,
+        isPending: true,
+      }));
+    return [...enrollmentRows, ...orphanCertRows, ...pendingRows];
   })();
 
   const getCertForEnrollment = (enrollmentId: string) =>
@@ -476,6 +509,8 @@ export function CertificateManager({ programId, classes }: Props) {
                               )}
                               <span className="text-[10px] text-muted-foreground">{cert.certificate_code}</span>
                             </div>
+                          ) : row.isPending ? (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-600/40">Pré-matriculado</Badge>
                           ) : (
                             <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
                           )}
