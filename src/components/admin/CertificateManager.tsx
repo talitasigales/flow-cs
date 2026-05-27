@@ -306,7 +306,7 @@ export function CertificateManager({ programId, classes }: Props) {
     (e: any) => !getCertForEnrollment(e.id)
   );
 
-  const enabledCerts = enrollments.filter((e: any) => !!getCertForEnrollment(e.id));
+  const allCerts = certificates as any[];
 
   const selectAll = () => {
     if (selectedStudents.length === eligibleEnrollments.length) {
@@ -317,13 +317,14 @@ export function CertificateManager({ programId, classes }: Props) {
   };
 
   const selectAllForEmail = () => {
-    const allCertIds = enabledCerts.map((e: any) => getCertForEnrollment(e.id)?.id).filter(Boolean);
+    const allCertIds = allCerts.map((c: any) => c.id);
     if (selectedForEmail.length === allCertIds.length) {
       setSelectedForEmail([]);
     } else {
       setSelectedForEmail(allCertIds);
     }
   };
+
 
   return (
     <div className="space-y-6">
