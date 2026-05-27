@@ -145,8 +145,9 @@ export function CertificateManager({ programId, classes }: Props) {
 
   const buildCertData = (cert: any, studentName: string) => {
     const cls = cert.class_id ? classes.find((c: any) => c.id === cert.class_id) : null;
+    const fmtDate = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
     const classDatesStr = cls?.start_date && cls?.end_date
-      ? `${new Date(cls.start_date).toLocaleDateString('pt-BR')} a ${new Date(cls.end_date).toLocaleDateString('pt-BR')}`
+      ? `${fmtDate(cls.start_date)} a ${fmtDate(cls.end_date)}`
       : cert.course_dates;
 
     return {
