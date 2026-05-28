@@ -554,7 +554,9 @@ export function CertificateManager({ programId, classes }: Props) {
           </div>
         </CardHeader>
         <CardContent>
-          {rows.length === 0 ? (
+          {isTableLoading ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Carregando alunos e certificados...</p>
+          ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">Nenhum aluno matriculado nem certificado emitido.</p>
           ) : (
             <>
@@ -630,15 +632,15 @@ export function CertificateManager({ programId, classes }: Props) {
                           )}
                         </TableCell>
                         <TableCell>
-                          {hasCert && (
+                          {(hasCert || canSelectForEnable) && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDownloadPdf(cert, row.profile?.full_name || 'Aluno')}
-                              disabled={generatingPdf === cert.id}
-                              title="Baixar certificado PDF"
+                              onClick={() => hasCert ? handleDownloadPdf(cert, row.profile?.full_name || 'Aluno') : handleGenerateFromEnrollment(row)}
+                              disabled={generatingPdf === (hasCert ? cert.id : row.enrollmentId) || enablingAndGenerating}
+                              title={hasCert ? 'Baixar certificado PDF' : 'Habilitar e gerar certificado PDF'}
                             >
-                              {generatingPdf === cert.id ? (
+                              {generatingPdf === (hasCert ? cert.id : row.enrollmentId) ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Download className="w-4 h-4" />
@@ -688,7 +690,7 @@ export function CertificateManager({ programId, classes }: Props) {
                 {eligibleEnrollments.length > 0 && (
                   <Button
                     onClick={handleEnableCertificates}
-                    disabled={saving || selectedStudents.length === 0 || !courseHours || !courseDates || !directorName}
+                     disabled={saving || enablingAndGenerating || selectedStudents.length === 0 || !courseHours || !courseDates || !directorName}
                     className="gap-2 ml-auto"
                   >
                     <Award className="w-4 h-4" />
