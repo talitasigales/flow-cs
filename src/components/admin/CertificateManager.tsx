@@ -31,6 +31,7 @@ export function CertificateManager({ programId, classes }: Props) {
   const [signatureUrl, setSignatureUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [generatingSelectedPdfs, setGeneratingSelectedPdfs] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
 
   const handleClassChange = (classId: string) => {
@@ -238,6 +239,26 @@ export function CertificateManager({ programId, classes }: Props) {
     };
   };
 
+  const uploadCertificatePdf = async (cert: any, studentName: string) => {
+    const blob = await generateCertificatePdfBlob(buildCertData(cert, studentName));
+    const pdfPath = `certificates/${cert.certificate_code}.pdf`;
+
+    const { error: uploadError } = await supabase.storage.from('program-materials').upload(pdfPath, blob, {
+      upsert: true,
+      contentType: 'application/pdf',
+    });
+
+    if (uploadError) throw uploadError;
+
+    await (supabase as any)
+      .from('certificates')
+      .update({ generated_at: cert.generated_at || new Date().toISOString() })
+      .eq('id', cert.id);
+
+    const { data: urlData } = supabase.storage.from('program-materials').getPublicUrl(pdfPath);
+    return urlData.publicUrl;
+  };
+
   const handleDownloadPdf = async (cert: any, studentName: string) => {
     setGeneratingPdf(cert.id);
     try {
@@ -250,6 +271,36 @@ export function CertificateManager({ programId, classes }: Props) {
       toast.error('Erro ao gerar certificado: ' + e.message);
     } finally {
       setGeneratingPdf(null);
+    }
+  };
+
+  const handleGenerateSelectedPdfs = async () => {
+    if (selectedForEmail.length === 0) {
+      toast.error('Selecione ao menos um certificado para gerar');
+      return;
+    }
+
+    setGeneratingSelectedPdfs(true);
+    try {
+      let generatedCount = 0;
+
+      for (const certId of selectedForEmail) {
+        const cert = certificates.find((c: any) => c.id === certId);
+        if (!cert) continue;
+
+        const profile = (profilesMap as Map<string, any>).get(cert.user_id);
+        const studentName = profile?.full_name || 'Aluno';
+
+        await uploadCertificatePdf(cert, studentName);
+        generatedCount += 1;
+      }
+
+      await refetchCerts();
+      toast.success(`PDF${generatedCount === 1 ? '' : 's'} gerado${generatedCount === 1 ? '' : 's'} para ${generatedCount} certificado(s)`);
+    } catch (e: any) {
+      toast.error('Erro ao gerar PDFs: ' + e.message);
+    } finally {
+      setGeneratingSelectedPdfs(false);
     }
   };
 
@@ -270,22 +321,11 @@ export function CertificateManager({ programId, classes }: Props) {
         const studentEmail = profile?.email;
         if (!studentEmail) continue;
 
-
-        // Generate PDF blob
-        const blob = await generateCertificatePdfBlob(buildCertData(cert, studentName));
-
-        // Upload to storage
-        const pdfPath = `certificates/${cert.certificate_code}.pdf`;
-        await supabase.storage.from('program-materials').upload(pdfPath, blob, {
-          upsert: true,
-          contentType: 'application/pdf',
-        });
-
-        const { data: urlData } = supabase.storage.from('program-materials').getPublicUrl(pdfPath);
+        const pdfUrl = await uploadCertificatePdf(cert, studentName);
 
         certPayloads.push({
           certificateId: cert.id,
-          pdfUrl: urlData.publicUrl,
+          pdfUrl,
           studentEmail,
           studentName,
           programName: program?.name || 'Programa',
@@ -430,8 +470,8 @@ export function CertificateManager({ programId, classes }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Alunos Matriculados</CardTitle>
-            <CardDescription>Selecione os alunos que concluíram o programa</CardDescription>
+            <CardTitle className="text-lg">Alunos da Turma</CardTitle>
+            <CardDescription>Veja todos os alunos e habilite ou gere certificados em lote</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select value={selectedClassId} onValueChange={handleClassChange}>
@@ -548,20 +588,35 @@ export function CertificateManager({ programId, classes }: Props) {
 
               <div className="flex justify-between mt-4 gap-2 flex-wrap">
                 {allCerts.length > 0 && (
+                  <>
+                    <Button
+                      onClick={handleGenerateSelectedPdfs}
+                      disabled={generatingSelectedPdfs || selectedForEmail.length === 0}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      {generatingSelectedPdfs ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      {generatingSelectedPdfs ? 'Gerando PDFs...' : `Gerar PDFs (${selectedForEmail.length})`}
+                    </Button>
 
-                  <Button
-                    onClick={handleSendEmails}
-                    disabled={sendingEmail || selectedForEmail.length === 0}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    {sendingEmail ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Mail className="w-4 h-4" />
-                    )}
-                    {sendingEmail ? 'Enviando...' : `Enviar por E-mail (${selectedForEmail.length})`}
-                  </Button>
+                    <Button
+                      onClick={handleSendEmails}
+                      disabled={sendingEmail || selectedForEmail.length === 0}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      {sendingEmail ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Mail className="w-4 h-4" />
+                      )}
+                      {sendingEmail ? 'Enviando...' : `Enviar por E-mail (${selectedForEmail.length})`}
+                    </Button>
+                  </>
                 )}
 
                 {eligibleEnrollments.length > 0 && (
