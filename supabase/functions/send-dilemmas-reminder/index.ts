@@ -19,8 +19,8 @@ function buildHtml(name: string, url: string) {
     </td></tr>
     <tr><td style="padding:24px">
       <p style="margin:0 0 12px">Olá, <strong>${firstName}</strong>!</p>
-      <p style="margin:0 0 12px">O link de preenchimento da avaliação <strong>Dilemas de Gestão (DG)</strong> já está disponível.</p>
-      <p style="margin:0 0 20px"><strong>O preenchimento é obrigatório e o prazo final é amanhã, 29/05, às 13h.</strong></p>
+      <p style="margin:0 0 12px">O link de preenchimento da avaliação <strong>Dilemas de Gestão (DG)</strong> continua disponível.</p>
+      <p style="margin:0 0 20px"><strong>Boa notícia: o prazo foi flexibilizado para 08/06.</strong> Pedimos que conclua o preenchimento até essa data.</p>
       <p style="margin:0 0 24px;text-align:center">
         <a href="${url}" style="background:#EA580C;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:bold;display:inline-block">Acessar avaliação DG</a>
       </p>
@@ -36,9 +36,33 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     let onlyEmail: string | null = null;
+    let testEmail: string | null = null;
     if (req.method === 'POST') {
-      try { const b = await req.json(); onlyEmail = (b?.only_email || '').toString().trim().toLowerCase() || null; } catch {}
+      try {
+        const b = await req.json();
+        onlyEmail = (b?.only_email || '').toString().trim().toLowerCase() || null;
+        testEmail = (b?.test_email || '').toString().trim().toLowerCase() || null;
+      } catch {}
     }
+
+    // Test mode: send a single sample email to the test address using a placeholder link
+    if (testEmail) {
+      const resp = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_API_KEY}` },
+        body: JSON.stringify({
+          from: 'Grou <certificados@grougp.com.br>',
+          to: [testEmail],
+          subject: '[TESTE] Dilemas de Gestão — novo prazo: 08/06',
+          html: buildHtml('Talita', 'https://Apollo.adc.uk.com/Registration.aspx?CandidateID=EXEMPLO-TESTE'),
+        }),
+      });
+      const body = await resp.json().catch(() => ({}));
+      return new Response(JSON.stringify({ test: true, email: testEmail, ok: resp.ok, status: resp.status, body }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: enrolls, error } = await supabase
       .from('program_enrollments')
@@ -78,7 +102,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: 'Grou <certificados@grougp.com.br>',
           to: [email],
-          subject: 'Dilemas de Gestão disponível — prazo: amanhã 29/05 às 13h',
+          subject: 'Dilemas de Gestão — novo prazo: 08/06',
           html: buildHtml(name, url),
         }),
       });
