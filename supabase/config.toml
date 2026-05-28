@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.pda-proxy]
 verify_jwt = false
+
+[functions.send-dilemmas-reminder]
+verify_jwt = false
