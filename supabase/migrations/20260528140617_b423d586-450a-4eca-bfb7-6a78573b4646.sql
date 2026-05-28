@@ -1,0 +1,1 @@
+UPDATE public.program_classes SET dilemmas_released = true WHERE id = '3f14b5b8-c47b-4654-a0eb-dc865e3cb86d';
