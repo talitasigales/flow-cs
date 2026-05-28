@@ -1,0 +1,1 @@
+UPDATE public.certificates SET course_hours = 3 WHERE program_id = 'fd44c8e5-98d4-498a-91f7-8d9bacf415a9' AND course_hours <> 3;
