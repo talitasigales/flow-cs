@@ -49,7 +49,17 @@ Deno.serve(async (req) => {
       .in('user_id', ids);
     if (pErr) throw pErr;
     const profMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
-    const rows = (enrolls || []).map((e: any) => ({ ...e, profiles: profMap.get(e.user_id) }));
+    const rows: any[] = (enrolls || []).map((e: any) => ({ ...e, profiles: profMap.get(e.user_id) }));
+
+    // Include pending (não-cadastrados) enrollments for this class
+    const { data: pendings } = await supabase
+      .from('pending_enrollments')
+      .select('email, dilemmas_url')
+      .eq('class_id', CLASS_ID)
+      .not('dilemmas_url', 'is', null);
+    for (const p of (pendings || []) as any[]) {
+      rows.push({ dilemmas_url: p.dilemmas_url, profiles: { email: p.email, full_name: '' } });
+    }
 
     const results: any[] = [];
     for (const r of (rows as any[])) {
