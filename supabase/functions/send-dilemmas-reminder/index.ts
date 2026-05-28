@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: 'Grou <certificados@grougp.com.br>',
           to: [email],
-          subject: 'Dilemas de Gestão disponível — prazo: amanhã 29/05 às 13h',
+          subject: 'Dilemas de Gestão — novo prazo: 08/06',
           html: buildHtml(name, url),
         }),
       });
