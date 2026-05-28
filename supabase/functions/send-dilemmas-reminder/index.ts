@@ -36,9 +36,33 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     let onlyEmail: string | null = null;
+    let testEmail: string | null = null;
     if (req.method === 'POST') {
-      try { const b = await req.json(); onlyEmail = (b?.only_email || '').toString().trim().toLowerCase() || null; } catch {}
+      try {
+        const b = await req.json();
+        onlyEmail = (b?.only_email || '').toString().trim().toLowerCase() || null;
+        testEmail = (b?.test_email || '').toString().trim().toLowerCase() || null;
+      } catch {}
     }
+
+    // Test mode: send a single sample email to the test address using a placeholder link
+    if (testEmail) {
+      const resp = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_API_KEY}` },
+        body: JSON.stringify({
+          from: 'Grou <certificados@grougp.com.br>',
+          to: [testEmail],
+          subject: '[TESTE] Dilemas de Gestão — novo prazo: 08/06',
+          html: buildHtml('Talita', 'https://Apollo.adc.uk.com/Registration.aspx?CandidateID=EXEMPLO-TESTE'),
+        }),
+      });
+      const body = await resp.json().catch(() => ({}));
+      return new Response(JSON.stringify({ test: true, email: testEmail, ok: resp.ok, status: resp.status, body }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: enrolls, error } = await supabase
       .from('program_enrollments')
