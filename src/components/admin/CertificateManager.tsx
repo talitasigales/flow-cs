@@ -244,33 +244,12 @@ export function CertificateManager({ programId, classes }: Props) {
       toast.error('Selecione ao menos um aluno');
       return;
     }
-    if (!courseHours || !courseDates || !directorName) {
-      toast.error('Preencha carga horária, datas e nome do(a) especialista');
-      return;
-    }
     setSaving(true);
     try {
-      const records = selectedStudents.map(enrollmentId => {
-        const enr = enrollments.find((e: any) => e.id === enrollmentId);
-        return {
-          enrollment_id: enrollmentId,
-          user_id: enr?.user_id,
-          program_id: programId,
-          class_id: enr?.class_id || null,
-          certificate_code: generateCertificateCode(),
-          course_hours: parseInt(courseHours),
-          course_dates: courseDates,
-          director_name: directorName,
-          director_signature_url: signatureUrl || null,
-          enabled_by: user!.id,
-        };
-      });
-
-      const { error } = await (supabase as any).from('certificates').insert(records);
-      if (error) throw error;
+      await createCertificatesForEnrollments(selectedStudents);
       toast.success(`Certificado habilitado para ${selectedStudents.length} aluno(s)`);
       setSelectedStudents([]);
-      refetchCerts();
+      await refetchCerts();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao habilitar certificados');
     } finally {
@@ -330,6 +309,34 @@ export function CertificateManager({ programId, classes }: Props) {
       toast.error('Erro ao gerar certificado: ' + e.message);
     } finally {
       setGeneratingPdf(null);
+    }
+  };
+
+  const handleGenerateFromEnrollment = async (row: any) => {
+    if (!row.enrollmentId) return;
+
+    setGeneratingPdf(row.enrollmentId);
+    setEnablingAndGenerating(true);
+
+    try {
+      const cert = await ensureCertificateForEnrollment(row.enrollmentId);
+      if (!cert) throw new Error('Não foi possível habilitar o certificado');
+
+      const studentName = row.profile?.full_name || 'Aluno';
+      await generateCertificatePdf(buildCertData(cert, studentName));
+
+      await (supabase as any)
+        .from('certificates')
+        .update({ generated_at: new Date().toISOString() })
+        .eq('id', cert.id);
+
+      await refetchCerts();
+      toast.success('Certificado gerado com sucesso');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao gerar certificado');
+    } finally {
+      setGeneratingPdf(null);
+      setEnablingAndGenerating(false);
     }
   };
 
