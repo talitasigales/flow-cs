@@ -19,8 +19,8 @@ function buildHtml(name: string, url: string) {
     </td></tr>
     <tr><td style="padding:24px">
       <p style="margin:0 0 12px">Olá, <strong>${firstName}</strong>!</p>
-      <p style="margin:0 0 12px">O link de preenchimento da avaliação <strong>Dilemas de Gestão (DG)</strong> já está disponível.</p>
-      <p style="margin:0 0 20px"><strong>O preenchimento é obrigatório e o prazo final é amanhã, 29/05, às 13h.</strong></p>
+      <p style="margin:0 0 12px">O link de preenchimento da avaliação <strong>Dilemas de Gestão (DG)</strong> continua disponível.</p>
+      <p style="margin:0 0 20px"><strong>Boa notícia: o prazo foi flexibilizado para 08/06.</strong> Pedimos que conclua o preenchimento até essa data.</p>
       <p style="margin:0 0 24px;text-align:center">
         <a href="${url}" style="background:#EA580C;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:bold;display:inline-block">Acessar avaliação DG</a>
       </p>
