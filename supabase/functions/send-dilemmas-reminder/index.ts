@@ -35,6 +35,10 @@ function buildHtml(name: string, url: string) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
+    let onlyEmail: string | null = null;
+    if (req.method === 'POST') {
+      try { const b = await req.json(); onlyEmail = (b?.only_email || '').toString().trim().toLowerCase() || null; } catch {}
+    }
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: enrolls, error } = await supabase
       .from('program_enrollments')
