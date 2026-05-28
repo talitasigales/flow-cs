@@ -1,0 +1,3 @@
+INSERT INTO public.pending_enrollments (email, program_id, class_id, dilemmas_url)
+VALUES ('leandro.bastos@pinho.com.br', '3f6285f6-f652-471b-8011-7300424e463f', '3f14b5b8-c47b-4654-a0eb-dc865e3cb86d', 'https://Apollo.adc.uk.com/Registration.aspx?CandidateID=87B1FB04-874C-4765-BBE7-20793A9F2E9D')
+ON CONFLICT (email, program_id) DO UPDATE SET dilemmas_url = EXCLUDED.dilemmas_url, class_id = EXCLUDED.class_id;

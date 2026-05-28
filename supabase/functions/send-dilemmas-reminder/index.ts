@@ -35,6 +35,10 @@ function buildHtml(name: string, url: string) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
+    let onlyEmail: string | null = null;
+    if (req.method === 'POST') {
+      try { const b = await req.json(); onlyEmail = (b?.only_email || '').toString().trim().toLowerCase() || null; } catch {}
+    }
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: enrolls, error } = await supabase
       .from('program_enrollments')
@@ -49,7 +53,17 @@ Deno.serve(async (req) => {
       .in('user_id', ids);
     if (pErr) throw pErr;
     const profMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
-    const rows = (enrolls || []).map((e: any) => ({ ...e, profiles: profMap.get(e.user_id) }));
+    const rows: any[] = (enrolls || []).map((e: any) => ({ ...e, profiles: profMap.get(e.user_id) }));
+
+    // Include pending (não-cadastrados) enrollments for this class
+    const { data: pendings } = await supabase
+      .from('pending_enrollments')
+      .select('email, dilemmas_url')
+      .eq('class_id', CLASS_ID)
+      .not('dilemmas_url', 'is', null);
+    for (const p of (pendings || []) as any[]) {
+      rows.push({ dilemmas_url: p.dilemmas_url, profiles: { email: p.email, full_name: '' } });
+    }
 
     const results: any[] = [];
     for (const r of (rows as any[])) {
@@ -57,6 +71,7 @@ Deno.serve(async (req) => {
       const name = r.profiles?.full_name || '';
       const url = r.dilemmas_url;
       if (!email || !url) { results.push({ email, skipped: true }); continue; }
+      if (onlyEmail && email.toLowerCase() !== onlyEmail) continue;
       const resp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_API_KEY}` },
