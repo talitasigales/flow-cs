@@ -1,18 +1,41 @@
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { Award, Upload, Check, Download, Mail, Loader2 } from 'lucide-react';
-import { generateCertificateCode, generateCertificatePdf, generateCertificatePdfBlob } from '@/utils/certificateUtils';
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Award, Upload, Check, Download, Mail, Loader2 } from "lucide-react";
+import {
+  generateCertificateCode,
+  generateCertificatePdf,
+  generateCertificatePdfBlob,
+} from "@/utils/certificateUtils";
 
 interface Props {
   programId: string;
@@ -21,14 +44,14 @@ interface Props {
 
 export function CertificateManager({ programId, classes }: Props) {
   const { user } = useAuth();
-  const [selectedClassId, setSelectedClassId] = useState('all');
+  const [selectedClassId, setSelectedClassId] = useState("all");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [selectedForEmail, setSelectedForEmail] = useState<string[]>([]);
-  const [courseHours, setCourseHours] = useState('');
-  const [courseDates, setCourseDates] = useState('');
-  const [directorName, setDirectorName] = useState('');
+  const [courseHours, setCourseHours] = useState("");
+  const [courseDates, setCourseDates] = useState("");
+  const [directorName, setDirectorName] = useState("");
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
-  const [signatureUrl, setSignatureUrl] = useState('');
+  const [signatureUrl, setSignatureUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [generatingSelectedPdfs, setGeneratingSelectedPdfs] = useState(false);
@@ -39,7 +62,7 @@ export function CertificateManager({ programId, classes }: Props) {
     setSelectedClassId(classId);
     setSelectedStudents([]);
     setSelectedForEmail([]);
-    if (classId !== 'all') {
+    if (classId !== "all") {
       const cls = classes.find((c: any) => c.id === classId);
       if (cls?.specialist && !directorName) {
         setDirectorName(cls.specialist);
@@ -49,52 +72,69 @@ export function CertificateManager({ programId, classes }: Props) {
 
   // Fetch program name
   const { data: program } = useQuery({
-    queryKey: ['cert-program', programId],
+    queryKey: ["cert-program", programId],
     queryFn: async () => {
-      const { data } = await supabase.from('programs').select('name').eq('id', programId).single();
+      const { data } = await supabase
+        .from("programs")
+        .select("name")
+        .eq("id", programId)
+        .single();
       return data;
     },
   });
 
-  const { data: enrollments = [], isLoading: isLoadingEnrollments, isFetching: isFetchingEnrollments } = useQuery({
-    queryKey: ['cert-enrollments', programId, selectedClassId],
+  const {
+    data: enrollments = [],
+    isLoading: isLoadingEnrollments,
+    isFetching: isFetchingEnrollments,
+  } = useQuery({
+    queryKey: ["cert-enrollments", programId, selectedClassId],
     queryFn: async () => {
       let query = supabase
-        .from('program_enrollments')
-        .select('id, user_id, class_id')
-        .eq('program_id', programId);
-      if (selectedClassId && selectedClassId !== 'all') {
-        query = query.eq('class_id', selectedClassId);
+        .from("program_enrollments")
+        .select("id, user_id, class_id")
+        .eq("program_id", programId);
+      if (selectedClassId && selectedClassId !== "all") {
+        query = query.eq("class_id", selectedClassId);
       }
       const { data: enrs } = await query;
       return enrs || [];
     },
   });
 
-  const { data: certificates = [], refetch: refetchCerts, isLoading: isLoadingCertificates, isFetching: isFetchingCertificates } = useQuery({
-    queryKey: ['cert-list', programId, selectedClassId],
+  const {
+    data: certificates = [],
+    refetch: refetchCerts,
+    isLoading: isLoadingCertificates,
+    isFetching: isFetchingCertificates,
+  } = useQuery({
+    queryKey: ["cert-list", programId, selectedClassId],
     queryFn: async () => {
       let query = (supabase as any)
-        .from('certificates')
-        .select('*')
-        .eq('program_id', programId);
-      if (selectedClassId && selectedClassId !== 'all') {
-        query = query.eq('class_id', selectedClassId);
+        .from("certificates")
+        .select("*")
+        .eq("program_id", programId);
+      if (selectedClassId && selectedClassId !== "all") {
+        query = query.eq("class_id", selectedClassId);
       }
       const { data } = await query;
       return data || [];
     },
   });
 
-  const { data: pendingEnrollments = [], isLoading: isLoadingPendingEnrollments, isFetching: isFetchingPendingEnrollments } = useQuery({
-    queryKey: ['cert-pending-enrollments', programId, selectedClassId],
+  const {
+    data: pendingEnrollments = [],
+    isLoading: isLoadingPendingEnrollments,
+    isFetching: isFetchingPendingEnrollments,
+  } = useQuery({
+    queryKey: ["cert-pending-enrollments", programId, selectedClassId],
     queryFn: async () => {
       let query = (supabase as any)
-        .from('pending_enrollments')
-        .select('id, email, full_name, class_id')
-        .eq('program_id', programId);
-      if (selectedClassId && selectedClassId !== 'all') {
-        query = query.eq('class_id', selectedClassId);
+        .from("pending_enrollments")
+        .select("id, email, full_name, class_id")
+        .eq("program_id", programId);
+      if (selectedClassId && selectedClassId !== "all") {
+        query = query.eq("class_id", selectedClassId);
       }
       const { data } = await query;
       return data || [];
@@ -109,14 +149,18 @@ export function CertificateManager({ programId, classes }: Props) {
     ]),
   ];
 
-  const { data: profilesMap = new Map(), isLoading: isLoadingProfiles, isFetching: isFetchingProfiles } = useQuery({
-    queryKey: ['cert-profiles', profileUserIds.sort().join(',')],
+  const {
+    data: profilesMap = new Map(),
+    isLoading: isLoadingProfiles,
+    isFetching: isFetchingProfiles,
+  } = useQuery({
+    queryKey: ["cert-profiles", profileUserIds.sort().join(",")],
     enabled: profileUserIds.length > 0,
     queryFn: async () => {
       const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, email')
-        .in('user_id', profileUserIds);
+        .from("profiles")
+        .select("user_id, full_name, email")
+        .in("user_id", profileUserIds);
       return new Map((profiles || []).map((p: any) => [p.user_id, p]));
     },
   });
@@ -126,8 +170,12 @@ export function CertificateManager({ programId, classes }: Props) {
     const enrolledIds = new Set(enrollments.map((e: any) => e.id));
     const enrolledEmails = new Set(
       enrollments
-        .map((e: any) => (profilesMap as Map<string, any>).get(e.user_id)?.email?.toLowerCase())
-        .filter(Boolean)
+        .map((e: any) =>
+          (profilesMap as Map<string, any>)
+            .get(e.user_id)
+            ?.email?.toLowerCase(),
+        )
+        .filter(Boolean),
     );
     const enrollmentRows = enrollments.map((e: any) => ({
       key: `enr-${e.id}`,
@@ -168,12 +216,16 @@ export function CertificateManager({ programId, classes }: Props) {
 
   const assertCertificateConfig = () => {
     if (!courseHours || !courseDates || !directorName) {
-      throw new Error('Preencha carga horária, datas e nome do(a) especialista');
+      throw new Error(
+        "Preencha carga horária, datas e nome do(a) especialista",
+      );
     }
   };
 
   const createCertificatesForEnrollments = async (enrollmentIds: string[]) => {
-    const eligibleIds = enrollmentIds.filter((enrollmentId) => !getCertForEnrollment(enrollmentId));
+    const eligibleIds = enrollmentIds.filter(
+      (enrollmentId) => !getCertForEnrollment(enrollmentId),
+    );
 
     if (eligibleIds.length === 0) return [];
 
@@ -183,7 +235,9 @@ export function CertificateManager({ programId, classes }: Props) {
       const enr = enrollments.find((item: any) => item.id === enrollmentId);
 
       if (!enr?.user_id) {
-        throw new Error('Não foi possível localizar a matrícula de um dos alunos selecionados');
+        throw new Error(
+          "Não foi possível localizar a matrícula de um dos alunos selecionados",
+        );
       }
 
       return {
@@ -200,7 +254,10 @@ export function CertificateManager({ programId, classes }: Props) {
       };
     });
 
-    const { data, error } = await (supabase as any).from('certificates').insert(records).select('*');
+    const { data, error } = await (supabase as any)
+      .from("certificates")
+      .insert(records)
+      .select("*");
     if (error) throw error;
     return data || [];
   };
@@ -209,7 +266,9 @@ export function CertificateManager({ programId, classes }: Props) {
     const existingCertificate = getCertForEnrollment(enrollmentId);
     if (existingCertificate) return existingCertificate;
 
-    const createdCertificates = await createCertificatesForEnrollments([enrollmentId]);
+    const createdCertificates = await createCertificatesForEnrollments([
+      enrollmentId,
+    ]);
     return createdCertificates[0] || null;
   };
 
@@ -222,78 +281,91 @@ export function CertificateManager({ programId, classes }: Props) {
     isFetchingPendingEnrollments ||
     (profileUserIds.length > 0 && (isLoadingProfiles || isFetchingProfiles));
 
-
   const handleUploadSignature = async () => {
     if (!signatureFile) return;
-    const ext = signatureFile.name.split('.').pop();
+    const ext = signatureFile.name.split(".").pop();
     const path = `signatures/director-${Date.now()}.${ext}`;
     const { error } = await supabase.storage
-      .from('program-materials')
+      .from("program-materials")
       .upload(path, signatureFile, { upsert: true });
     if (error) {
-      toast.error('Erro ao enviar assinatura');
+      toast.error("Erro ao enviar assinatura");
       return;
     }
-    const { data: urlData } = supabase.storage.from('program-materials').getPublicUrl(path);
+    const { data: urlData } = supabase.storage
+      .from("program-materials")
+      .getPublicUrl(path);
     setSignatureUrl(urlData.publicUrl);
-    toast.success('Assinatura enviada');
+    toast.success("Assinatura enviada");
   };
 
   const handleEnableCertificates = async () => {
     if (selectedStudents.length === 0) {
-      toast.error('Selecione ao menos um aluno');
+      toast.error("Selecione ao menos um aluno");
       return;
     }
     setSaving(true);
     try {
       await createCertificatesForEnrollments(selectedStudents);
-      toast.success(`Certificado habilitado para ${selectedStudents.length} aluno(s)`);
+      toast.success(
+        `Certificado habilitado para ${selectedStudents.length} aluno(s)`,
+      );
       setSelectedStudents([]);
       await refetchCerts();
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao habilitar certificados');
+      toast.error(err.message || "Erro ao habilitar certificados");
     } finally {
       setSaving(false);
     }
   };
 
   const buildCertData = (cert: any, studentName: string) => {
-    const cls = cert.class_id ? classes.find((c: any) => c.id === cert.class_id) : null;
-    const fmtDate = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
-    const classDatesStr = cls?.start_date && cls?.end_date
-      ? `${fmtDate(cls.start_date)} a ${fmtDate(cls.end_date)}`
-      : cert.course_dates;
+    const cls = cert.class_id
+      ? classes.find((c: any) => c.id === cert.class_id)
+      : null;
+    const fmtDate = (d: string) =>
+      new Date(d + "T12:00:00").toLocaleDateString("pt-BR");
+    const classDatesStr =
+      cls?.start_date && cls?.end_date
+        ? `${fmtDate(cls.start_date)} a ${fmtDate(cls.end_date)}`
+        : cert.course_dates;
 
     return {
       studentName,
-      programName: program?.name || 'Programa',
+      programName: program?.name || "Programa",
       courseHours: cert.course_hours,
       courseDates: cert.course_dates,
       certificateCode: cert.certificate_code,
       directorName: cert.director_name,
       directorSignatureUrl: cert.director_signature_url,
-      emissionDate: new Date().toLocaleDateString('pt-BR'),
+      emissionDate: new Date().toLocaleDateString("pt-BR"),
       classDates: classDatesStr,
     };
   };
 
   const uploadCertificatePdf = async (cert: any, studentName: string) => {
-    const blob = await generateCertificatePdfBlob(buildCertData(cert, studentName));
+    const blob = await generateCertificatePdfBlob(
+      buildCertData(cert, studentName),
+    );
     const pdfPath = `certificates/${cert.certificate_code}.pdf`;
 
-    const { error: uploadError } = await supabase.storage.from('program-materials').upload(pdfPath, blob, {
-      upsert: true,
-      contentType: 'application/pdf',
-    });
+    const { error: uploadError } = await supabase.storage
+      .from("program-materials")
+      .upload(pdfPath, blob, {
+        upsert: true,
+        contentType: "application/pdf",
+      });
 
     if (uploadError) throw uploadError;
 
     await (supabase as any)
-      .from('certificates')
+      .from("certificates")
       .update({ generated_at: cert.generated_at || new Date().toISOString() })
-      .eq('id', cert.id);
+      .eq("id", cert.id);
 
-    const { data: urlData } = supabase.storage.from('program-materials').getPublicUrl(pdfPath);
+    const { data: urlData } = supabase.storage
+      .from("program-materials")
+      .getPublicUrl(pdfPath);
     return urlData.publicUrl;
   };
 
@@ -302,11 +374,14 @@ export function CertificateManager({ programId, classes }: Props) {
     try {
       await generateCertificatePdf(buildCertData(cert, studentName));
       // Mark as generated
-      await (supabase as any).from('certificates').update({ generated_at: new Date().toISOString() }).eq('id', cert.id);
+      await (supabase as any)
+        .from("certificates")
+        .update({ generated_at: new Date().toISOString() })
+        .eq("id", cert.id);
       refetchCerts();
-      toast.success('Certificado gerado com sucesso');
+      toast.success("Certificado gerado com sucesso");
     } catch (e: any) {
-      toast.error('Erro ao gerar certificado: ' + e.message);
+      toast.error("Erro ao gerar certificado: " + e.message);
     } finally {
       setGeneratingPdf(null);
     }
@@ -320,20 +395,20 @@ export function CertificateManager({ programId, classes }: Props) {
 
     try {
       const cert = await ensureCertificateForEnrollment(row.enrollmentId);
-      if (!cert) throw new Error('Não foi possível habilitar o certificado');
+      if (!cert) throw new Error("Não foi possível habilitar o certificado");
 
-      const studentName = row.profile?.full_name || 'Aluno';
+      const studentName = row.profile?.full_name || "Aluno";
       await generateCertificatePdf(buildCertData(cert, studentName));
 
       await (supabase as any)
-        .from('certificates')
+        .from("certificates")
         .update({ generated_at: new Date().toISOString() })
-        .eq('id', cert.id);
+        .eq("id", cert.id);
 
       await refetchCerts();
-      toast.success('Certificado gerado com sucesso');
+      toast.success("Certificado gerado com sucesso");
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao gerar certificado');
+      toast.error(err.message || "Erro ao gerar certificado");
     } finally {
       setGeneratingPdf(null);
       setEnablingAndGenerating(false);
@@ -342,7 +417,7 @@ export function CertificateManager({ programId, classes }: Props) {
 
   const handleGenerateSelectedPdfs = async () => {
     if (selectedForEmail.length === 0) {
-      toast.error('Selecione ao menos um certificado para gerar');
+      toast.error("Selecione ao menos um certificado para gerar");
       return;
     }
 
@@ -355,16 +430,18 @@ export function CertificateManager({ programId, classes }: Props) {
         if (!cert) continue;
 
         const profile = (profilesMap as Map<string, any>).get(cert.user_id);
-        const studentName = profile?.full_name || 'Aluno';
+        const studentName = profile?.full_name || "Aluno";
 
         await uploadCertificatePdf(cert, studentName);
         generatedCount += 1;
       }
 
       await refetchCerts();
-      toast.success(`PDF${generatedCount === 1 ? '' : 's'} gerado${generatedCount === 1 ? '' : 's'} para ${generatedCount} certificado(s)`);
+      toast.success(
+        `PDF${generatedCount === 1 ? "" : "s"} gerado${generatedCount === 1 ? "" : "s"} para ${generatedCount} certificado(s)`,
+      );
     } catch (e: any) {
-      toast.error('Erro ao gerar PDFs: ' + e.message);
+      toast.error("Erro ao gerar PDFs: " + e.message);
     } finally {
       setGeneratingSelectedPdfs(false);
     }
@@ -372,7 +449,7 @@ export function CertificateManager({ programId, classes }: Props) {
 
   const handleSendEmails = async () => {
     if (selectedForEmail.length === 0) {
-      toast.error('Selecione ao menos um certificado para enviar');
+      toast.error("Selecione ao menos um certificado para enviar");
       return;
     }
     setSendingEmail(true);
@@ -383,7 +460,7 @@ export function CertificateManager({ programId, classes }: Props) {
         const cert = certificates.find((c: any) => c.id === certId);
         if (!cert) continue;
         const profile = (profilesMap as Map<string, any>).get(cert.user_id);
-        const studentName = profile?.full_name || 'Aluno';
+        const studentName = profile?.full_name || "Aluno";
         const studentEmail = profile?.email;
         if (!studentEmail) continue;
 
@@ -394,55 +471,62 @@ export function CertificateManager({ programId, classes }: Props) {
           pdfUrl,
           studentEmail,
           studentName,
-          programName: program?.name || 'Programa',
+          programName: program?.name || "Programa",
         });
       }
 
       if (certPayloads.length === 0) {
-        toast.error('Nenhum certificado válido para enviar');
+        toast.error("Nenhum certificado válido para enviar");
         setSendingEmail(false);
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('send-certificate-email', {
-        body: { certificates: certPayloads },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "send-certificate-email",
+        {
+          body: { certificates: certPayloads },
+        },
+      );
 
       if (error) throw error;
 
-      const successCount = data?.results?.filter((r: any) => r.success).length || 0;
-      const failCount = data?.results?.filter((r: any) => !r.success).length || 0;
+      const successCount =
+        data?.results?.filter((r: any) => r.success).length || 0;
+      const failCount =
+        data?.results?.filter((r: any) => !r.success).length || 0;
 
-      if (successCount > 0) toast.success(`E-mail enviado para ${successCount} aluno(s)`);
-      if (failCount > 0) toast.error(`Falha ao enviar para ${failCount} aluno(s)`);
+      if (successCount > 0)
+        toast.success(`E-mail enviado para ${successCount} aluno(s)`);
+      if (failCount > 0)
+        toast.error(`Falha ao enviar para ${failCount} aluno(s)`);
 
       setSelectedForEmail([]);
       refetchCerts();
     } catch (e: any) {
-      toast.error('Erro ao enviar e-mails: ' + e.message);
+      toast.error("Erro ao enviar e-mails: " + e.message);
     } finally {
       setSendingEmail(false);
     }
   };
 
   const toggleStudent = (enrollmentId: string) => {
-    setSelectedStudents(prev =>
+    setSelectedStudents((prev) =>
       prev.includes(enrollmentId)
-        ? prev.filter(id => id !== enrollmentId)
-        : [...prev, enrollmentId]
+        ? prev.filter((id) => id !== enrollmentId)
+        : [...prev, enrollmentId],
     );
   };
 
   const toggleEmailCert = (certId: string) => {
-    setSelectedForEmail(prev =>
+    setSelectedForEmail((prev) =>
       prev.includes(certId)
-        ? prev.filter(id => id !== certId)
-        : [...prev, certId]
+        ? prev.filter((id) => id !== certId)
+        : [...prev, certId],
     );
   };
 
   const eligibleEnrollments = enrollments.filter(
-    (e: any) => !getCertForEnrollment(e.id)
+    (e: any) => !getCertForEnrollment(e.id),
   );
 
   const allCerts = certificates as any[];
@@ -464,7 +548,6 @@ export function CertificateManager({ programId, classes }: Props) {
     }
   };
 
-
   return (
     <div className="space-y-6">
       {/* Configuration */}
@@ -474,7 +557,9 @@ export function CertificateManager({ programId, classes }: Props) {
             <Award className="w-5 h-5 text-primary" />
             Configurar Certificados
           </CardTitle>
-          <CardDescription>Defina os dados que aparecerão no certificado</CardDescription>
+          <CardDescription>
+            Defina os dados que aparecerão no certificado
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -483,7 +568,7 @@ export function CertificateManager({ programId, classes }: Props) {
               <Input
                 type="number"
                 value={courseHours}
-                onChange={e => setCourseHours(e.target.value)}
+                onChange={(e) => setCourseHours(e.target.value)}
                 placeholder="Ex: 40"
               />
             </div>
@@ -491,7 +576,7 @@ export function CertificateManager({ programId, classes }: Props) {
               <Label>Datas do Curso</Label>
               <Input
                 value={courseDates}
-                onChange={e => setCourseDates(e.target.value)}
+                onChange={(e) => setCourseDates(e.target.value)}
                 placeholder="Ex: 10/03/2026 a 14/03/2026"
               />
             </div>
@@ -499,7 +584,7 @@ export function CertificateManager({ programId, classes }: Props) {
               <Label>Nome do(a) Especialista</Label>
               <Input
                 value={directorName}
-                onChange={e => setDirectorName(e.target.value)}
+                onChange={(e) => setDirectorName(e.target.value)}
                 placeholder="Ex: Léo Manero"
               />
             </div>
@@ -509,7 +594,9 @@ export function CertificateManager({ programId, classes }: Props) {
                 <Input
                   type="file"
                   accept="image/*"
-                  onChange={e => setSignatureFile(e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    setSignatureFile(e.target.files?.[0] || null)
+                  }
                   className="flex-1"
                 />
                 <Button
@@ -523,8 +610,14 @@ export function CertificateManager({ programId, classes }: Props) {
               </div>
               {signatureUrl && (
                 <div className="flex items-center gap-2 mt-1">
-                  <img src={signatureUrl} alt="Assinatura" className="h-10 object-contain border rounded" />
-                  <span className="text-xs text-muted-foreground">Assinatura carregada</span>
+                  <img
+                    src={signatureUrl}
+                    alt="Assinatura"
+                    className="h-10 object-contain border rounded"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Assinatura carregada
+                  </span>
                 </div>
               )}
             </div>
@@ -537,7 +630,9 @@ export function CertificateManager({ programId, classes }: Props) {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg">Alunos da Turma</CardTitle>
-            <CardDescription>Veja todos os alunos e habilite ou gere certificados em lote</CardDescription>
+            <CardDescription>
+              Veja todos os alunos e habilite ou gere certificados em lote
+            </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select value={selectedClassId} onValueChange={handleClassChange}>
@@ -547,7 +642,9 @@ export function CertificateManager({ programId, classes }: Props) {
               <SelectContent>
                 <SelectItem value="all">Todas as turmas</SelectItem>
                 {classes.map((c: any) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -555,9 +652,13 @@ export function CertificateManager({ programId, classes }: Props) {
         </CardHeader>
         <CardContent>
           {isTableLoading ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Carregando alunos e certificados...</p>
+            <p className="text-sm text-muted-foreground text-center py-6">
+              Carregando alunos e certificados...
+            </p>
           ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Nenhum aluno matriculado nem certificado emitido.</p>
+            <p className="text-sm text-muted-foreground text-center py-6">
+              Nenhum aluno matriculado nem certificado emitido.
+            </p>
           ) : (
             <>
               <Table>
@@ -565,7 +666,11 @@ export function CertificateManager({ programId, classes }: Props) {
                   <TableRow>
                     <TableHead className="w-10">
                       <Checkbox
-                        checked={selectedStudents.length === eligibleEnrollments.length && eligibleEnrollments.length > 0}
+                        checked={
+                          selectedStudents.length ===
+                            eligibleEnrollments.length &&
+                          eligibleEnrollments.length > 0
+                        }
                         onCheckedChange={selectAll}
                       />
                     </TableHead>
@@ -574,7 +679,10 @@ export function CertificateManager({ programId, classes }: Props) {
                     <TableHead>Status</TableHead>
                     <TableHead className="w-10">
                       <Checkbox
-                        checked={selectedForEmail.length === allCerts.length && allCerts.length > 0}
+                        checked={
+                          selectedForEmail.length === allCerts.length &&
+                          allCerts.length > 0
+                        }
                         onCheckedChange={selectAllForEmail}
                       />
                     </TableHead>
@@ -593,34 +701,69 @@ export function CertificateManager({ programId, classes }: Props) {
                             <Check className="w-4 h-4 text-primary" />
                           ) : canSelectForEnable ? (
                             <Checkbox
-                              checked={selectedStudents.includes(row.enrollmentId)}
-                              onCheckedChange={() => toggleStudent(row.enrollmentId)}
+                              checked={selectedStudents.includes(
+                                row.enrollmentId,
+                              )}
+                              onCheckedChange={() =>
+                                toggleStudent(row.enrollmentId)
+                              }
                             />
                           ) : null}
                         </TableCell>
-                        <TableCell className="font-medium">{row.profile?.full_name || '—'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{row.profile?.email || '—'}</TableCell>
+                        <TableCell className="font-medium">
+                          {row.profile?.full_name || "—"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {row.profile?.email || "—"}
+                        </TableCell>
                         <TableCell>
                           {hasCert ? (
                             <div className="flex items-center gap-2 flex-wrap">
-                              <Badge className="bg-primary/10 text-primary border-0">Habilitado</Badge>
+                              <Badge className="bg-primary/10 text-primary border-0">
+                                Habilitado
+                              </Badge>
                               {!row.enrollmentId && (
-                                <Badge variant="outline" className="text-[10px]">Sem matrícula</Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px]"
+                                >
+                                  Sem matrícula
+                                </Badge>
                               )}
                               {cert.generated_at && (
-                                <Badge variant="outline" className="text-[10px]">Gerado</Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px]"
+                                >
+                                  Gerado
+                                </Badge>
                               )}
                               {cert.emailed_at && (
-                                <Badge variant="outline" className="text-[10px] border-green-500 text-green-600">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] border-green-500 text-green-600"
+                                >
                                   <Mail className="w-3 h-3 mr-1" /> Enviado
                                 </Badge>
                               )}
-                              <span className="text-[10px] text-muted-foreground">{cert.certificate_code}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {cert.certificate_code}
+                              </span>
                             </div>
                           ) : row.isPending ? (
-                            <Badge variant="outline" className="text-yellow-600 border-yellow-600/40">Pré-matriculado</Badge>
+                            <Badge
+                              variant="outline"
+                              className="text-yellow-600 border-yellow-600/40"
+                            >
+                              Pré-matriculado
+                            </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+                            <Badge
+                              variant="outline"
+                              className="text-muted-foreground"
+                            >
+                              Pendente
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell>
@@ -636,11 +779,27 @@ export function CertificateManager({ programId, classes }: Props) {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => hasCert ? handleDownloadPdf(cert, row.profile?.full_name || 'Aluno') : handleGenerateFromEnrollment(row)}
-                              disabled={generatingPdf === (hasCert ? cert.id : row.enrollmentId) || enablingAndGenerating}
-                              title={hasCert ? 'Baixar certificado PDF' : 'Habilitar e gerar certificado PDF'}
+                              onClick={() =>
+                                hasCert
+                                  ? handleDownloadPdf(
+                                      cert,
+                                      row.profile?.full_name || "Aluno",
+                                    )
+                                  : handleGenerateFromEnrollment(row)
+                              }
+                              disabled={
+                                generatingPdf ===
+                                  (hasCert ? cert.id : row.enrollmentId) ||
+                                enablingAndGenerating
+                              }
+                              title={
+                                hasCert
+                                  ? "Baixar certificado PDF"
+                                  : "Habilitar e gerar certificado PDF"
+                              }
                             >
-                              {generatingPdf === (hasCert ? cert.id : row.enrollmentId) ? (
+                              {generatingPdf ===
+                              (hasCert ? cert.id : row.enrollmentId) ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Download className="w-4 h-4" />
@@ -659,7 +818,9 @@ export function CertificateManager({ programId, classes }: Props) {
                   <>
                     <Button
                       onClick={handleGenerateSelectedPdfs}
-                      disabled={generatingSelectedPdfs || selectedForEmail.length === 0}
+                      disabled={
+                        generatingSelectedPdfs || selectedForEmail.length === 0
+                      }
                       variant="outline"
                       className="gap-2"
                     >
@@ -668,7 +829,9 @@ export function CertificateManager({ programId, classes }: Props) {
                       ) : (
                         <Download className="w-4 h-4" />
                       )}
-                      {generatingSelectedPdfs ? 'Gerando PDFs...' : `Gerar PDFs (${selectedForEmail.length})`}
+                      {generatingSelectedPdfs
+                        ? "Gerando PDFs..."
+                        : `Gerar PDFs (${selectedForEmail.length})`}
                     </Button>
 
                     <Button
@@ -682,7 +845,9 @@ export function CertificateManager({ programId, classes }: Props) {
                       ) : (
                         <Mail className="w-4 h-4" />
                       )}
-                      {sendingEmail ? 'Enviando...' : `Enviar por E-mail (${selectedForEmail.length})`}
+                      {sendingEmail
+                        ? "Enviando..."
+                        : `Enviar por E-mail (${selectedForEmail.length})`}
                     </Button>
                   </>
                 )}
@@ -690,11 +855,20 @@ export function CertificateManager({ programId, classes }: Props) {
                 {eligibleEnrollments.length > 0 && (
                   <Button
                     onClick={handleEnableCertificates}
-                     disabled={saving || enablingAndGenerating || selectedStudents.length === 0 || !courseHours || !courseDates || !directorName}
+                    disabled={
+                      saving ||
+                      enablingAndGenerating ||
+                      selectedStudents.length === 0 ||
+                      !courseHours ||
+                      !courseDates ||
+                      !directorName
+                    }
                     className="gap-2 ml-auto"
                   >
                     <Award className="w-4 h-4" />
-                    {saving ? 'Habilitando...' : `Habilitar Certificado (${selectedStudents.length})`}
+                    {saving
+                      ? "Habilitando..."
+                      : `Habilitar Certificado (${selectedStudents.length})`}
                   </Button>
                 )}
               </div>
