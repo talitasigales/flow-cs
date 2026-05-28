@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
       const name = r.profiles?.full_name || '';
       const url = r.dilemmas_url;
       if (!email || !url) { results.push({ email, skipped: true }); continue; }
+      if (onlyEmail && email.toLowerCase() !== onlyEmail) continue;
       const resp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_API_KEY}` },
