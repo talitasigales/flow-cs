@@ -36,12 +36,20 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { data: rows, error } = await supabase
+    const { data: enrolls, error } = await supabase
       .from('program_enrollments')
-      .select('user_id, dilemmas_url, profiles!inner(full_name, email)')
+      .select('user_id, dilemmas_url')
       .eq('class_id', CLASS_ID)
       .not('dilemmas_url', 'is', null);
     if (error) throw error;
+    const ids = (enrolls || []).map((e: any) => e.user_id);
+    const { data: profs, error: pErr } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .in('user_id', ids);
+    if (pErr) throw pErr;
+    const profMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
+    const rows = (enrolls || []).map((e: any) => ({ ...e, profiles: profMap.get(e.user_id) }));
 
     const results: any[] = [];
     for (const r of (rows as any[])) {
