@@ -32,10 +32,13 @@ export function CertificateManager({ programId, classes }: Props) {
   const [saving, setSaving] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [generatingSelectedPdfs, setGeneratingSelectedPdfs] = useState(false);
+  const [enablingAndGenerating, setEnablingAndGenerating] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
 
   const handleClassChange = (classId: string) => {
     setSelectedClassId(classId);
+    setSelectedStudents([]);
+    setSelectedForEmail([]);
     if (classId !== 'all') {
       const cls = classes.find((c: any) => c.id === classId);
       if (cls?.specialist && !directorName) {
@@ -53,7 +56,7 @@ export function CertificateManager({ programId, classes }: Props) {
     },
   });
 
-  const { data: enrollments = [] } = useQuery({
+  const { data: enrollments = [], isLoading: isLoadingEnrollments, isFetching: isFetchingEnrollments } = useQuery({
     queryKey: ['cert-enrollments', programId, selectedClassId],
     queryFn: async () => {
       let query = supabase
@@ -68,7 +71,7 @@ export function CertificateManager({ programId, classes }: Props) {
     },
   });
 
-  const { data: certificates = [], refetch: refetchCerts } = useQuery({
+  const { data: certificates = [], refetch: refetchCerts, isLoading: isLoadingCertificates, isFetching: isFetchingCertificates } = useQuery({
     queryKey: ['cert-list', programId, selectedClassId],
     queryFn: async () => {
       let query = (supabase as any)
@@ -83,7 +86,7 @@ export function CertificateManager({ programId, classes }: Props) {
     },
   });
 
-  const { data: pendingEnrollments = [] } = useQuery({
+  const { data: pendingEnrollments = [], isLoading: isLoadingPendingEnrollments, isFetching: isFetchingPendingEnrollments } = useQuery({
     queryKey: ['cert-pending-enrollments', programId, selectedClassId],
     queryFn: async () => {
       let query = (supabase as any)
@@ -106,7 +109,7 @@ export function CertificateManager({ programId, classes }: Props) {
     ]),
   ];
 
-  const { data: profilesMap = new Map() } = useQuery({
+  const { data: profilesMap = new Map(), isLoading: isLoadingProfiles, isFetching: isFetchingProfiles } = useQuery({
     queryKey: ['cert-profiles', profileUserIds.sort().join(',')],
     enabled: profileUserIds.length > 0,
     queryFn: async () => {
@@ -162,6 +165,62 @@ export function CertificateManager({ programId, classes }: Props) {
 
   const getCertForEnrollment = (enrollmentId: string) =>
     certificates.find((c: any) => c.enrollment_id === enrollmentId);
+
+  const assertCertificateConfig = () => {
+    if (!courseHours || !courseDates || !directorName) {
+      throw new Error('Preencha carga horária, datas e nome do(a) especialista');
+    }
+  };
+
+  const createCertificatesForEnrollments = async (enrollmentIds: string[]) => {
+    const eligibleIds = enrollmentIds.filter((enrollmentId) => !getCertForEnrollment(enrollmentId));
+
+    if (eligibleIds.length === 0) return [];
+
+    assertCertificateConfig();
+
+    const records = eligibleIds.map((enrollmentId) => {
+      const enr = enrollments.find((item: any) => item.id === enrollmentId);
+
+      if (!enr?.user_id) {
+        throw new Error('Não foi possível localizar a matrícula de um dos alunos selecionados');
+      }
+
+      return {
+        enrollment_id: enrollmentId,
+        user_id: enr.user_id,
+        program_id: programId,
+        class_id: enr.class_id || null,
+        certificate_code: generateCertificateCode(),
+        course_hours: parseInt(courseHours, 10),
+        course_dates: courseDates,
+        director_name: directorName,
+        director_signature_url: signatureUrl || null,
+        enabled_by: user!.id,
+      };
+    });
+
+    const { data, error } = await (supabase as any).from('certificates').insert(records).select('*');
+    if (error) throw error;
+    return data || [];
+  };
+
+  const ensureCertificateForEnrollment = async (enrollmentId: string) => {
+    const existingCertificate = getCertForEnrollment(enrollmentId);
+    if (existingCertificate) return existingCertificate;
+
+    const createdCertificates = await createCertificatesForEnrollments([enrollmentId]);
+    return createdCertificates[0] || null;
+  };
+
+  const isTableLoading =
+    isLoadingEnrollments ||
+    isFetchingEnrollments ||
+    isLoadingCertificates ||
+    isFetchingCertificates ||
+    isLoadingPendingEnrollments ||
+    isFetchingPendingEnrollments ||
+    (profileUserIds.length > 0 && (isLoadingProfiles || isFetchingProfiles));
 
 
   const handleUploadSignature = async () => {
