@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-dilemmas-reminder]
 verify_jwt = false
+
+[functions.import-sinaleira-snapshot]
+verify_jwt = false
