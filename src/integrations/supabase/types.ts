@@ -1400,6 +1400,54 @@ export type Database = {
           },
         ]
       }
+      pda_sinaleira_snapshot: {
+        Row: {
+          account_expiration: string | null
+          account_name: string
+          account_type: string | null
+          alert: string | null
+          available_credits: number
+          consulted_at: string | null
+          created_at: string
+          credits_expiration: string | null
+          id: string
+          last_month_consumption: number
+          signal: string
+          snapshot_id: string
+          used_credits_total: number
+        }
+        Insert: {
+          account_expiration?: string | null
+          account_name: string
+          account_type?: string | null
+          alert?: string | null
+          available_credits?: number
+          consulted_at?: string | null
+          created_at?: string
+          credits_expiration?: string | null
+          id?: string
+          last_month_consumption?: number
+          signal?: string
+          snapshot_id: string
+          used_credits_total?: number
+        }
+        Update: {
+          account_expiration?: string | null
+          account_name?: string
+          account_type?: string | null
+          alert?: string | null
+          available_credits?: number
+          consulted_at?: string | null
+          created_at?: string
+          credits_expiration?: string | null
+          id?: string
+          last_month_consumption?: number
+          signal?: string
+          snapshot_id?: string
+          used_credits_total?: number
+        }
+        Relationships: []
+      }
       pdi_actions: {
         Row: {
           achievable: string | null
