@@ -20,7 +20,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarDays, CalendarIcon, Plus, MessageCircle, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
-const WHATSAPP_NUMBER = '5551918920490';
+const WHATSAPP_NUMBER = '555191892049';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Gostaria de saber mais sobre os programas e turmas disponíveis.')}`;
 
 export default function ProgramCalendar() {
