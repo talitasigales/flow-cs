@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'Plataforma Grou <plataforma@grougp.com.br>',
-        to: ['talita.sigales@grougp.com.br'],
+        to: ['talita.sigales@grougp.com.br', 'fabiana@grougp.com.br'],
         reply_to: email,
         subject: `[PDA Certificação] Novo lead: ${name} - ${company}`,
         html,
