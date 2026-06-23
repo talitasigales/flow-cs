@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.import-sinaleira-snapshot]
 verify_jwt = false
+
+[functions.send-pda-certification-lead]
+verify_jwt = false
