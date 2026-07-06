@@ -17,6 +17,7 @@ interface PDIStageTipsProps {
   currentStage: number;
   status: string;
   onAdvanceStage: () => void;
+  onOpenCheckin?: () => void;
   canAdvance: boolean;
   isCompleted: boolean;
 }
@@ -70,15 +71,15 @@ const STAGE_INFO: Record<number, {
   4: {
     title: 'Acompanhamento',
     icon: BarChart3,
-    description: 'Realize check-ins periódicos para avaliar progresso, identificar obstáculos e ajustar o plano.',
+    description: 'Registre seus check-ins para acompanhar sua evolução, refletir sobre avanços e ajustar o plano quando necessário.',
     tips: [
-      'Realize 2 sessões de acompanhamento (check-ins) durante o período do PDI.',
-      'No check-in, reflita: O que deu certo? O que não deu certo? Quais foram os obstáculos?',
-      'Celebre as conquistas e reconheça os esforços realizados.',
-      'Ajuste o plano se necessário — adicione ou modifique ações.',
-      'Mantenha o foco no desenvolvimento comportamental, não apenas em resultados.',
+      'Registre 2 check-ins ao longo do seu PDI.',
+      'Em cada check-in, reflita: o que deu certo, o que não deu certo e quais foram os obstáculos.',
+      'Reconheça suas conquistas e os esforços realizados até aqui.',
+      'Ajuste o plano se necessário — adicionando ou revisando ações.',
+      'Mantenha o foco no seu desenvolvimento comportamental ao longo do processo.',
     ],
-    nextAction: 'Avançar para Fechamento',
+    nextAction: 'Avançar para Check-in',
   },
   5: {
     title: 'Fechamento',
@@ -89,17 +90,22 @@ const STAGE_INFO: Record<number, {
       'Reconheça e celebre os progressos, mesmo os pequenos.',
       'Identifique aprendizados que podem ser aplicados em outras áreas.',
       'Defina próximos passos para manter o desenvolvimento contínuo.',
-      'Clique em "Fechar PDI" para registrar o fechamento formalmente.',
+      'Após registrar 2 check-ins, o botão "Fechar PDI" ficará disponível no topo da página para concluir esta etapa.',
     ],
     nextAction: '',
   },
 };
 
-export default function PDIStageTips({ currentStage, status, onAdvanceStage, canAdvance, isCompleted }: PDIStageTipsProps) {
+export default function PDIStageTips({ currentStage, status, onAdvanceStage, onOpenCheckin, canAdvance, isCompleted }: PDIStageTipsProps) {
   const stageInfo = STAGE_INFO[currentStage];
   if (!stageInfo || isCompleted) return null;
 
   const Icon = stageInfo.icon;
+  const isCheckinAction = currentStage === 4 && !!onOpenCheckin;
+  const handlePrimaryAction = isCheckinAction ? onOpenCheckin : onAdvanceStage;
+  const dialogDescription = isCheckinAction
+    ? 'Você será levado ao registro do check-in para continuar seu PDI nesta etapa.'
+    : 'Tem certeza que deseja avançar para a próxima etapa? Essa ação indica que você concluiu as atividades desta fase.';
 
   return (
     <Card className="border-primary/30 bg-primary/5">
@@ -139,12 +145,12 @@ export default function PDIStageTips({ currentStage, status, onAdvanceStage, can
               <AlertDialogHeader>
                 <AlertDialogTitle>{stageInfo.nextAction}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Tem certeza que deseja avançar para a próxima etapa? Essa ação indica que você concluiu as atividades desta fase.
+                  {dialogDescription}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={onAdvanceStage}>Confirmar</AlertDialogAction>
+                <AlertDialogAction onClick={handlePrimaryAction}>Confirmar</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -153,3 +159,4 @@ export default function PDIStageTips({ currentStage, status, onAdvanceStage, can
     </Card>
   );
 }
+
