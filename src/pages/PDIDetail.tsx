@@ -109,7 +109,6 @@ export default function PDIDetail() {
 
       const updatedPdi = await advanceStage(pdiData, actionsData || [], checkinsData || [], closureData);
       setPdi(updatedPdi);
-
     } catch (error) {
       console.error('Erro ao carregar PDI:', error);
       toast.error('Erro ao carregar PDI');
@@ -163,7 +162,9 @@ export default function PDIDetail() {
     }
   };
 
-  const canManuallyAdvance = !closure && pdi.current_stage < 5 && pdi.status !== 'completed';
+  const canManuallyAdvance = !closure && pdi.status !== 'completed' && (
+    pdi.current_stage < 4 || (pdi.current_stage === 4 && nextCheckinNumber <= 2)
+  );
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
@@ -252,6 +253,7 @@ export default function PDIDetail() {
               currentStage={pdi.current_stage}
               status={pdi.status}
               onAdvanceStage={handleManualAdvance}
+              onOpenCheckin={() => setCheckinDialogOpen(true)}
               canAdvance={canManuallyAdvance}
               isCompleted={!!closure}
             />
@@ -379,3 +381,4 @@ export default function PDIDetail() {
     </div>
   );
 }
+
