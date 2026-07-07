@@ -1,7 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { UserAvatarMenu } from './UserAvatarMenu';
-import { PdaCertificationPopup } from './PdaCertificationPopup';
 import { Menu } from 'lucide-react';
 
 interface AppLayoutProps {
