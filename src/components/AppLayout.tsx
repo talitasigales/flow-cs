@@ -28,7 +28,7 @@ export function AppLayout({ children, className = '' }: AppLayoutProps) {
           <main className="flex-1 overflow-auto">
             {children}
           </main>
-          <PdaCertificationPopup />
+          
         </div>
       </div>
     </SidebarProvider>
