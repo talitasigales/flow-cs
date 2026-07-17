@@ -34,7 +34,7 @@ export const getProfileColor = (dimension: string) => {
     case 'intensidade_perfil':
       return 'bg-pink-500';
     case 'energia':
-      return 'bg-red-500';
+      return 'bg-fuchsia-500';
     case 'equilibrio_energia':
       return 'bg-indigo-500';
     case 'modificacao_perfil':
@@ -47,7 +47,7 @@ export const getProfileColor = (dimension: string) => {
 export const getProfileColorHex = (dimension: string) => {
   switch (dimension) {
     case 'r':
-      return '#f97316';
+      return '#ef4444';
     case 'e':
       return '#eab308';
     case 'p':
