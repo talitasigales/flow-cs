@@ -1724,6 +1724,7 @@ export type Database = {
           dilemmas_url: string | null
           email: string
           id: string
+          phone: string | null
           program_id: string
           resilience_url: string | null
           secondary_email: string | null
@@ -1734,6 +1735,7 @@ export type Database = {
           dilemmas_url?: string | null
           email: string
           id?: string
+          phone?: string | null
           program_id: string
           resilience_url?: string | null
           secondary_email?: string | null
@@ -1744,6 +1746,7 @@ export type Database = {
           dilemmas_url?: string | null
           email?: string
           id?: string
+          phone?: string | null
           program_id?: string
           resilience_url?: string | null
           secondary_email?: string | null
@@ -1964,7 +1967,12 @@ export type Database = {
           resilience_url: string | null
           specialist: string | null
           start_date: string | null
+          start_time: string | null
+          timezone: string
           video_conference_url: string | null
+          whatsapp_reminder_24h_sent_at: string | null
+          whatsapp_reminder_30min_sent_at: string | null
+          whatsapp_reminders_enabled: boolean
         }
         Insert: {
           created_at?: string
@@ -1978,7 +1986,12 @@ export type Database = {
           resilience_url?: string | null
           specialist?: string | null
           start_date?: string | null
+          start_time?: string | null
+          timezone?: string
           video_conference_url?: string | null
+          whatsapp_reminder_24h_sent_at?: string | null
+          whatsapp_reminder_30min_sent_at?: string | null
+          whatsapp_reminders_enabled?: boolean
         }
         Update: {
           created_at?: string
@@ -1992,7 +2005,12 @@ export type Database = {
           resilience_url?: string | null
           specialist?: string | null
           start_date?: string | null
+          start_time?: string | null
+          timezone?: string
           video_conference_url?: string | null
+          whatsapp_reminder_24h_sent_at?: string | null
+          whatsapp_reminder_30min_sent_at?: string | null
+          whatsapp_reminders_enabled?: boolean
         }
         Relationships: [
           {
