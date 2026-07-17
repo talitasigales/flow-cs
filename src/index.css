@@ -20,22 +20,22 @@ All colors MUST be HSL.
     --popover: 220 35% 16%;
     --popover-foreground: 30 10% 96%;
 
-    /* Primary - Orange */
-    --primary: 20 90% 52%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 25 95% 60%;
+    /* Primary - Grou Tiffany #2bdccf */
+    --primary: 175 71% 52%;
+    --primary-foreground: 220 40% 13%;
+    --primary-glow: 175 75% 65%;
 
-    /* Secondary - Warm amber */
-    --secondary: 30 80% 55%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Lighter Tiffany */
+    --secondary: 175 65% 60%;
+    --secondary-foreground: 220 40% 13%;
 
     /* Muted colors */
     --muted: 220 30% 22%;
     --muted-foreground: 220 15% 60%;
 
-    /* Accent - Deep orange */
-    --accent: 15 85% 48%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Deeper Tiffany */
+    --accent: 175 80% 42%;
+    --accent-foreground: 220 40% 13%;
 
     /* Destructive colors */
     --destructive: 0 72% 51%;
@@ -44,7 +44,7 @@ All colors MUST be HSL.
     /* Border and input */
     --border: 220 30% 22%;
     --input: 220 30% 22%;
-    --ring: 20 90% 60%;
+    --ring: 175 71% 55%;
 
     /* Success color */
     --success: 142 76% 50%;
@@ -53,26 +53,26 @@ All colors MUST be HSL.
     /* Border radius */
     --radius: 0.75rem;
 
-    /* Gradients - Orange to Amber */
-    --gradient-primary: linear-gradient(90deg, hsl(20 90% 52%), hsl(35 95% 58%));
+    /* Gradients - Tiffany */
+    --gradient-primary: linear-gradient(90deg, hsl(175 71% 52%), hsl(175 75% 65%));
     --gradient-card: linear-gradient(180deg, hsl(220 35% 16%), hsl(220 40% 13%));
     --gradient-subtle: linear-gradient(180deg, hsl(220 30% 19%), hsl(220 35% 16%));
 
     /* Shadows */
-    --shadow-primary: 0 10px 40px -10px hsl(20 90% 52% / 0.3);
+    --shadow-primary: 0 10px 40px -10px hsl(175 71% 52% / 0.35);
     --shadow-card: 0 4px 20px hsl(220 40% 8% / 0.5);
-    --shadow-glow: 0 0 40px hsl(20 90% 52% / 0.3);
+    --shadow-glow: 0 0 40px hsl(175 71% 52% / 0.35);
     --shadow-sidebar: 0 8px 32px hsl(220 40% 8% / 0.6);
 
     /* Sidebar specific colors */
     --sidebar: 220 35% 16%;
     --sidebar-foreground: 30 10% 96%;
-    --sidebar-primary: 20 90% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 175 71% 52%;
+    --sidebar-primary-foreground: 220 40% 13%;
     --sidebar-accent: 220 30% 22%;
     --sidebar-accent-foreground: 30 10% 96%;
     --sidebar-border: 220 30% 22%;
-    --sidebar-ring: 20 90% 60%;
+    --sidebar-ring: 175 71% 55%;
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
