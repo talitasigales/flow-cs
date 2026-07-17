@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.send-pda-certification-lead]
 verify_jwt = false
+
+[functions.send-class-whatsapp-reminder]
+verify_jwt = false
