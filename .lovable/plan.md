@@ -1,55 +1,93 @@
 ## Objetivo
 
-Trocar a fonte de dados da Sinaleira PDA: em vez de chamar a API PDA ao vivo, ler de uma tabela `pda_sinaleira_snapshot` populada a partir da planilha. A coluna "Sinaleira" da planilha (🟢🟡🔴) é a verdade. Exibir o "Status / Alerta" como badge adicional.
+Enviar WhatsApp automaticamente para alunos matriculados de uma turma:
+- **24h antes** do início da turma: lembrete com data/horário e link da sala.
+- **30 min antes**: aviso "está começando" com link da sala.
 
-## Passos
+Provedor: **Meta WhatsApp Cloud API** (oficial). Requer templates HSM aprovados na Meta (obrigatório para mensagens proativas fora da janela de 24h).
 
-### 1. Criar tabela `pda_sinaleira_snapshot` no Supabase
+## Mudanças necessárias
 
-Colunas:
-- `account_name` (text) — Conta/Base
-- `available_credits` (int) — Créditos restantes
-- `used_credits_total` (int) — Créditos utilizados total
-- `last_month_consumption` (int) — Consumo último mês
-- `signal` (text) — 'ok' / 'warning' / 'critical' (derivado do emoji)
-- `credits_expiration` (date, nullable)
-- `account_expiration` (date, nullable)
-- `account_type` (text) — Credits / CreditsPlan
-- `alert` (text) — Status / Alerta
-- `consulted_at` (date) — Data da consulta
-- `snapshot_id` (uuid) — agrupa um lote de importação
-- timestamps
+### 1. Schema (migration)
 
-RLS: leitura para usuários com acesso CS (`has_cs_access(auth.uid())`); INSERT/DELETE só admin via service_role na edge function.
+**`program_classes`** — adicionar horário e controle de envios:
+- `start_time time` (ex.: 19:00) — horário de início.
+- `timezone text default 'America/Sao_Paulo'`.
+- `whatsapp_reminder_24h_sent_at timestamptz` — evita duplicidade.
+- `whatsapp_reminder_30min_sent_at timestamptz`.
+- `whatsapp_reminders_enabled boolean default true` — permite desligar por turma.
 
-### 2. Edge function `import-sinaleira-snapshot`
+**`profiles.phone`** já existe — usaremos como fonte do WhatsApp (E.164, ex.: `+5551999999999`).
 
-- Recebe `{ csv: string }` em POST (apenas admin).
-- Faz parse do CSV, deriva `signal` do emoji (🟢=ok, 🟡=warning, 🔴=critical), converte datas dd/mm/yyyy → ISO, ignora colunas corrompidas (Meses/Meta/Comparativo).
-- Cria um novo `snapshot_id`, insere todas as linhas, e apaga snapshots anteriores (mantém só o mais recente).
+**`pending_enrollments`** — adicionar `phone text` para pré-matrículas também receberem.
 
-### 3. Importar a planilha atual
+### 2. Secrets (Meta Cloud API)
 
-Já que a planilha está aqui, eu importo o CSV de 988 linhas direto após o deploy via chamada da função (uma vez).
+Solicitar via `add_secret`:
+- `WHATSAPP_ACCESS_TOKEN` — token permanente do System User.
+- `WHATSAPP_PHONE_NUMBER_ID` — ID do número emissor.
+- `WHATSAPP_TEMPLATE_REMINDER_24H` — nome do template aprovado (24h).
+- `WHATSAPP_TEMPLATE_REMINDER_30MIN` — nome do template aprovado (30min).
+- `WHATSAPP_TEMPLATE_LANGUAGE` — ex.: `pt_BR`.
 
-### 4. Adaptar a Sinaleira (frontend)
+Antes de solicitar, explicar ao usuário: precisa criar 2 templates HSM na Meta Business Manager com variáveis `{{1}} nome do aluno`, `{{2}} nome do programa`, `{{3}} data/horário`, `{{4}} link da sala`. Sem templates aprovados, a Meta bloqueia envio.
 
-- Novo hook `useSinaleiraSnapshot()` que lê de `pda_sinaleira_snapshot` (ordenado pelo `consulted_at` mais recente).
-- Reescrever `SinaleiraPda.tsx` para:
-  - Mostrar Conta, Saldo, Consumo último mês, Expiração + dias restantes, Sinaleira (🟢🟡🔴 vindo da planilha), Tipo de conta e badge de Alerta ao lado.
-  - Remover seções de "Meta mensal" e "Ritmo" (não recalculadas) e o painel de "Movimentações" (não vem na planilha).
-  - Manter filtros: busca, sinaleira, expira de/até, créditos mín/máx, e adicionar filtro "Só com alerta".
-  - Cards de resumo (Verde/Amarelo/Vermelho) com a contagem baseada no `signal` da planilha.
-  - Botão "Importar nova planilha (CSV)" para admins — upload de arquivo que chama a edge function.
-  - Exibir "Última atualização: {consulted_at do snapshot}".
+### 3. Edge Function: `send-class-whatsapp-reminder`
 
-### 5. Limpeza
+- Recebe `{ class_id, reminder_type: '24h' | '30min' }`.
+- Busca turma + programa + `video_conference_url` obrigatório.
+- Une destinatários de `program_enrollments` (join com `profiles.full_name, phone`) + `pending_enrollments` (full_name, phone) para aquela `class_id`.
+- Normaliza telefone (adiciona `+55` se faltar, remove máscaras) e ignora quem não tem telefone (loga skip).
+- Para cada destinatário, faz `POST https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages` com o template + variáveis.
+- Retorna `{ sent, skipped, failed, errors[] }`.
+- Marca `whatsapp_reminder_{tipo}_sent_at = now()` no fim.
+- Config: `verify_jwt = false` no `supabase/config.toml`, validação manual do token; suporta `test_phone` para envio de teste (igual ao padrão do `send-dilemmas-reminder`).
 
-- Manter `useSinaleiraPda` e o `pda-proxy` (usados em outros lugares? verificar) ou marcar como deprecated. Se exclusivos da Sinaleira, removo o uso mas mantenho o código para não quebrar nada inesperado.
+### 4. Agendamento (pg_cron + pg_net)
 
-## Considerações técnicas
+Cron **a cada 5 minutos**, executando SQL que:
+1. Seleciona `program_classes` onde `whatsapp_reminders_enabled = true` e:
+   - Para 24h: `start_date + start_time` cai entre "agora + 23h55" e "agora + 24h05" **e** `whatsapp_reminder_24h_sent_at IS NULL`.
+   - Para 30min: idem com janela 25–35 min **e** `whatsapp_reminder_30min_sent_at IS NULL`.
+2. Para cada turma elegível, chama `net.http_post` para a edge function com o payload correspondente.
 
-- O parse do emoji é feito por inclusão de substring (`includes('🟢')` etc.) — robusto a espaços.
-- Datas dd/mm/yyyy convertidas com regex; campos vazios viram null.
-- A planilha tem 988 linhas — insert em chunks de 500.
-- Não mexo na API PDA nem nas tabelas existentes.
+Isso evita depender de horário exato do cron e cobre pequenos atrasos.
+
+### 5. Admin UI
+
+Em `ProgramCalendar.tsx` / dialog de edição de turma (admin):
+- Campo hora de início (`start_time`).
+- Campo URL da sala (`video_conference_url`) — já existe na tabela, expor no formulário.
+- Toggle "Enviar lembretes de WhatsApp".
+- Botão "Enviar lembrete agora (teste)" que chama a edge function com `test_phone` do admin.
+- Indicadores: "24h enviado em ...", "30min enviado em ...".
+
+Em `AdminUsers` / edição de perfil: garantir que o campo `phone` seja preenchível/visível (já existe).
+
+## Fluxo resumido
+
+```text
+Admin cria turma  ──►  define start_date + start_time + video_conference_url
+                                   │
+                cron a cada 5 min  ▼
+              seleciona turmas na janela 24h ou 30min
+                                   │
+                                   ▼
+              edge function envia WhatsApp via Meta Cloud API
+                                   │
+                                   ▼
+              marca sent_at, evita reenvio
+```
+
+## Pré-requisitos que o usuário precisa preparar
+
+1. **Conta Meta Business** com WhatsApp Business Platform ativa.
+2. **Templates HSM aprovados** (2): lembrete 24h e aviso 30min, ambos com 4 variáveis.
+3. **Access Token permanente** (System User) e **Phone Number ID**.
+4. **Números dos alunos preenchidos em `profiles.phone`** — sem telefone, o aluno é ignorado.
+
+## Fora do escopo desta plano
+
+- Envio manual em massa por turma (podemos adicionar depois; hoje o botão de teste já cobre validação).
+- Confirmação de leitura / webhook de status da Meta.
+- Templates em outros idiomas além do configurado em `WHATSAPP_TEMPLATE_LANGUAGE`.
