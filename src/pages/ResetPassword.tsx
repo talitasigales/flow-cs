@@ -87,7 +87,7 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center p-8 bg-background">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-4">
-          <img src={grouLogo} alt="Grou Logo" className="h-[6.25rem] w-auto" />
+          <img src={grouLogo.url} alt="Grou Logo" className="h-[6.25rem] w-auto" />
           <h2 className="text-3xl font-bold gradient-text">Redefinir Senha</h2>
         </div>
 

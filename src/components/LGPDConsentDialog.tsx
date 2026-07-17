@@ -42,7 +42,7 @@ export function LGPDConsentDialog({ userId, onAccepted }: LGPDConsentDialogProps
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b border-primary/10">
           <div className="flex items-center gap-4">
-            <img src={grouLogo} alt="Grou" className="h-10" />
+            <img src={grouLogo.url} alt="Grou" className="h-10" />
             <div>
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />

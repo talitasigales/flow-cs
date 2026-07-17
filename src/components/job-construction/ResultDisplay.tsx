@@ -38,7 +38,7 @@ export function ResultDisplay({ scores }: ResultDisplayProps) {
       {/* Header with Logo */}
       <div className="flex flex-col items-center gap-4 py-6">
         <img 
-          src={groLogo} 
+          src={groLogo.url} 
           alt="Grou Logo" 
           className="h-16 w-auto object-contain"
         />
