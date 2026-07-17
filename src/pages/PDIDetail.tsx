@@ -206,7 +206,7 @@ export default function PDIDetail() {
                   {canClose && (
                     <Button onClick={() => setClosureDialogOpen(true)}>
                       <FileCheck className="h-4 w-4 mr-2" />
-                      Fechar PDI
+                      Concluir PDI
                     </Button>
                   )}
                 </>
