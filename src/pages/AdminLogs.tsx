@@ -109,7 +109,7 @@ const AdminLogs = () => {
       case 'MATERIAL_EXPAND':
         return <Badge className="bg-sky-600">Abriu Material</Badge>;
       case 'MATERIAL_DOWNLOAD':
-        return <Badge className="bg-amber-600">Baixou Material</Badge>;
+        return <Badge className="bg-yellow-600">Baixou Material</Badge>;
       case 'JOB_CONSTRUCTION':
         return <Badge className="bg-teal-600">Construção de Cargo</Badge>;
       default:

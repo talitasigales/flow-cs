@@ -469,7 +469,7 @@ export default function UserProfile() {
                         />
                       </div>
                       {!communityVisible && (
-                        <p className="text-xs text-amber-600 bg-amber-500/10 rounded-md px-3 py-2 mt-3">
+                        <p className="text-xs text-yellow-600 bg-yellow-500/10 rounded-md px-3 py-2 mt-3">
                           Seu perfil está oculto. Outros membros não poderão ver você na comunidade ou na página de membros.
                         </p>
                       )}
@@ -508,7 +508,7 @@ export default function UserProfile() {
                         </div>
                       </div>
                       {!pdaPublic && (
-                        <p className="text-xs text-amber-600 bg-amber-500/10 rounded-md px-3 py-2 mt-2">
+                        <p className="text-xs text-yellow-600 bg-yellow-500/10 rounded-md px-3 py-2 mt-2">
                           Seu perfil REPNA está oculto. Outros membros não verão seus valores na comunidade, posts ou página de membros.
                         </p>
                       )}
@@ -740,7 +740,7 @@ export default function UserProfile() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Senha personalizada</p>
-                      <p className={`font-semibold ${profile?.password_changed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      <p className={`font-semibold ${profile?.password_changed ? 'text-emerald-400' : 'text-yellow-400'}`}>
                         {profile?.password_changed ? 'Sim' : 'Não — usando senha inicial'}
                       </p>
                     </div>

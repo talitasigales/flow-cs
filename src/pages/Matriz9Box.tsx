@@ -327,8 +327,8 @@ const Matriz9Box = () => {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Users className="w-5 h-5 text-amber-500" />
+              <div className="p-2 rounded-lg bg-yellow-500/10">
+                <Users className="w-5 h-5 text-yellow-500" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{topQuadrantCount}</p>

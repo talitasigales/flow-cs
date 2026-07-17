@@ -28,7 +28,7 @@ const COLORS: Record<string, string> = {
   reuniao_estrategica: 'bg-primary/15 text-primary',
   onboarding: 'bg-blue-500/15 text-blue-500',
   apresentacao: 'bg-purple-500/15 text-purple-500',
-  construcao_cargo: 'bg-amber-500/15 text-amber-500',
+  construcao_cargo: 'bg-yellow-500/15 text-yellow-500',
   visita: 'bg-green-500/15 text-green-500',
   follow_up: 'bg-cyan-500/15 text-cyan-500',
   suporte: 'bg-destructive/15 text-destructive',
