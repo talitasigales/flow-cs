@@ -584,7 +584,7 @@ export default function ProfileEvolution() {
                           <thead>
                             <tr className="border-b border-border">
                               <th className="text-left py-3 px-2 font-semibold">Ano</th>
-                              <th className="text-center py-3 px-2 font-semibold text-orange-500">R</th>
+                              <th className="text-center py-3 px-2 font-semibold text-red-500">R</th>
                               <th className="text-center py-3 px-2 font-semibold text-yellow-500">E</th>
                               <th className="text-center py-3 px-2 font-semibold text-blue-500">P</th>
                               <th className="text-center py-3 px-2 font-semibold text-green-500">N</th>
