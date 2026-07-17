@@ -456,7 +456,7 @@ export default function ProfileEvolution() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[
-                          { key: 'r', name: 'Risco', color: 'orange-500', desc: 'Gestão de incertezas e tomada de decisão sob pressão.' },
+                          { key: 'r', name: 'Risco', color: 'red-500', desc: 'Gestão de incertezas e tomada de decisão sob pressão.' },
                           { key: 'e', name: 'Extroversão', color: 'yellow-500', desc: 'Estratégia relacional e comunicacional.' },
                           { key: 'p', name: 'Paciência', color: 'blue-500', desc: 'Ritmo de trabalho e gestão do tempo.' },
                           { key: 'n', name: 'Normas', color: 'green-500', desc: 'Relação com estruturas e processos.' },
