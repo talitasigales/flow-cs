@@ -97,8 +97,9 @@ function getInitials(name: string): string {
 }
 
 const AVATAR_COLORS = [
-  'bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600',
-  'bg-pink-600', 'bg-cyan-600', 'bg-amber-600', 'bg-red-600',
+  'bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-teal-600',
+  'bg-pink-600', 'bg-cyan-600', 'bg-yellow-600', 'bg-red-600',
+
 ];
 
 function getAvatarColor(name: string): string {
@@ -326,8 +327,8 @@ const Matriz9Box = () => {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Users className="w-5 h-5 text-amber-500" />
+              <div className="p-2 rounded-lg bg-yellow-500/10">
+                <Users className="w-5 h-5 text-yellow-500" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{topQuadrantCount}</p>

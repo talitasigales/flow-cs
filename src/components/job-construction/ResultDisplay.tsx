@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { JobProfileScores, getScoreClassification } from '@/utils/jobProfileCalculator';
 import { axisLabels, axisDescriptions, Axis } from '@/data/jobConstructionQuestions';
 import { cn } from '@/lib/utils';
-import groLogo from '@/assets/grou-logo-laranja.png';
+import groLogo from '@/assets/grou-logo-verde.webp';
 
 interface ResultDisplayProps {
   scores: JobProfileScores;
@@ -24,7 +24,7 @@ function getClassificationColor(classification: string) {
     case 'Alto':
       return 'bg-primary/20 text-primary border-primary/30';
     case 'Situacional':
-      return 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30';
+      return 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30';
     case 'Baixo':
       return 'bg-muted text-muted-foreground border-muted-foreground/30';
     default:

@@ -13,7 +13,7 @@ interface ProfileCardProps {
 
 export function ProfileCard({ profile, onDelete, onRefresh }: ProfileCardProps) {
   const repnaColors = [
-    { letter: 'R', color: '#f97316' },
+    { letter: 'R', color: '#ef4444' },
     { letter: 'E', color: '#eab308' },
     { letter: 'P', color: '#3b82f6' },
     { letter: 'N', color: '#22c55e' },

@@ -78,7 +78,7 @@ export default function PDI() {
       case 'completed': return 'text-green-600';
       case 'fechamento': return 'text-blue-600';
       case 'acompanhamento': return 'text-yellow-600';
-      case 'construcao': return 'text-orange-600';
+      case 'construcao': return 'text-primary';
       case 'devolutiva': return 'text-purple-600';
       default: return 'text-muted-foreground';
     }

@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import heroBackground from '@/assets/hero-background.jpg';
-import grouLogo from '@/assets/grou-logo-laranja.png';
+import grouLogo from '@/assets/grou-logo-verde.webp';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 
@@ -515,8 +515,8 @@ export default function Auth() {
       </div>
 
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <img src={heroBackground} alt="Background" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-secondary/80" />
+        <img src={heroBackground} alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/70" />
         <div className="relative z-10 flex flex-col items-center justify-center text-center p-12 text-white w-full">
           <h1 className="text-5xl font-bold mb-6 text-center">Evolua Continuamente</h1>
           <p className="text-xl mb-8 max-w-md text-center">Impulsione sua jornada de sucesso com a Grou através de uma trilha estruturada em 6 módulos essenciais para aprofundar sua utilização do PDA Assessment.</p>

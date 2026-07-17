@@ -42,7 +42,7 @@ const AXIS_LABELS: Record<string, string> = {
 
 function getClassification(value: number): { label: string; className: string } {
   if (value <= 33) return { label: 'Baixo', className: 'bg-blue-500/10 text-blue-600' };
-  if (value <= 67) return { label: 'Situacional', className: 'bg-amber-500/10 text-amber-600' };
+  if (value <= 67) return { label: 'Situacional', className: 'bg-yellow-500/10 text-yellow-600' };
   return { label: 'Alto', className: 'bg-emerald-500/10 text-emerald-600' };
 }
 

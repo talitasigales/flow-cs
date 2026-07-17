@@ -1,8 +1,8 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const LOGO_URL = '/grou-logo-laranja.png';
-const PRIMARY_COLOR: [number, number, number] = [230, 100, 40]; // orange
+const LOGO_URL = '/grou-logo-verde.webp';
+const PRIMARY_COLOR: [number, number, number] = [43, 220, 207]; // tiffany #2bdccf
 const HEADER_BG: [number, number, number] = [30, 40, 55]; // dark navy
 
 async function addHeader(doc: jsPDF, title: string, userName?: string) {
