@@ -87,6 +87,7 @@ export default function PDI() {
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
+      active: 'Mapeamento',
       devolutiva: 'Autoconhecimento',
       construcao: 'Plano de ação',
       acompanhamento: 'Acompanhamento',

@@ -322,13 +322,13 @@ export const PDI_GUIDE: {
     {
       number: 4,
       title: 'Acompanhamento',
-      description: 'Faça check-ins periódicos para acompanhar sua evolução, identificar obstáculos e ajustar o plano quando necessário.',
+      description: 'Registre seus check-ins para acompanhar sua evolução, refletir sobre avanços e ajustar o plano quando necessário.',
       tips: [
-        'Recomendamos realizar 2 check-ins durante o período do PDI.',
+        'Registre 2 check-ins ao longo do seu PDI.',
         'Use as perguntas norteadoras para estruturar cada check-in.',
         'Documente aprendizados, obstáculos e ajustes necessários.',
         'Celebre as conquistas e reconheça os esforços realizados.',
-        'Mantenha o foco no desenvolvimento comportamental, não apenas nos resultados.'
+        'Mantenha o foco nos comportamentos que você quer fortalecer.'
       ]
     },
     {

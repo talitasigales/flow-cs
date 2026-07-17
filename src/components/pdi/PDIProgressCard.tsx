@@ -25,6 +25,7 @@ export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
+      active: 'Mapeamento',
       devolutiva: 'Autoconhecimento',
       construcao: 'Plano de ação',
       acompanhamento: 'Acompanhamento',

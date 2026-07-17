@@ -105,8 +105,8 @@ export interface PDIEntry {
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Rascunho',
-  devolutiva: 'Devolutiva',
-  construcao: 'Construção',
+  devolutiva: 'Autoconhecimento',
+  construcao: 'Plano de ação',
   acompanhamento: 'Acompanhamento',
   fechamento: 'Fechamento',
   completed: 'Concluído'
