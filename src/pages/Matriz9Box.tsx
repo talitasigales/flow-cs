@@ -97,8 +97,9 @@ function getInitials(name: string): string {
 }
 
 const AVATAR_COLORS = [
-  'bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600',
-  'bg-pink-600', 'bg-cyan-600', 'bg-amber-600', 'bg-red-600',
+  'bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-teal-600',
+  'bg-pink-600', 'bg-cyan-600', 'bg-yellow-600', 'bg-red-600',
+
 ];
 
 function getAvatarColor(name: string): string {
