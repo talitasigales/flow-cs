@@ -42,7 +42,7 @@ import {
 
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import groLogo from '@/assets/grou-logo-verde.webp';
+import groLogo from '@/assets/grou-logo-branco.png.asset.json';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
@@ -227,7 +227,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 px-2">
           <div className="relative group/logo">
             <div className="absolute inset-0 bg-primary/20 rounded-lg blur-md group-hover/logo:bg-primary/30 transition-colors" />
-            <img src={groLogo} alt="Grou Logo" className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300" />
+            <img src={groLogo.url} alt="Grou Logo" className="relative h-10 w-10 object-contain transition-transform group-hover/logo:scale-110 duration-300" />
           </div>
           <div className="flex-1 overflow-hidden">
             <h2 className="text-lg font-bold gradient-text whitespace-nowrap">{firstName ? `Bem-vindo, ${firstName}` : 'Bem-vindo'}</h2>
