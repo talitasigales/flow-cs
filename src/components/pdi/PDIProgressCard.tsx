@@ -10,7 +10,7 @@ interface PDIProgressCardProps {
 
 export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) {
   const experienceActions = actions.filter(a => a.action_type === 'experience');
-  const mentoringActions = actions.filter(a => a.action_type === 'mentoring');
+  const mentoringActions = actions.filter(a => a.action_type === 'social' || a.action_type === 'mentoring');
   const formalActions = actions.filter(a => a.action_type === 'formal');
 
   const experienceCompleted = experienceActions.filter(a => a.status === 'completed').length;
@@ -18,15 +18,15 @@ export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) 
   const formalCompleted = formalActions.filter(a => a.status === 'completed').length;
 
   const totalCompleted = actions.filter(a => a.status === 'completed').length;
-  const progressPercentage = actions.length > 0 
+  const progressPercentage = actions.length > 0
     ? Math.round((totalCompleted / actions.length) * 100)
     : 0;
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
-      devolutiva: 'Devolutiva',
-      construcao: 'Construção',
+      devolutiva: 'Autoconhecimento',
+      construcao: 'Plano de ação',
       acompanhamento: 'Acompanhamento',
       fechamento: 'Fechamento',
       completed: 'Concluído'
@@ -71,13 +71,13 @@ export default function PDIProgressCard({ pdi, actions }: PDIProgressCardProps) 
             </Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm">🟡 Mentoria (20%)</span>
+            <span className="text-sm">🟡 Aprendizado Social (20%)</span>
             <Badge variant="secondary">
               {mentoringCompleted}/{mentoringActions.length}
             </Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm">🔵 Formal (10%)</span>
+            <span className="text-sm">🔵 Educação Formal (10%)</span>
             <Badge variant="secondary">
               {formalCompleted}/{formalActions.length}
             </Badge>
