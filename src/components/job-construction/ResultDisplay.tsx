@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { JobProfileScores, getScoreClassification } from '@/utils/jobProfileCalculator';
 import { axisLabels, axisDescriptions, Axis } from '@/data/jobConstructionQuestions';
 import { cn } from '@/lib/utils';
-import groLogo from '@/assets/grou-logo-verde.webp';
+import groLogo from '@/assets/grou-logo-branco.png.asset.json';
 
 interface ResultDisplayProps {
   scores: JobProfileScores;

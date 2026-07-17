@@ -42,7 +42,7 @@ import {
 
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import groLogo from '@/assets/grou-logo-verde.webp';
+import groLogo from '@/assets/grou-logo-branco.png.asset.json';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';

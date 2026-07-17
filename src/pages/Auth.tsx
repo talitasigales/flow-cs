@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import heroBackground from '@/assets/hero-background.jpg';
-import grouLogo from '@/assets/grou-logo-verde.webp';
+import grouLogo from '@/assets/grou-logo-branco.png.asset.json';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 

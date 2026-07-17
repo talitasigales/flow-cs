@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Lock, CheckCircle, AlertTriangle } from 'lucide-react';
-import grouLogo from '@/assets/grou-logo-verde.webp';
+import grouLogo from '@/assets/grou-logo-branco.png.asset.json';
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
