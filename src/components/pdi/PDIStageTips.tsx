@@ -30,41 +30,40 @@ const STAGE_INFO: Record<number, {
   nextAction: string;
 }> = {
   1: {
-    title: 'Compatibilidade com o Cargo',
+    title: 'Mapeamento Inicial',
     icon: Target,
-    description: 'Nesta etapa, realize o mapeamento dos comportamentos compatíveis e não compatíveis do colaborador com o cargo atual.',
+    description: 'Identifique os comportamentos mais importantes para o seu contexto atual e use isso como base para o seu plano.',
     tips: [
-      'Realize um mapeamento prévio dos comportamentos desejados para o cargo junto ao gestor e RH.',
-      'Compare o perfil PDA do colaborador com o perfil ideal do cargo.',
-      'Identifique os eixos comportamentais com menor compatibilidade.',
-      'Documente os gaps encontrados para orientar as próximas etapas.',
+      'Reflita sobre as demandas da sua função e os comportamentos que mais impactam seus resultados.',
+      'Se fizer sentido, alinhe essa leitura com sua liderança para enriquecer a análise.',
+      'Compare seu perfil PDA com os comportamentos mais importantes para sua rotina.',
+      'Anote os principais pontos de atenção para orientar as próximas etapas do PDI.',
     ],
-    nextAction: 'Avançar para Devolutiva',
+    nextAction: 'Avançar para Autoconhecimento',
   },
   2: {
-    title: 'Devolutiva PDA',
+    title: 'Autoconhecimento',
     icon: ClipboardList,
-    description: 'Promova o autoconhecimento a partir do relatório individual e alinhe expectativas sobre o desenvolvimento.',
+    description: 'Use seu relatório e suas respostas para entender melhor seus padrões, pontos fortes e oportunidades de desenvolvimento.',
     tips: [
-      'Inicie com a devolutiva do perfil, focando nos indicadores do gráfico PDA.',
-      'Pergunte: "O que você faz hoje que lhe gera mais satisfação e não exige grande esforço?"',
-      'Pergunte: "O que lhe gera maior desconforto ou esforço na rotina de trabalho?"',
-      'Apresente o relatório de compatibilidade com o cargo, destacando áreas com menor compatibilidade.',
-      'Pergunte: "Quais são seus pontos a serem melhorados (principais limitadores)?"',
-      'Oriente o colaborador a refletir sobre os pontos levantados até o próximo encontro.',
+      'Revise seu perfil PDA com foco nos comportamentos que mais aparecem no seu dia a dia.',
+      'Observe quais situações geram mais facilidade, energia ou satisfação.',
+      'Identifique também os contextos que exigem mais esforço, adaptação ou autocontrole.',
+      'Conecte essa análise ao que você deseja desenvolver na sua atuação atual.',
+      'Se quiser, compartilhe essas percepções com sua liderança para receber apoio ao longo do processo.',
     ],
-    nextAction: 'Avançar para Construção do Plano',
+    nextAction: 'Avançar para Plano de Ação',
   },
   3: {
-    title: 'Construção do Plano',
+    title: 'Plano de Ação',
     icon: ClipboardList,
-    description: 'Identifique comportamentos a desenvolver e construa o plano de ação usando SMART e 70|20|10.',
+    description: 'Transforme seus aprendizados em ações práticas usando SMART e a lógica 70|20|10.',
     tips: [
-      'Vá até a aba "Ações" e crie suas ações de desenvolvimento.',
-      'Use a metodologia SMART: Específico, Mensurável, Atingível, Relevante, Temporal.',
-      'Distribua as ações na proporção 70|20|10: 2-3 ações de Experiência, 1 de Aprendizado Social, 1 de Educação Formal.',
-      'Defina datas de início e prazo para cada ação.',
-      'Identifique mentores que possam apoiar no desenvolvimento.',
+      'Vá até a aba “Ações” e registre suas ações de desenvolvimento.',
+      'Use a metodologia SMART: Específico, Mensurável, Atingível, Relevante e Temporal.',
+      'Distribua as ações na proporção 70|20|10: experiência, aprendizado social e educação formal.',
+      'Defina datas de início e prazo para manter clareza sobre a execução.',
+      'Identifique pessoas ou recursos que podem apoiar seu desenvolvimento.',
     ],
     nextAction: 'Avançar para Acompanhamento',
   },
@@ -74,23 +73,23 @@ const STAGE_INFO: Record<number, {
     description: 'Registre seus check-ins para acompanhar sua evolução, refletir sobre avanços e ajustar o plano quando necessário.',
     tips: [
       'Registre 2 check-ins ao longo do seu PDI.',
-      'Em cada check-in, reflita: o que deu certo, o que não deu certo e quais foram os obstáculos.',
+      'Em cada check-in, reflita sobre o que funcionou, o que não funcionou e quais obstáculos surgiram.',
       'Reconheça suas conquistas e os esforços realizados até aqui.',
-      'Ajuste o plano se necessário — adicionando ou revisando ações.',
-      'Mantenha o foco no seu desenvolvimento comportamental ao longo do processo.',
+      'Atualize seu plano sempre que perceber novas prioridades ou aprendizados.',
+      'Mantenha o foco no desenvolvimento dos comportamentos que você quer fortalecer.',
     ],
-    nextAction: 'Avançar para Check-in',
+    nextAction: 'Registrar Check-in',
   },
   5: {
     title: 'Fechamento',
     icon: Flag,
-    description: 'Avalie os resultados alcançados, reconheça o crescimento e planeje os próximos passos.',
+    description: 'Faça uma avaliação final do ciclo, reconheça sua evolução e defina como continuará se desenvolvendo.',
     tips: [
-      'Realize uma avaliação honesta do processo e dos resultados.',
+      'Realize uma avaliação honesta do processo e dos resultados alcançados.',
       'Reconheça e celebre os progressos, mesmo os pequenos.',
-      'Identifique aprendizados que podem ser aplicados em outras áreas.',
-      'Defina próximos passos para manter o desenvolvimento contínuo.',
-      'Após registrar 2 check-ins, o botão "Fechar PDI" ficará disponível no topo da página para concluir esta etapa.',
+      'Identifique aprendizados que podem ser aplicados em outras áreas da sua atuação.',
+      'Defina próximos passos para manter seu desenvolvimento contínuo.',
+      'Após registrar 2 check-ins, o botão “Concluir PDI” ficará disponível no topo da página.',
     ],
     nextAction: '',
   },
@@ -104,15 +103,15 @@ export default function PDIStageTips({ currentStage, status, onAdvanceStage, onO
   const isCheckinAction = currentStage === 4 && !!onOpenCheckin;
   const handlePrimaryAction = isCheckinAction ? onOpenCheckin : onAdvanceStage;
   const dialogDescription = isCheckinAction
-    ? 'Você será levado ao registro do check-in para continuar seu PDI nesta etapa.'
-    : 'Tem certeza que deseja avançar para a próxima etapa? Essa ação indica que você concluiu as atividades desta fase.';
+    ? 'Você será levado ao registro do check-in para continuar o acompanhamento do seu PDI.'
+    : 'Tem certeza que deseja avançar para a próxima etapa? Essa ação indica que você concluiu o que precisava nesta fase.';
 
   return (
     <Card className="border-primary/30 bg-primary/5">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-primary" />
-          Etapa Atual: {stageInfo.title}
+          Etapa atual: {stageInfo.title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -159,4 +158,3 @@ export default function PDIStageTips({ currentStage, status, onAdvanceStage, onO
     </Card>
   );
 }
-

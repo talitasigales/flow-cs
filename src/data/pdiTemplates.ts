@@ -13,7 +13,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   risco_alto: {
     name: 'Risco Alto',
     icon: 'TrendingUp',
-    color: 'hsl(25, 95%, 53%)', // Orange
+    color: 'hsl(25, 95%, 53%)',
     description: 'Para perfis com alta tolerância ao risco e orientação para resultados',
     behaviors: [
       'Costumo tomar decisões rapidamente, sem analisar adequadamente prós e contras.',
@@ -44,7 +44,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   risco_baixo: {
     name: 'Risco Baixo',
     icon: 'TrendingDown',
-    color: 'hsl(25, 95%, 53%)', // Orange
+    color: 'hsl(25, 95%, 53%)',
     description: 'Para perfis cautelosos e orientados para análise detalhada',
     behaviors: [
       'Sinto que demoro para tomar decisões, necessito me certificar de muitos dados e fatos para conseguir prosseguir.',
@@ -75,7 +75,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   extroversao_alta: {
     name: 'Extroversão Alta',
     icon: 'Users',
-    color: 'hsl(45, 93%, 47%)', // Yellow
+    color: 'hsl(45, 93%, 47%)',
     description: 'Para perfis sociáveis e comunicativos',
     behaviors: [
       'Sinto que perco o foco com facilidade, me distraio facilmente.',
@@ -106,7 +106,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   extroversao_baixa: {
     name: 'Extroversão Baixa',
     icon: 'User',
-    color: 'hsl(45, 93%, 47%)', // Yellow
+    color: 'hsl(45, 93%, 47%)',
     description: 'Para perfis reservados e discretos',
     behaviors: [
       'Por ser discreto, tenho dificuldade de tomar a iniciativa de iniciar uma conversa.',
@@ -137,7 +137,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   paciencia_alta: {
     name: 'Paciência Alta',
     icon: 'Clock',
-    color: 'hsl(217, 91%, 60%)', // Blue
+    color: 'hsl(217, 91%, 60%)',
     description: 'Para perfis pacientes e orientados para estabilidade',
     behaviors: [
       'Fico frustrado(a) ou ansioso(a) quando confrontado(a) com a mudança.',
@@ -168,7 +168,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   paciencia_baixa: {
     name: 'Paciência Baixa',
     icon: 'Zap',
-    color: 'hsl(217, 91%, 60%)', // Blue
+    color: 'hsl(217, 91%, 60%)',
     description: 'Para perfis dinâmicos e orientados para ação',
     behaviors: [
       'Fico irritado(a) ou ansioso(a) quando as coisas não acontecem no meu ritmo.',
@@ -199,7 +199,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   normas_altas: {
     name: 'Normas Altas',
     icon: 'Shield',
-    color: 'hsl(142, 71%, 45%)', // Green
+    color: 'hsl(142, 71%, 45%)',
     description: 'Para perfis orientados para regras e procedimentos',
     behaviors: [
       'Fico frustrado(a) ou ansioso(a) quando as normas e regras não estão sendo cumpridas.',
@@ -230,7 +230,7 @@ export const PDA_AXES: Record<string, PDAAxis> = {
   normas_baixas: {
     name: 'Normas Baixas',
     icon: 'Lightbulb',
-    color: 'hsl(142, 71%, 45%)', // Green
+    color: 'hsl(142, 71%, 45%)',
     description: 'Para perfis autônomos e inovadores',
     behaviors: [
       'Fico frustrado(a) quando não tenho liberdade de questionar ou criar minhas próprias regras.',
@@ -287,60 +287,54 @@ export const PDI_GUIDE: {
   steps: [
     {
       number: 1,
-      title: 'Compatibilidade com o Cargo',
-      description: 'Realizar o mapeamento dos comportamentos compatíveis e não compatíveis do colaborador com o cargo atual para que seja um norteador do PDI.',
+      title: 'Mapeamento Inicial',
+      description: 'Identifique os comportamentos mais importantes para o seu contexto atual e use essa leitura como ponto de partida para o PDI.',
       tips: [
-        'Essa etapa é muito recomendável para que se tenha clareza dos comportamentos desejados para cada posição.',
-        'Para realizar esta etapa é necessário um mapeamento prévio de todos os comportamentos desejados para o cargo, que deve ser realizado pelo gestor do cargo e RH.',
-        'Possuir a capacitação necessária para construção de cargo dentro da plataforma PDA.'
+        'Reflita sobre as demandas da sua rotina e os comportamentos que mais impactam sua atuação.',
+        'Se fizer sentido, converse com sua liderança para complementar essa análise.',
+        'Use essa etapa para ganhar clareza sobre o que vale priorizar no seu desenvolvimento.'
       ]
     },
     {
       number: 2,
-      title: 'Devolutiva PDA',
-      description: 'Promover o autoconhecimento a partir do relatório individual mais o relatório de compatibilidade com o cargo para alinhar expectativas e conscientizar sobre o Eixo comportamental que necessita desenvolvimento.',
+      title: 'Autoconhecimento',
+      description: 'Aprofunde sua leitura sobre o próprio perfil para entender pontos fortes, desafios e comportamentos que merecem mais atenção.',
       tips: [
-        'Inicie com a devolutiva apenas do perfil, focando nos indicadores do gráfico.',
-        'Faça perguntas para promover o autoconhecimento:',
-        '• O que você faz hoje que lhe gera mais satisfação e não exige grande esforço?',
-        '• O que lhe gera maior desconforto ou lhe gera mais esforço na sua rotina de trabalho?',
-        '• O que você gostaria de desenvolver que acredita que irá contribuir para o seu desenvolvimento na posição atual?',
-        'Após ter apresentado todo o perfil e o colaborador ter validado as informações, apresente o relatório de compatibilidade com o cargo destacando as áreas (Eixos) com menor compatibilidade.',
-        'Faça perguntas para alinhar as expectativas de desenvolvimento:',
-        '• Analisando o perfil do seu cargo, quais são as suas maiores dificuldades?',
-        '• Em que situações esse comportamento fica mais evidente?',
-        '• Quais são seus pontos a serem melhorados (principais limitadores)?',
-        'Oriente que o colaborador reflita sobre todos os pontos levantados e se observe até o próximo encontro.'
+        'Revise seu perfil com foco nos indicadores que mais aparecem no seu dia a dia.',
+        'Observe o que lhe traz mais facilidade, energia e satisfação no trabalho.',
+        'Identifique também os contextos em que você sente mais esforço, desconforto ou limitação.',
+        'Reflita sobre os comportamentos que deseja desenvolver na sua atuação atual.',
+        'Se desejar, compartilhe suas percepções com sua liderança para receber apoio no processo.'
       ]
     },
     {
       number: 3,
-      title: 'Construção do Plano',
-      description: 'Identificar o comportamento específico que precisa ser desenvolvido a partir da escolha do Eixo comportamental e construir o plano de ação. Aplicação do instrumento do PDI.',
+      title: 'Plano de Ação',
+      description: 'Defina o comportamento que deseja desenvolver e transforme essa intenção em ações práticas e acompanháveis.',
       tips: [
         'Utilize os modelos de PDI específicos para cada eixo comportamental.',
         'Realize a autoavaliação dos 5 comportamentos predominantes.',
         'Responda às perguntas reflexivas para aprofundar o autoconhecimento.',
-        'Identifique mentores que possam apoiar o desenvolvimento.',
+        'Identifique pessoas que possam apoiar seu desenvolvimento.',
         'Defina objetivos SMART e ações usando a metodologia 70|20|10.'
       ]
     },
     {
       number: 4,
       title: 'Acompanhamento',
-      description: 'Realizar check-ins periódicos para avaliar progresso, identificar obstáculos e ajustar o plano conforme necessário.',
+      description: 'Faça check-ins periódicos para acompanhar sua evolução, identificar obstáculos e ajustar o plano quando necessário.',
       tips: [
-        'Recomendamos realizar 2 sessões de acompanhamento durante o período do PDI.',
-        'Use as perguntas norteadoras para estruturar o check-in.',
-        'Documente os aprendizados e ajustes necessários.',
-        'Celebre as conquistas e reconheça os esforços.',
-        'Mantenha o foco no desenvolvimento comportamental, não apenas em resultados.'
+        'Recomendamos realizar 2 check-ins durante o período do PDI.',
+        'Use as perguntas norteadoras para estruturar cada check-in.',
+        'Documente aprendizados, obstáculos e ajustes necessários.',
+        'Celebre as conquistas e reconheça os esforços realizados.',
+        'Mantenha o foco no desenvolvimento comportamental, não apenas nos resultados.'
       ]
     },
     {
       number: 5,
       title: 'Fechamento',
-      description: 'Avaliar os resultados alcançados, reconhecer o crescimento e planejar os próximos passos do desenvolvimento contínuo.',
+      description: 'Avalie os resultados alcançados, reconheça sua evolução e defina próximos passos para manter seu desenvolvimento contínuo.',
       tips: [
         'Realize uma avaliação honesta do processo e dos resultados.',
         'Reconheça e celebre os progressos, mesmo os pequenos.',

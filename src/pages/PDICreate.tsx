@@ -19,7 +19,6 @@ export default function PDICreate() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Form data
   const [selectedAxis, setSelectedAxis] = useState('');
   const [employeeName, setEmployeeName] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -108,24 +107,23 @@ export default function PDICreate() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Criar Novo PDI</h1>
-              <p className="text-muted-foreground mt-1">Siga o passo a passo para criar um PDI completo</p>
+              <h1 className="text-3xl font-bold text-foreground">Criar novo PDI</h1>
+              <p className="text-muted-foreground mt-1">Siga o passo a passo para montar seu plano de desenvolvimento</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             {STEPS.map((step, index) => (
               <div key={step} className="flex items-center flex-1">
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                  index < currentStep 
-                    ? 'bg-primary border-primary text-primary-foreground' 
-                    : index === currentStep 
-                    ? 'border-primary text-primary' 
+                  index < currentStep
+                    ? 'bg-primary border-primary text-primary-foreground'
+                    : index === currentStep
+                    ? 'border-primary text-primary'
                     : 'border-muted text-muted-foreground'
                 }`}>
                   {index < currentStep ? <Check className="h-4 w-4" /> : index + 1}
@@ -153,7 +151,7 @@ export default function PDICreate() {
             {currentStep === 0 && (
               <div className="space-y-4">
                 <p className="text-muted-foreground mb-6">
-                  Selecione o eixo PDA que melhor representa o perfil comportamental do colaborador:
+                  Selecione o eixo PDA que melhor representa o perfil comportamental que você deseja desenvolver neste PDI:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Object.entries(PDA_AXES).map(([key, axis]) => (
@@ -167,7 +165,7 @@ export default function PDICreate() {
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
-                        <div 
+                        <div
                           className="w-4 h-4 rounded-full"
                           style={{ backgroundColor: axis.color }}
                         />
@@ -183,7 +181,7 @@ export default function PDICreate() {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="employeeName">Nome do Colaborador *</Label>
+                  <Label htmlFor="employeeName">Nome *</Label>
                   <Input
                     id="employeeName"
                     value={employeeName}
@@ -193,7 +191,7 @@ export default function PDICreate() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="startDate">Data de Início</Label>
+                    <Label htmlFor="startDate">Data de início</Label>
                     <Input
                       id="startDate"
                       type="date"
@@ -202,7 +200,7 @@ export default function PDICreate() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="targetDate">Data Alvo (3 meses recomendado)</Label>
+                    <Label htmlFor="targetDate">Prazo desejado</Label>
                     <Input
                       id="targetDate"
                       type="date"
@@ -217,14 +215,13 @@ export default function PDICreate() {
             {currentStep === 2 && axisInfo && (
               <div className="space-y-6">
                 <p className="text-muted-foreground">
-                  Assinale abaixo quais comportamentos estão mais presentes numerando de 1 a 10 
-                  qual a predominância desse comportamento. Considerando 1 como menos frequente e 10 como muito frequente.
+                  Avalie de 1 a 10 o quanto cada comportamento está presente hoje. Considere 1 como menos frequente e 10 como muito frequente.
                 </p>
                 {axisInfo.behaviors.map((behavior, index) => (
                   <div key={index} className="space-y-2">
                     <Label>{behavior}</Label>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm text-muted-foreground w-12">1 (Baixo)</span>
+                      <span className="text-sm text-muted-foreground w-12">1</span>
                       <Input
                         type="range"
                         min="1"
@@ -236,7 +233,7 @@ export default function PDICreate() {
                         })}
                         className="flex-1"
                       />
-                      <span className="text-sm text-muted-foreground w-12">10 (Alto)</span>
+                      <span className="text-sm text-muted-foreground w-12">10</span>
                       <span className="font-bold w-8 text-center">{behaviorRatings[index] || 5}</span>
                     </div>
                   </div>
@@ -247,7 +244,7 @@ export default function PDICreate() {
             {currentStep === 3 && axisInfo && (
               <div className="space-y-6">
                 <p className="text-muted-foreground mb-4">
-                  Responda as perguntas reflexivas para aprofundar o autoconhecimento:
+                  Responda às perguntas reflexivas para aprofundar seu autoconhecimento e definir melhor seu foco de desenvolvimento:
                 </p>
                 {axisInfo.reflectiveQuestions.map((question, index) => (
                   <div key={index} className="space-y-2">

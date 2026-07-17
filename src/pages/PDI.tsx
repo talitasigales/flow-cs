@@ -87,8 +87,8 @@ export default function PDI() {
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
-      devolutiva: 'Devolutiva',
-      construcao: 'Construção',
+      devolutiva: 'Autoconhecimento',
+      construcao: 'Plano de ação',
       acompanhamento: 'Acompanhamento',
       fechamento: 'Fechamento',
       completed: 'Concluído'
@@ -109,7 +109,6 @@ export default function PDI() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-card border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
@@ -119,12 +118,12 @@ export default function PDI() {
               </Button>
               <div>
                 <h1 className="text-3xl font-bold text-foreground">Planos de Desenvolvimento Individual</h1>
-                <p className="text-muted-foreground mt-1">Gerencie os PDIs baseados em eixos PDA</p>
+                <p className="text-muted-foreground mt-1">Acompanhe seus PDIs com base nos eixos PDA</p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   const axisLabels = Object.fromEntries(
                     Object.entries(PDA_AXES).map(([key, val]) => [key, val.name])
@@ -146,7 +145,7 @@ export default function PDI() {
               </Button>
               <Button variant="outline" onClick={() => navigate('/pdi/guide')}>
                 <BookOpen className="h-4 w-4 mr-2" />
-                Guia de Condução
+                Guia do PDI
               </Button>
               <Button onClick={() => navigate('/pdi/new')}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -155,7 +154,6 @@ export default function PDI() {
             </div>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
@@ -172,7 +170,7 @@ export default function PDI() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Em Andamento</p>
+                    <p className="text-sm text-muted-foreground">Em andamento</p>
                     <p className="text-2xl font-bold">{stats.active}</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-blue-600" />
@@ -194,7 +192,7 @@ export default function PDI() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Em Risco</p>
+                    <p className="text-sm text-muted-foreground">Em risco</p>
                     <p className="text-2xl font-bold">{stats.atRisk}</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-red-600" />
@@ -205,13 +203,12 @@ export default function PDI() {
         </div>
       </div>
 
-      {/* Filters and List */}
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome do colaborador..."
+              placeholder="Buscar por nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -224,8 +221,8 @@ export default function PDI() {
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="draft">Rascunho</SelectItem>
-              <SelectItem value="devolutiva">Devolutiva</SelectItem>
-              <SelectItem value="construcao">Construção</SelectItem>
+              <SelectItem value="devolutiva">Autoconhecimento</SelectItem>
+              <SelectItem value="construcao">Plano de ação</SelectItem>
               <SelectItem value="acompanhamento">Acompanhamento</SelectItem>
               <SelectItem value="fechamento">Fechamento</SelectItem>
               <SelectItem value="completed">Concluído</SelectItem>
@@ -244,21 +241,20 @@ export default function PDI() {
           </Select>
         </div>
 
-        {/* PDI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPDIs.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Nenhum PDI encontrado</h3>
               <p className="text-muted-foreground mb-4">
-                {pdis.length === 0 
-                  ? 'Comece criando seu primeiro PDI' 
+                {pdis.length === 0
+                  ? 'Comece criando seu primeiro PDI'
                   : 'Tente ajustar os filtros de busca'}
               </p>
               {pdis.length === 0 && (
                 <Button onClick={() => navigate('/pdi/new')}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeiro PDI
+                  Criar primeiro PDI
                 </Button>
               )}
             </div>
@@ -266,8 +262,8 @@ export default function PDI() {
             filteredPDIs.map((pdi) => {
               const axisInfo = PDA_AXES[pdi.pda_axis];
               return (
-                <Card 
-                  key={pdi.id} 
+                <Card
+                  key={pdi.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => navigate(`/pdi/${pdi.id}`)}
                 >
@@ -276,7 +272,7 @@ export default function PDI() {
                       <div>
                         <h3 className="font-semibold text-lg">{pdi.employee_name}</h3>
                       </div>
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: axisInfo?.color }}
                       />

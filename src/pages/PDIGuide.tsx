@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ArrowLeft, BookOpen, Target, MessageCircle, ClipboardCheck, TrendingUp, FlagIcon } from 'lucide-react';
 import { PDI_GUIDE } from '@/data/pdiTemplates';
 
@@ -14,7 +13,6 @@ export default function PDIGuide() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-card border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
@@ -24,10 +22,10 @@ export default function PDIGuide() {
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 <BookOpen className="h-8 w-8" />
-                Guia para Condução do PDI
+                Guia do PDI
               </h1>
               <p className="text-muted-foreground mt-1">
-                Orientações e melhores práticas para implementar PDIs eficazes
+                Orientações práticas para construir e acompanhar seu plano de desenvolvimento
               </p>
             </div>
           </div>
@@ -35,21 +33,18 @@ export default function PDIGuide() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Introdução */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Sobre este Guia</CardTitle>
+            <CardTitle>Sobre este guia</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Este guia tem o objetivo de dar suporte para o profissional que irá acompanhar o colaborador 
-              no seu processo de PDI. Saber fazer as perguntas certas e gerar um espaço de construção é 
-              fundamental para o sucesso do PDI. Para isso, indicamos seguir as seguintes etapas:
+              Este guia foi criado para apoiar sua jornada de desenvolvimento com mais clareza e autonomia.
+              Use as etapas abaixo para refletir sobre seu perfil, montar seu plano e acompanhar sua evolução ao longo do processo.
             </p>
           </CardContent>
         </Card>
 
-        {/* Steps Navigation */}
         <div className="grid grid-cols-5 gap-4 mb-8">
           {PDI_GUIDE.steps.map((step, index) => {
             const Icon = stepIcons[index];
@@ -76,7 +71,6 @@ export default function PDIGuide() {
           })}
         </div>
 
-        {/* Active Step Content */}
         {PDI_GUIDE.steps.map((step) => {
           if (step.number !== activeStep) return null;
           const Icon = stepIcons[step.number - 1];
@@ -97,7 +91,7 @@ export default function PDIGuide() {
                   </div>
 
                   <div>
-                    <h3 className="font-semibold mb-2">Dicas e Orientações:</h3>
+                    <h3 className="font-semibold mb-2">Dicas e orientações:</h3>
                     <ul className="space-y-2">
                       {step.tips.map((tip, index) => (
                         <li key={index} className="flex gap-2 text-muted-foreground">
@@ -113,9 +107,7 @@ export default function PDIGuide() {
           );
         })}
 
-        {/* Metodologias */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          {/* SMART Methodology */}
           <Card>
             <CardHeader>
               <CardTitle>📌 {PDI_GUIDE.methodology.smart.title}</CardTitle>
@@ -138,7 +130,6 @@ export default function PDIGuide() {
             </CardContent>
           </Card>
 
-          {/* 70|20|10 Methodology */}
           <Card>
             <CardHeader>
               <CardTitle>📊 {PDI_GUIDE.methodology.learning70_20_10.title}</CardTitle>
@@ -161,14 +152,13 @@ export default function PDIGuide() {
           </Card>
         </div>
 
-        {/* Follow-up Questions */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>💬 Perguntas Norteadoras para Acompanhamento</CardTitle>
+            <CardTitle>💬 Perguntas norteadoras para acompanhamento</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              Use estas perguntas durante os check-ins de acompanhamento:
+              Use estas perguntas durante seus check-ins:
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {PDI_GUIDE.followUpQuestions.map((question, index) => (
@@ -181,14 +171,13 @@ export default function PDIGuide() {
           </CardContent>
         </Card>
 
-        {/* Closure Questions */}
         <Card>
           <CardHeader>
-            <CardTitle>🏁 Perguntas Norteadoras para Fechamento</CardTitle>
+            <CardTitle>🏁 Perguntas norteadoras para fechamento</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              Use estas perguntas na sessão de fechamento do PDI:
+              Use estas perguntas ao concluir seu PDI:
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {PDI_GUIDE.closureQuestions.map((question, index) => (
@@ -201,10 +190,9 @@ export default function PDIGuide() {
           </CardContent>
         </Card>
 
-        {/* CTA */}
         <div className="mt-8 text-center">
           <Button size="lg" onClick={() => navigate('/pdi/new')}>
-            Começar a Criar um PDI
+            Começar meu PDI
           </Button>
         </div>
       </div>

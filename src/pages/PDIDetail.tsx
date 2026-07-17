@@ -170,8 +170,8 @@ export default function PDIDetail() {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
       active: 'Ativo',
-      devolutiva: 'Devolutiva',
-      construcao: 'Construção',
+      devolutiva: 'Autoconhecimento',
+      construcao: 'Plano de ação',
       acompanhamento: 'Acompanhamento',
       fechamento: 'Fechamento',
       completed: 'Concluído'
@@ -206,7 +206,7 @@ export default function PDIDetail() {
                   {canClose && (
                     <Button onClick={() => setClosureDialogOpen(true)}>
                       <FileCheck className="h-4 w-4 mr-2" />
-                      Fechar PDI
+                      Concluir PDI
                     </Button>
                   )}
                 </>
