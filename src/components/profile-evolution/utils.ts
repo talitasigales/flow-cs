@@ -20,7 +20,7 @@ export const getProfileValue = (profile: ProfileEvolution, key: string): number 
 export const getProfileColor = (dimension: string) => {
   switch (dimension) {
     case 'r':
-      return 'bg-orange-500';
+      return 'bg-red-500';
     case 'e':
       return 'bg-yellow-500';
     case 'p':
