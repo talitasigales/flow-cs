@@ -170,8 +170,8 @@ export default function PDIDetail() {
     const labels: Record<string, string> = {
       draft: 'Rascunho',
       active: 'Ativo',
-      devolutiva: 'Devolutiva',
-      construcao: 'Construção',
+      devolutiva: 'Autoconhecimento',
+      construcao: 'Plano de ação',
       acompanhamento: 'Acompanhamento',
       fechamento: 'Fechamento',
       completed: 'Concluído'
