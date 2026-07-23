@@ -184,7 +184,7 @@ const Matriz9Box = () => {
 
   const handleSave = async () => {
     if (!formData.employee_name.trim()) { toast.error('Nome é obrigatório'); return; }
-    if (!user) return;
+    if (!user) { toast.error('Sessão expirada. Faça login novamente.'); return; }
     if (editingEmployee) {
       const { error } = await supabase.from('matriz_9box').update({
         employee_name: formData.employee_name.trim(),
@@ -192,7 +192,11 @@ const Matriz9Box = () => {
         potential: formData.potential,
         notes: formData.notes || null,
       }).eq('id', editingEmployee.id);
-      if (error) { toast.error('Erro ao atualizar'); return; }
+      if (error) {
+        console.error('[9Box] update error:', error);
+        toast.error(`Erro ao atualizar: ${error.message}`);
+        return;
+      }
       toast.success('Colaborador atualizado');
     } else {
       const { error } = await supabase.from('matriz_9box').insert({
@@ -202,12 +206,17 @@ const Matriz9Box = () => {
         potential: formData.potential,
         notes: formData.notes || null,
       });
-      if (error) { toast.error('Erro ao adicionar'); return; }
+      if (error) {
+        console.error('[9Box] insert error:', error);
+        toast.error(`Erro ao adicionar: ${error.message}`);
+        return;
+      }
       toast.success('Colaborador adicionado');
     }
     setDialogOpen(false);
     fetchEmployees();
   };
+
 
   const handleDelete = async () => {
     if (!deletingEmployee) return;
