@@ -95,7 +95,7 @@ export default function PDIShared() {
       <header className="bg-card border-b">
         <div className="container mx-auto px-4 py-6 space-y-6">
           <div className="flex items-center justify-between gap-4">
-            <img src={grouLogo} alt="Grou" className="h-8 w-auto" />
+            <img src={grouLogo.url} alt="Grou" className="h-8 w-auto" />
             <Badge variant="outline">Somente leitura</Badge>
           </div>
           <div>
