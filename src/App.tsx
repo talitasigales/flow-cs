@@ -18,6 +18,7 @@ import PDI from "./pages/PDI";
 import PDIDetail from "./pages/PDIDetail";
 import PDIGuide from "./pages/PDIGuide";
 import PDICreate from "./pages/PDICreate";
+import PDIShared from "./pages/PDIShared";
 import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
