@@ -384,6 +384,13 @@ export default function PDIDetail() {
         pdiId={pdiId!}
         onSuccess={fetchPDIData}
       />
+
+      <PDIShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        pdiId={pdiId!}
+        employeeName={pdi.employee_name}
+      />
     </div>
   );
 }
