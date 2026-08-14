@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { PDA_AXES } from '@/data/pdiTemplates';
 import PDIJourneyTimeline from '@/components/pdi/PDIJourneyTimeline';
 import PDIBehaviorDisplay from '@/components/pdi/PDIBehaviorDisplay';
-import grouLogo from '@/assets/grou-logo-branco.png';
+import grouLogo from '@/assets/grou-logo-branco.png.asset.json';
 import { Loader2, Lock } from 'lucide-react';
 
 interface SharedData {
