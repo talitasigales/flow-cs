@@ -195,6 +195,10 @@ export default function PDIDetail() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Compartilhar
+              </Button>
               {!closure && (
                 <>
                   <Button 
