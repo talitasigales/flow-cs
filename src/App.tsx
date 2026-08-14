@@ -18,6 +18,7 @@ import PDI from "./pages/PDI";
 import PDIDetail from "./pages/PDIDetail";
 import PDIGuide from "./pages/PDIGuide";
 import PDICreate from "./pages/PDICreate";
+import PDIShared from "./pages/PDIShared";
 import JobConstruction from "./pages/JobConstruction";
 import JobConstructionResult from "./pages/JobConstructionResult";
 import ResetPassword from "./pages/ResetPassword";
@@ -68,6 +69,7 @@ const App = () => (
           <Route path="/pdi" element={<PDI />} />
           <Route path="/pdi/new" element={<PDICreate />} />
           <Route path="/pdi/guide" element={<PDIGuide />} />
+          <Route path="/pdi/compartilhado/:token" element={<PDIShared />} />
           <Route path="/pdi/:pdiId" element={<PDIDetail />} />
           <Route path="/job-construction" element={<JobConstruction />} />
           <Route path="/job-construction/result" element={<JobConstructionResult />} />

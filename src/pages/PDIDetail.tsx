@@ -5,8 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, FileCheck } from 'lucide-react';
+import { ArrowLeft, Plus, FileCheck, Share2 } from 'lucide-react';
 import PDIStageTips from '@/components/pdi/PDIStageTips';
+import PDIShareDialog from '@/components/pdi/PDIShareDialog';
 import { toast } from 'sonner';
 import { PDA_AXES } from '@/data/pdiTemplates';
 import PDIJourneyTimeline from '@/components/pdi/PDIJourneyTimeline';
@@ -28,6 +29,7 @@ export default function PDIDetail() {
   const [loading, setLoading] = useState(true);
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [closureDialogOpen, setClosureDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && pdiId) {
@@ -193,6 +195,10 @@ export default function PDIDetail() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Compartilhar
+              </Button>
               {!closure && (
                 <>
                   <Button 
@@ -377,6 +383,13 @@ export default function PDIDetail() {
         onOpenChange={setClosureDialogOpen}
         pdiId={pdiId!}
         onSuccess={fetchPDIData}
+      />
+
+      <PDIShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        pdiId={pdiId!}
+        employeeName={pdi.employee_name}
       />
     </div>
   );

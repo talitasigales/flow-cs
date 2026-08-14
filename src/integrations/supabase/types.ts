@@ -1669,6 +1669,56 @@ export type Database = {
           },
         ]
       }
+      pdi_shares: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          hide_notes: boolean
+          id: string
+          is_active: boolean
+          last_viewed_at: string | null
+          pdi_id: string
+          token: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          hide_notes?: boolean
+          id?: string
+          is_active?: boolean
+          last_viewed_at?: string | null
+          pdi_id: string
+          token: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          hide_notes?: boolean
+          id?: string
+          is_active?: boolean
+          last_viewed_at?: string | null
+          pdi_id?: string
+          token?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdi_shares_pdi_id_fkey"
+            columns: ["pdi_id"]
+            isOneToOne: false
+            referencedRelation: "pdis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdis: {
         Row: {
           behavior_assessments: Json | null
