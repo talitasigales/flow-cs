@@ -29,6 +29,7 @@ export default function PDIDetail() {
   const [loading, setLoading] = useState(true);
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [closureDialogOpen, setClosureDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && pdiId) {
