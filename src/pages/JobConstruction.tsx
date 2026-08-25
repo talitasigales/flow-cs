@@ -237,13 +237,21 @@ export default function JobConstruction() {
                     </div>
                   </div>
 
-                  <div className="pt-2">
+                  <div className="pt-2 flex flex-col sm:flex-row gap-3">
                     <Button 
                       onClick={() => setShowIntro(false)} 
                       className="gap-2"
                     >
                       Iniciar Questionário
                       <ArrowRight className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleExportQuestions}
+                      className="gap-2"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      Baixar apenas as perguntas (PDF)
                     </Button>
                   </div>
                 </Card>
