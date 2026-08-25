@@ -219,8 +219,44 @@ Deno.serve(async (req) => {
 
       enrolled.push(entry.email);
       createdAccounts.push({ email: entry.email, name: entry.name || null, tempPassword });
+      welcomeQueue.push({ email: entry.email, name: entry.name || null, tempPassword });
     }
 
+    // E-mail de boas-vindas automático para todos os alunos matriculados agora
+    let welcomeSent = 0;
+    const welcomeErrors: any[] = [];
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (resendApiKey && welcomeQueue.length > 0) {
+      const { data: program } = await supabase.from('programs').select('name').eq('id', program_id).maybeSingle();
+      let klass: any = null;
+      if (class_id && class_id !== 'none') {
+        const { data } = await supabase
+          .from('program_classes')
+          .select('name, start_date, end_date, start_time, video_conference_url, specialist')
+          .eq('id', class_id)
+          .maybeSingle();
+        klass = data;
+      }
+      const info: WelcomeClassInfo = {
+        programName: program?.name || 'Programa Grou',
+        className: klass?.name ?? null,
+        startDate: klass?.start_date ?? null,
+        endDate: klass?.end_date ?? null,
+        startTime: klass?.start_time ?? null,
+        videoConferenceUrl: klass?.video_conference_url ?? null,
+        specialist: klass?.specialist ?? null,
+      };
+      for (const r of welcomeQueue) {
+        try {
+          const res = await sendWelcomeEmail(resendApiKey, info, r);
+          if (res.ok) welcomeSent++;
+          else welcomeErrors.push({ email: r.email, status: res.status, body: res.body });
+        } catch (e) {
+          welcomeErrors.push({ email: r.email, error: (e as Error).message });
+        }
+        await new Promise((res) => setTimeout(res, 250));
+      }
+    }
 
     return new Response(JSON.stringify({
       enrolled: enrolled.length,
@@ -228,6 +264,8 @@ Deno.serve(async (req) => {
       alreadyEnrolled: alreadyEnrolled.length,
       createdAccounts,
       notFound,
+      welcomeSent,
+      welcomeErrors,
       total: entryList.length,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
