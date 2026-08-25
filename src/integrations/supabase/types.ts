@@ -2009,6 +2009,9 @@ export type Database = {
           created_at: string
           dilemmas_released: boolean
           dilemmas_url: string | null
+          email_reminder_1h_sent_at: string | null
+          email_reminder_24h_sent_at: string | null
+          email_reminders_enabled: boolean
           end_date: string | null
           id: string
           name: string
@@ -2028,6 +2031,9 @@ export type Database = {
           created_at?: string
           dilemmas_released?: boolean
           dilemmas_url?: string | null
+          email_reminder_1h_sent_at?: string | null
+          email_reminder_24h_sent_at?: string | null
+          email_reminders_enabled?: boolean
           end_date?: string | null
           id?: string
           name: string
@@ -2047,6 +2053,9 @@ export type Database = {
           created_at?: string
           dilemmas_released?: boolean
           dilemmas_url?: string | null
+          email_reminder_1h_sent_at?: string | null
+          email_reminder_24h_sent_at?: string | null
+          email_reminders_enabled?: boolean
           end_date?: string | null
           id?: string
           name?: string
