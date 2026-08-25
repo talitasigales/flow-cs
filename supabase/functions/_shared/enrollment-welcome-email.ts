@@ -132,9 +132,15 @@ export function buildWelcomeHtml(info: WelcomeClassInfo, r: WelcomeRecipient) {
         <p style="margin:10px 0 0;font-size:13px;color:#64748b">${credNote}</p>
       </div>
 
-      <p style="margin:0 0 24px;text-align:center">
+      <p style="margin:0 0 ${info.videoConferenceUrl ? '12' : '24'}px;text-align:center">
         <a href="${PLATFORM_URL}" style="background:${BRAND};color:${DARK};text-decoration:none;padding:14px 30px;border-radius:8px;font-size:15px;font-weight:bold;display:inline-block">Acessar a plataforma</a>
       </p>
+      ${info.videoConferenceUrl ? `
+      <p style="margin:0 0 6px;text-align:center">
+        <a href="${info.videoConferenceUrl}" style="background:${DARK};color:#fff;text-decoration:none;padding:14px 30px;border-radius:8px;font-size:15px;font-weight:bold;display:inline-block">Entrar na sala da videoconferência</a>
+      </p>
+      <p style="margin:0 0 24px;text-align:center;font-size:12px;color:#64748b;word-break:break-all">${info.videoConferenceUrl}</p>` : ''}
+
 
       <h2 style="margin:0 0 10px;font-size:16px">O que você já encontra por lá</h2>
       <ul style="margin:0 0 20px;padding-left:20px;line-height:1.6;font-size:14px;list-style:none">${bullets}</ul>
