@@ -63,6 +63,9 @@ export default function AdminPrograms() {
   const queryClient = useQueryClient();
   const [selectedProgram, setSelectedProgram] = useState('');
   const [csvText, setCsvText] = useState('');
+  const [sheetUrl, setSheetUrl] = useState('');
+  const [loadingSheet, setLoadingSheet] = useState(false);
+
   const [importing, setImporting] = useState(false);
   const [selectedClassFilter, setSelectedClassFilter] = useState('all');
   const [enrollmentSearch, setEnrollmentSearch] = useState('');
