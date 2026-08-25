@@ -1573,6 +1573,15 @@ export default function AdminPrograms() {
                               <Button variant="ghost" size="icon" title="Importar alunos (Google Sheets/CSV)" onClick={() => openClassImport(c)}>
                                 <Upload className="w-4 h-4" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Reenviar e-mail de boas-vindas para a turma"
+                                disabled={sendingWelcomeClassId === c.id}
+                                onClick={() => handleResendWelcome(c)}
+                              >
+                                <Mail className="w-4 h-4" />
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => openClassDialog(c)}>
                                 <Pencil className="w-4 h-4" />
                               </Button>
