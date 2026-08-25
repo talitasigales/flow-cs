@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award, FileDown } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award, FileDown, Mail } from 'lucide-react';
 import { downloadEnrollmentTemplate } from '@/utils/exportUtils';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
@@ -65,6 +65,7 @@ export default function AdminPrograms() {
   const [csvText, setCsvText] = useState('');
   const [sheetUrl, setSheetUrl] = useState('');
   const [loadingSheet, setLoadingSheet] = useState(false);
+  const [sendingWelcomeClassId, setSendingWelcomeClassId] = useState<string | null>(null);
   // Import per class (dentro da turma)
   const [classImportOpen, setClassImportOpen] = useState(false);
   const [classImportClass, setClassImportClass] = useState<any>(null);
@@ -694,6 +695,25 @@ export default function AdminPrograms() {
       setLoadingSheet(false);
     }
   };
+
+  const handleResendWelcome = async (cls: any) => {
+    if (!selectedProgram) return;
+    if (!confirm(`Reenviar o e-mail de boas-vindas para todos os alunos da turma "${cls.name}"?`)) return;
+    setSendingWelcomeClassId(cls.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-enrollment-welcome', {
+        body: { program_id: selectedProgram, class_id: cls.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${data?.sent ?? 0} e-mail(s) enviado(s) de ${data?.total ?? 0}.`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar e-mails');
+    } finally {
+      setSendingWelcomeClassId(null);
+    }
+  };
+
 
   const openClassImport = (cls: any) => {
     setClassImportClass(cls);
@@ -1572,6 +1592,15 @@ export default function AdminPrograms() {
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" title="Importar alunos (Google Sheets/CSV)" onClick={() => openClassImport(c)}>
                                 <Upload className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Reenviar e-mail de boas-vindas para a turma"
+                                disabled={sendingWelcomeClassId === c.id}
+                                onClick={() => handleResendWelcome(c)}
+                              >
+                                <Mail className="w-4 h-4" />
                               </Button>
                               <Button variant="ghost" size="icon" onClick={() => openClassDialog(c)}>
                                 <Pencil className="w-4 h-4" />

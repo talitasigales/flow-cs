@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWelcomeEmail, type WelcomeClassInfo } from '../_shared/enrollment-welcome-email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -92,6 +93,7 @@ Deno.serve(async (req) => {
     const alreadyEnrolled: string[] = [];
     const pending: string[] = [];
     const createdAccounts: { email: string; name: string | null; tempPassword: string }[] = [];
+    const welcomeQueue: { email: string; name: string | null; tempPassword: string | null }[] = [];
 
 
     for (const entry of entryList) {
@@ -143,6 +145,7 @@ Deno.serve(async (req) => {
           }
         } else {
           enrolled.push(entry.email);
+          welcomeQueue.push({ email: entry.email, name: entry.name || null, tempPassword: null });
         }
         continue;
       }
@@ -216,8 +219,55 @@ Deno.serve(async (req) => {
 
       enrolled.push(entry.email);
       createdAccounts.push({ email: entry.email, name: entry.name || null, tempPassword });
+      welcomeQueue.push({ email: entry.email, name: entry.name || null, tempPassword });
     }
 
+    // E-mail de boas-vindas automático para todos os alunos matriculados agora
+    let welcomeSent = 0;
+    const welcomeErrors: any[] = [];
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (resendApiKey && welcomeQueue.length > 0) {
+      const { data: program } = await supabase.from('programs').select('name, description').eq('id', program_id).maybeSingle();
+      let klass: any = null;
+      let classEndTime: string | null = null;
+      if (class_id && class_id !== 'none') {
+        const { data } = await supabase
+          .from('program_classes')
+          .select('name, start_date, end_date, start_time, video_conference_url, specialist')
+          .eq('id', class_id)
+          .maybeSingle();
+        klass = data;
+        const { data: sched } = await supabase
+          .from('class_schedules')
+          .select('start_time, end_time')
+          .eq('class_id', class_id)
+          .not('end_time', 'is', null)
+          .order('schedule_date', { ascending: true })
+          .limit(1);
+        classEndTime = sched?.[0]?.end_time ?? null;
+      }
+      const info: WelcomeClassInfo = {
+        programName: program?.name || 'Programa Grou',
+        programDescription: program?.description ?? null,
+        className: klass?.name ?? null,
+        startDate: klass?.start_date ?? null,
+        endDate: klass?.end_date ?? null,
+        startTime: klass?.start_time ?? null,
+        endTime: classEndTime,
+        videoConferenceUrl: klass?.video_conference_url ?? null,
+        specialist: klass?.specialist ?? null,
+      };
+      for (const r of welcomeQueue) {
+        try {
+          const res = await sendWelcomeEmail(resendApiKey, info, r);
+          if (res.ok) welcomeSent++;
+          else welcomeErrors.push({ email: r.email, status: res.status, body: res.body });
+        } catch (e) {
+          welcomeErrors.push({ email: r.email, error: (e as Error).message });
+        }
+        await new Promise((res) => setTimeout(res, 250));
+      }
+    }
 
     return new Response(JSON.stringify({
       enrolled: enrolled.length,
@@ -225,6 +275,8 @@ Deno.serve(async (req) => {
       alreadyEnrolled: alreadyEnrolled.length,
       createdAccounts,
       notFound,
+      welcomeSent,
+      welcomeErrors,
       total: entryList.length,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
