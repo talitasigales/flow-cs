@@ -229,7 +229,6 @@ Deno.serve(async (req) => {
     if (resendApiKey && welcomeQueue.length > 0) {
       const { data: program } = await supabase.from('programs').select('name, description').eq('id', program_id).maybeSingle();
       let klass: any = null;
-    let classEndTime: string | null = null;
       let classEndTime: string | null = null;
       if (class_id && class_id !== 'none') {
         const { data } = await supabase
@@ -249,13 +248,11 @@ Deno.serve(async (req) => {
       }
       const info: WelcomeClassInfo = {
         programName: program?.name || 'Programa Grou',
-      programDescription: program?.description ?? null,
         programDescription: program?.description ?? null,
         className: klass?.name ?? null,
         startDate: klass?.start_date ?? null,
         endDate: klass?.end_date ?? null,
         startTime: klass?.start_time ?? null,
-      endTime: classEndTime,
         endTime: classEndTime,
         videoConferenceUrl: klass?.video_conference_url ?? null,
         specialist: klass?.specialist ?? null,
