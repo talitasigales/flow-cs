@@ -17,19 +17,25 @@ Deno.serve(async (req) => {
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) return json({ error: 'RESEND_API_KEY não configurada' }, 500);
 
-    const authHeader = req.headers.get('Authorization') ?? '';
-    if (!authHeader.startsWith('Bearer ')) return json({ error: 'Não autorizado' }, 401);
-    let userId: string;
-    try {
-      userId = JSON.parse(atob(authHeader.replace('Bearer ', '').split('.')[1])).sub;
-      if (!userId) throw new Error('no sub');
-    } catch {
-      return json({ error: 'Token inválido' }, 401);
-    }
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const internalKey = req.headers.get('x-internal-key');
+    const isInternal = !!internalKey && internalKey === serviceKey;
 
-    const { data: roleData } = await supabase
-      .from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle();
-    if (!roleData) return json({ error: 'Acesso negado' }, 403);
+    if (!isInternal) {
+      const authHeader = req.headers.get('Authorization') ?? '';
+      if (!authHeader.startsWith('Bearer ')) return json({ error: 'Não autorizado' }, 401);
+      let userId: string;
+      try {
+        userId = JSON.parse(atob(authHeader.replace('Bearer ', '').split('.')[1])).sub;
+        if (!userId) throw new Error('no sub');
+      } catch {
+        return json({ error: 'Token inválido' }, 401);
+      }
+
+      const { data: roleData } = await supabase
+        .from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle();
+      if (!roleData) return json({ error: 'Acesso negado' }, 403);
+    }
 
     const { program_id, class_id, emails, test_email } = await req.json();
     if (!program_id) return json({ error: 'program_id é obrigatório' }, 400);
