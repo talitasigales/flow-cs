@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWelcomeEmail, type WelcomeClassInfo } from '../_shared/enrollment-welcome-email.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
