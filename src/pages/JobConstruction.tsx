@@ -6,7 +6,8 @@ import { useCSATContext } from '@/contexts/CSATContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, Briefcase, Info, History, Trash2, Eye } from 'lucide-react';
+import { ArrowRight, Briefcase, Info, History, Trash2, Eye, FileDown } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { QuestionCard, ProgressIndicator } from '@/components/job-construction';
 import { jobConstructionQuestions } from '@/data/jobConstructionQuestions';
 import { 
