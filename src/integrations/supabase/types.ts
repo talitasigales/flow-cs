@@ -448,6 +448,47 @@ export type Database = {
           },
         ]
       }
+      class_reminder_logs: {
+        Row: {
+          channel: string
+          class_id: string
+          id: string
+          recipients_count: number
+          reminder_type: string
+          sent_at: string
+          session_date: string
+          session_start_time: string | null
+        }
+        Insert: {
+          channel?: string
+          class_id: string
+          id?: string
+          recipients_count?: number
+          reminder_type: string
+          sent_at?: string
+          session_date: string
+          session_start_time?: string | null
+        }
+        Update: {
+          channel?: string
+          class_id?: string
+          id?: string
+          recipients_count?: number
+          reminder_type?: string
+          sent_at?: string
+          session_date?: string
+          session_start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_reminder_logs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_schedules: {
         Row: {
           class_id: string

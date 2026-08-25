@@ -60,3 +60,6 @@ verify_jwt = false
 [functions.send-enrollment-welcome]
 verify_jwt = false
 
+
+[functions.send-class-email-reminder]
+verify_jwt = false
