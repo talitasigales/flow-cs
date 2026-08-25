@@ -133,45 +133,77 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // No profile yet → create / update pending entry
-      const pendingData: any = {
+      // No profile yet → create the account right away with a provisional password
+      const tempPassword = entry.email.split('@')[0];
+      let newUserId: string | null = null;
+
+      const { data: created, error: createErr } = await supabase.auth.admin.createUser({
         email: entry.email,
-        program_id,
-        secondary_email: entry.secondary_email || null,
-      };
-      if (class_id && class_id !== 'none') pendingData.class_id = class_id;
-      if (entry.resilience_url) pendingData.resilience_url = entry.resilience_url;
-      if (entry.dilemmas_url) pendingData.dilemmas_url = entry.dilemmas_url;
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: entry.name || entry.email.split('@')[0] },
+      });
 
-      const { error: pendingErr } = await supabase.from('pending_enrollments').insert(pendingData);
-
-      if (pendingErr) {
-        if (pendingErr.code === '23505') {
-          // already pending for this primary email/program — backfill missing fields
-          const { data: existing } = await supabase
-            .from('pending_enrollments')
-            .select('id, secondary_email, resilience_url, dilemmas_url')
-            .eq('email', entry.email)
-            .eq('program_id', program_id)
-            .maybeSingle();
-          if (existing) {
-            const updateData: any = {};
-            if (entry.secondary_email && !existing.secondary_email) updateData.secondary_email = entry.secondary_email;
-            if (entry.resilience_url) updateData.resilience_url = entry.resilience_url;
-            if (entry.dilemmas_url) updateData.dilemmas_url = entry.dilemmas_url;
-            if (Object.keys(updateData).length > 0) {
-              await supabase.from('pending_enrollments').update(updateData).eq('id', existing.id);
-            }
-          }
-          alreadyEnrolled.push(entry.email);
-        } else {
-          console.error('pending insert error', pendingErr);
+      if (createErr) {
+        // Account may already exist in auth without a profile row — locate it
+        const { data: listData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const found = listData?.users?.find((u: any) => u.email?.toLowerCase() === entry.email);
+        newUserId = found?.id ?? null;
+        if (!newUserId) {
+          console.error('create user error', createErr);
           notFound.push(entry.email);
+          continue;
         }
       } else {
-        pending.push(entry.email);
+        newUserId = created!.user.id;
       }
+
+      // Ensure the profile exists / carries name + provisional-password flag
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', newUserId)
+        .maybeSingle();
+
+      const profileFields: any = {
+        email: entry.email,
+        password_changed: false,
+      };
+      if (entry.name) profileFields.full_name = entry.name;
+
+      if (existingProfile) {
+        await supabase.from('profiles').update(profileFields).eq('user_id', newUserId);
+      } else {
+        await supabase.from('profiles').insert({ user_id: newUserId, ...profileFields });
+      }
+
+      const enrollData: any = { program_id, user_id: newUserId };
+      if (class_id && class_id !== 'none') enrollData.class_id = class_id;
+      if (entry.resilience_url) enrollData.resilience_url = entry.resilience_url;
+      if (entry.dilemmas_url) enrollData.dilemmas_url = entry.dilemmas_url;
+
+      const { error: enrollErr } = await supabase.from('program_enrollments').insert(enrollData);
+      if (enrollErr) {
+        if (enrollErr.code === '23505') {
+          alreadyEnrolled.push(entry.email);
+        } else {
+          console.error('enroll error (new account)', enrollErr);
+          notFound.push(entry.email);
+        }
+        continue;
+      }
+
+      // Clean up any stale pending row for this email/program
+      await supabase
+        .from('pending_enrollments')
+        .delete()
+        .eq('program_id', program_id)
+        .eq('email', entry.email);
+
+      enrolled.push(entry.email);
+      createdAccounts.push({ email: entry.email, name: entry.name || null, tempPassword });
     }
+
 
     return new Response(JSON.stringify({
       enrolled: enrolled.length,
