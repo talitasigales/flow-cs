@@ -123,7 +123,11 @@ Deno.serve(async (req) => {
       return json({ error: 'A planilha não está pública. Compartilhe com "qualquer pessoa com o link".' }, 400);
     }
 
-    return json({ csv });
+    const normalized = normalizeEnrollmentCsv(csv);
+    if (!normalized) {
+      return json({ error: 'Não encontrei colunas "Nome" e "Email" na planilha. Verifique o cabeçalho.' }, 400);
+    }
+    return json({ csv: normalized, normalized: true });
   } catch (err) {
     return json({ error: (err as Error).message }, 500);
   }
