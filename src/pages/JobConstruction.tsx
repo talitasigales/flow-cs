@@ -6,7 +6,8 @@ import { useCSATContext } from '@/contexts/CSATContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, Briefcase, Info, History, Trash2, Eye } from 'lucide-react';
+import { ArrowRight, Briefcase, Info, History, Trash2, Eye, FileDown } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { QuestionCard, ProgressIndicator } from '@/components/job-construction';
 import { jobConstructionQuestions } from '@/data/jobConstructionQuestions';
 import { 
@@ -130,6 +131,38 @@ export default function JobConstruction() {
     }
   };
 
+  const handleExportQuestions = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const marginX = 48;
+    const maxWidth = 595 - marginX * 2;
+    let y = 64;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Construção de Cargos — Questionário', marginX, y);
+    y += 22;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Responda SIM ou NÃO para cada pergunta sobre as exigências do cargo.', marginX, y);
+    y += 26;
+
+    doc.setFontSize(11);
+    jobConstructionQuestions.forEach((q) => {
+      const lines = doc.splitTextToSize(`${q.id}. ${q.question}`, maxWidth - 90);
+      if (y + lines.length * 15 + 10 > 800) {
+        doc.addPage();
+        y = 64;
+      }
+      doc.text(lines, marginX, y);
+      doc.text('(  ) SIM   (  ) NÃO', marginX + maxWidth - 88, y);
+      y += lines.length * 15 + 12;
+    });
+
+    doc.save('construcao-de-cargos-perguntas.pdf');
+    toast.success('Perguntas exportadas em PDF');
+  };
+
   const handleReset = () => {
     setAnswers({});
     setJobTitle('');
@@ -204,13 +237,21 @@ export default function JobConstruction() {
                     </div>
                   </div>
 
-                  <div className="pt-2">
+                  <div className="pt-2 flex flex-col sm:flex-row gap-3">
                     <Button 
                       onClick={() => setShowIntro(false)} 
                       className="gap-2"
                     >
                       Iniciar Questionário
                       <ArrowRight className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleExportQuestions}
+                      className="gap-2"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      Baixar apenas as perguntas (PDF)
                     </Button>
                   </div>
                 </Card>
