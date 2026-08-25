@@ -57,3 +57,6 @@ verify_jwt = false
 [functions.fetch-sheet-csv]
 verify_jwt = false
 
+[functions.send-enrollment-welcome]
+verify_jwt = false
+
