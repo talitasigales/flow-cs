@@ -53,3 +53,7 @@ verify_jwt = false
 
 [functions.pdi-share]
 verify_jwt = false
+
+[functions.fetch-sheet-csv]
+verify_jwt = false
+
