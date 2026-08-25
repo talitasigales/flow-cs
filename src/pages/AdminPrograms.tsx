@@ -569,7 +569,13 @@ export default function AdminPrograms() {
     if (lines.length === 0) return { entries, errors };
 
     // Detect header
-    const splitLine = (l: string) => l.split(/[,;\t]/).map((c) => c.trim());
+    const splitLine = (l: string) => l.split(/[,;\t]/).map((c) => {
+      const trimmed = c.trim().replace(/^\uFEFF/, '');
+      if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+        return trimmed.slice(1, -1).replace(/""/g, '"').trim();
+      }
+      return trimmed;
+    });
     const first = splitLine(lines[0]).map((c) => c.toLowerCase());
     const looksLikeHeader = first.some((c) => c.includes('email') || c.includes('e-mail') || c === 'nome' || c === 'name');
     let nameIdx = -1, primaryIdx = -1, secondaryIdx = -1;
