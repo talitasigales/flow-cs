@@ -1582,6 +1582,47 @@ export default function AdminPrograms() {
                 </CardContent>
               </Card>
               {renderClassDialog()}
+              <Dialog open={classImportOpen} onOpenChange={setClassImportOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Importar alunos — {classImportClass?.name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Link do Google Sheets</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={classImportSheetUrl}
+                          onChange={(e) => setClassImportSheetUrl(e.target.value)}
+                          placeholder="https://docs.google.com/spreadsheets/d/..."
+                        />
+                        <Button variant="secondary" size="sm" onClick={handleClassLoadSheet} disabled={classImportLoadingSheet || !classImportSheetUrl.trim()}>
+                          {classImportLoadingSheet ? 'Carregando...' : 'Carregar'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Compartilhe como "qualquer pessoa com o link". Colunas: <code>nome,email_corporativo,email_pessoal</code>.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Dados (revise antes de importar)</Label>
+                      <Textarea
+                        value={classImportCsv}
+                        onChange={(e) => setClassImportCsv(e.target.value)}
+                        placeholder={"nome,email_corporativo,email_pessoal\nJoão Silva,joao@empresa.com,joao@gmail.com"}
+                        className="min-h-[160px] font-mono text-sm"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">As contas são criadas automaticamente com senha provisória e matriculadas nesta turma.</p>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setClassImportOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleClassImport} disabled={classImporting || !classImportCsv.trim()}>
+                      {classImporting ? 'Importando...' : 'Importar para a turma'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* CRONOGRAMA TAB */}
