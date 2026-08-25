@@ -659,7 +659,31 @@ export default function AdminPrograms() {
     }
   };
 
+  const handleLoadSheet = async () => {
+    if (!sheetUrl.trim()) return;
+    setLoadingSheet(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-sheet-csv', {
+        body: { url: sheetUrl.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const csv = String(data?.csv || '').trim();
+      if (!csv) {
+        toast.error('Planilha vazia');
+        return;
+      }
+      setCsvText(csv);
+      toast.success(`${csv.split('\n').length} linhas carregadas. Confira e clique em Importar.`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao ler a planilha do Google Sheets');
+    } finally {
+      setLoadingSheet(false);
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
     const file = e.target.files?.[0];
     if (!file) return;
     try {
