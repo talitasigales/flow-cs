@@ -1811,6 +1811,23 @@ export default function AdminPrograms() {
                         </Select>
                       </div>
                       <div className="space-y-2">
+                        <Label>Importar do Google Sheets (link da planilha)</Label>
+                        <div className="flex items-center gap-3">
+                          <Input
+                            value={sheetUrl}
+                            onChange={(e) => setSheetUrl(e.target.value)}
+                            placeholder="https://docs.google.com/spreadsheets/d/..."
+                            className="max-w-xl"
+                          />
+                          <Button variant="secondary" size="sm" onClick={handleLoadSheet} disabled={loadingSheet || !sheetUrl.trim()}>
+                            {loadingSheet ? 'Carregando...' : 'Carregar planilha'}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          A planilha precisa estar compartilhada como "qualquer pessoa com o link". Mesmas colunas do modelo: <code>nome,email_corporativo,email_pessoal</code>.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
                         <Label>Importar de planilha (.xlsx, .xls, .csv)</Label>
                         <div className="flex items-center gap-3">
                           <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="max-w-sm" />
@@ -1822,6 +1839,7 @@ export default function AdminPrograms() {
                           O CSV deve ter 3 colunas com cabeçalho: <code>nome,email_corporativo,email_pessoal</code> (o e-mail pessoal é opcional). Aceita também colar texto abaixo.
                         </p>
                       </div>
+
                       <div className="space-y-2">
                         <Label>Colar dados (CSV com cabeçalho ou um e-mail por linha)</Label>
                         <Textarea value={csvText} onChange={e => setCsvText(e.target.value)} placeholder={"nome,email_corporativo,email_pessoal\nJoão Silva,joao@empresa.com,joao@gmail.com\nMaria Souza,maria@empresa.com,"} className="min-h-[150px] font-mono text-sm" />
