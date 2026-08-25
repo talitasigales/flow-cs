@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
           }
         } else {
           enrolled.push(entry.email);
+          welcomeQueue.push({ email: entry.email, name: entry.name || null, tempPassword: null });
         }
         continue;
       }
