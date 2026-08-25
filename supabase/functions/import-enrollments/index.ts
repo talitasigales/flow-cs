@@ -91,6 +91,8 @@ Deno.serve(async (req) => {
     const notFound: string[] = [];
     const alreadyEnrolled: string[] = [];
     const pending: string[] = [];
+    const createdAccounts: { email: string; name: string | null; tempPassword: string }[] = [];
+
 
     for (const entry of entryList) {
       const candidates = [entry.email, entry.secondary_email].filter((x): x is string => !!x);
