@@ -34,8 +34,9 @@ Deno.serve(async (req) => {
     const { program_id, class_id, emails, test_email } = await req.json();
     if (!program_id) return json({ error: 'program_id é obrigatório' }, 400);
 
-    const { data: program } = await supabase.from('programs').select('name').eq('id', program_id).maybeSingle();
+    const { data: program } = await supabase.from('programs').select('name, description').eq('id', program_id).maybeSingle();
     let klass: any = null;
+    let classEndTime: string | null = null;
     if (class_id && class_id !== 'none') {
       const { data } = await supabase
         .from('program_classes')
@@ -47,10 +48,12 @@ Deno.serve(async (req) => {
 
     const info: WelcomeClassInfo = {
       programName: program?.name || 'Programa Grou',
+      programDescription: program?.description ?? null,
       className: klass?.name ?? null,
       startDate: klass?.start_date ?? null,
       endDate: klass?.end_date ?? null,
       startTime: klass?.start_time ?? null,
+      endTime: classEndTime,
       videoConferenceUrl: klass?.video_conference_url ?? null,
       specialist: klass?.specialist ?? null,
     };
