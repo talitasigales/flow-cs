@@ -94,7 +94,6 @@ export function buildWelcomeHtml(info: WelcomeClassInfo, r: WelcomeRecipient) {
     : '✅ Link da videoconferência ao vivo (liberado na plataforma 1 dia antes do encontro)';
 
   const bullets = [
-    '✅ Pre-work na aba <strong>Exercícios</strong> (para você chegar mais preparado)',
     '✅ Sua jornada individual de acompanhamento',
     meetingLine,
     '✅ Exercícios e materiais complementares',
