@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
     const alreadyEnrolled: string[] = [];
     const pending: string[] = [];
     const createdAccounts: { email: string; name: string | null; tempPassword: string }[] = [];
+    const welcomeQueue: { email: string; name: string | null; tempPassword: string | null }[] = [];
 
 
     for (const entry of entryList) {
