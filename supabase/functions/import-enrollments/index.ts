@@ -106,6 +106,18 @@ Deno.serve(async (req) => {
       const profile = profiles?.[0];
 
       if (profile) {
+        // Reimports must also repair profile names. This covers accounts created
+        // from older spreadsheet parsers that accidentally used the row number.
+        if (entry.name) {
+          const { error: profileUpdateError } = await supabase
+            .from('profiles')
+            .update({ full_name: entry.name })
+            .eq('user_id', profile.user_id);
+          if (profileUpdateError) {
+            console.error('profile name update error', profileUpdateError);
+          }
+        }
+
         const insertData: any = { program_id, user_id: profile.user_id };
         if (class_id && class_id !== 'none') insertData.class_id = class_id;
         if (entry.resilience_url) insertData.resilience_url = entry.resilience_url;
