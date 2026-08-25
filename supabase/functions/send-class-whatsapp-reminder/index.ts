@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { startDeliveryLog, finishDeliveryLog } from '../_shared/delivery-log.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -192,6 +193,16 @@ Deno.serve(async (req) => {
     let sent = 0;
     let failed = 0;
     for (const r of recipients) {
+      const logId = await startDeliveryLog(supabase, {
+        class_id: cls.id,
+        program_id: (cls as any).program_id ?? null,
+        user_id: r.source === 'enrollment' ? r.key : null,
+        recipient_name: r.name,
+        recipient_phone: r.phone,
+        channel: 'whatsapp',
+        message_type: payload.reminder_type === '24h' ? 'reminder_24h' : 'reminder_30min',
+        session_date: cls.start_date ?? null,
+      });
       const res = await sendTemplate({
         token,
         phoneNumberId,
@@ -200,6 +211,7 @@ Deno.serve(async (req) => {
         language,
         variables: [r.name, programName, whenStr, link],
       });
+      await finishDeliveryLog(supabase, logId, res.ok, res.body);
       if (res.ok) sent++;
       else failed++;
       results.push({ to: r.phone, name: r.name, ok: res.ok, status: res.status, body: res.body });
