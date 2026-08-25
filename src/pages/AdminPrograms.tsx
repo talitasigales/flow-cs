@@ -1564,6 +1564,9 @@ export default function AdminPrograms() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" title="Importar alunos (Google Sheets/CSV)" onClick={() => openClassImport(c)}>
+                                <Upload className="w-4 h-4" />
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => openClassDialog(c)}>
                                 <Pencil className="w-4 h-4" />
                               </Button>
