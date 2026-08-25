@@ -695,6 +695,25 @@ export default function AdminPrograms() {
     }
   };
 
+  const handleResendWelcome = async (cls: any) => {
+    if (!selectedProgram) return;
+    if (!confirm(`Reenviar o e-mail de boas-vindas para todos os alunos da turma "${cls.name}"?`)) return;
+    setSendingWelcomeClassId(cls.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-enrollment-welcome', {
+        body: { program_id: selectedProgram, class_id: cls.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${data?.sent ?? 0} e-mail(s) enviado(s) de ${data?.total ?? 0}.`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar e-mails');
+    } finally {
+      setSendingWelcomeClassId(null);
+    }
+  };
+
+
   const openClassImport = (cls: any) => {
     setClassImportClass(cls);
     setClassImportSheetUrl('');
