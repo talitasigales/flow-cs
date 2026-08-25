@@ -18,8 +18,9 @@ Deno.serve(async (req) => {
     if (!resendApiKey) return json({ error: 'RESEND_API_KEY não configurada' }, 500);
 
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const internalTestKey = Deno.env.get('INTERNAL_TEST_KEY');
     const internalKey = req.headers.get('x-internal-key');
-    const isInternal = !!internalKey && internalKey === serviceKey;
+    const isInternal = !!internalKey && (internalKey === serviceKey || (!!internalTestKey && internalKey === internalTestKey));
 
     if (!isInternal) {
       const authHeader = req.headers.get('Authorization') ?? '';
