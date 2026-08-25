@@ -20,6 +20,71 @@ function toCsvExportUrl(raw: string): string | null {
   }
 }
 
+// --- CSV parsing helpers -------------------------------------------------
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+      } else field += ch;
+    } else if (ch === '"') inQuotes = true;
+    else if (ch === ',') { row.push(field); field = ''; }
+    else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (ch === '\r') { /* skip */ }
+    else field += ch;
+  }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+const norm = (s: string) =>
+  (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const csvEscape = (v: string) => `"${(v || '').replace(/"/g, '""')}"`;
+
+/**
+ * Normalizes an arbitrary sheet into `nome,email_corporativo,email_pessoal`.
+ * Finds the header row anywhere in the sheet (planilhas costumam ter títulos
+ * e mesclagens acima) and maps the Nome / Email / Email pessoal columns.
+ */
+function normalizeEnrollmentCsv(raw: string): string | null {
+  const rows = parseCsv(raw);
+  let headerIdx = -1;
+  let nameCol = -1, emailCol = -1, personalCol = -1;
+
+  for (let i = 0; i < Math.min(rows.length, 25); i++) {
+    const cells = rows[i].map(norm);
+    const nIdx = cells.findIndex((c) => c === 'nome' || c === 'nome completo' || c === 'aluno' || c === 'participante');
+    const eIdx = cells.findIndex((c) => c === 'email' || c === 'e-mail' || c === 'email corporativo' || c === 'e-mail corporativo' || c === 'email_corporativo');
+    if (nIdx >= 0 && eIdx >= 0) {
+      headerIdx = i;
+      nameCol = nIdx;
+      emailCol = eIdx;
+      personalCol = cells.findIndex((c) => c.includes('pessoal'));
+      break;
+    }
+  }
+  if (headerIdx === -1) return null;
+
+  const out = ['nome,email_corporativo,email_pessoal'];
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const name = (r[nameCol] || '').trim();
+    const email = (r[emailCol] || '').trim().toLowerCase();
+    const personal = personalCol >= 0 ? (r[personalCol] || '').trim().toLowerCase() : '';
+    if (!EMAIL_RE.test(email)) continue;
+    out.push([name, email, EMAIL_RE.test(personal) && personal !== email ? personal : ''].map(csvEscape).join(','));
+  }
+  return out.length > 1 ? out.join('\n') : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -58,7 +123,11 @@ Deno.serve(async (req) => {
       return json({ error: 'A planilha não está pública. Compartilhe com "qualquer pessoa com o link".' }, 400);
     }
 
-    return json({ csv });
+    const normalized = normalizeEnrollmentCsv(csv);
+    if (!normalized) {
+      return json({ error: 'Não encontrei colunas "Nome" e "Email" na planilha. Verifique o cabeçalho.' }, 400);
+    }
+    return json({ csv: normalized, normalized: true });
   } catch (err) {
     return json({ error: (err as Error).message }, 500);
   }
