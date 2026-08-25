@@ -44,6 +44,7 @@ import CompanyDetail from "./pages/cs/CompanyDetail";
 import AdminCSAccess from "./pages/admin/AdminCSAccess";
 import AdminCSImport from "./pages/admin/AdminCSImport";
 import AdminChangelog from "./pages/admin/AdminChangelog";
+import AdminCommunications from "./pages/admin/AdminCommunications";
 
 
 const queryClient = new QueryClient();
@@ -95,6 +96,7 @@ const App = () => (
           <Route path="/admin/cs-access" element={<AdminCSAccess />} />
           <Route path="/admin/cs-import" element={<AdminCSImport />} />
           <Route path="/admin/changelog" element={<AdminChangelog />} />
+          <Route path="/admin/comunicacoes" element={<AdminCommunications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

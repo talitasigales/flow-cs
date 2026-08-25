@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { sendWelcomeEmail, type WelcomeClassInfo } from '../_shared/enrollment-welcome-email.ts';
+import { startDeliveryLog, finishDeliveryLog } from '../_shared/delivery-log.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -103,7 +104,17 @@ Deno.serve(async (req) => {
       const email = (p.email || '').toLowerCase();
       if (!email) continue;
       if (filter && !filter.includes(email)) continue;
+      const logId = await startDeliveryLog(supabase, {
+        class_id: class_id && class_id !== 'none' ? class_id : null,
+        program_id,
+        user_id: p.user_id,
+        recipient_name: p.full_name,
+        recipient_email: email,
+        channel: 'email',
+        message_type: 'welcome',
+      });
       const res = await sendWelcomeEmail(resendApiKey, info, { email, name: p.full_name });
+      await finishDeliveryLog(supabase, logId, !!res.ok, (res as any).body ?? (res as any).error ?? null);
       results.push({ email, ...res });
       await new Promise((r) => setTimeout(r, 250));
     }

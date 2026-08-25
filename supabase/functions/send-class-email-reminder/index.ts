@@ -4,6 +4,7 @@ import {
   ReminderType,
   sendReminderEmail,
 } from '../_shared/class-reminder-email.ts';
+import { startDeliveryLog, finishDeliveryLog } from '../_shared/delivery-log.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -105,7 +106,17 @@ async function dispatch(
   let sent = 0;
   let failed = 0;
   for (const r of recipients) {
+    const logId = await startDeliveryLog(supabase, {
+      class_id: s.class_id,
+      program_id: s.cls.program_id ?? null,
+      recipient_name: r.name,
+      recipient_email: r.email,
+      channel: 'email',
+      message_type: type === '24h' ? 'reminder_24h' : 'reminder_1h',
+      session_date: s.session_date,
+    });
     const res = await sendReminderEmail(resendApiKey, info, type, r.email, r.name);
+    await finishDeliveryLog(supabase, logId, !!res.ok, (res as any).body ?? null);
     if (res.ok) sent++;
     else {
       failed++;
@@ -132,7 +143,7 @@ async function loadSessions(supabase: any, classId?: string): Promise<Session[]>
 
   let clsQuery = supabase
     .from('program_classes')
-    .select('id, name, start_date, end_date, start_time, timezone, video_conference_url, specialist, email_reminders_enabled, programs(name)');
+    .select('id, name, program_id, start_date, end_date, start_time, timezone, video_conference_url, specialist, email_reminders_enabled, programs(name)');
   if (classId) clsQuery = clsQuery.eq('id', classId);
   else clsQuery = clsQuery.eq('email_reminders_enabled', true).gte('end_date', today);
 

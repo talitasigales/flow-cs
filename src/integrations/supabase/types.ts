@@ -1130,6 +1130,78 @@ export type Database = {
         }
         Relationships: []
       }
+      message_delivery_logs: {
+        Row: {
+          channel: string
+          class_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          message_type: string
+          program_id: string | null
+          provider_response: Json | null
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
+          sent_at: string | null
+          session_date: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          class_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type: string
+          program_id?: string | null
+          provider_response?: Json | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          session_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          class_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type?: string
+          program_id?: string | null
+          provider_response?: Json | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          session_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_delivery_logs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "program_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_delivery_logs_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_default_specialists: {
         Row: {
           created_at: string
