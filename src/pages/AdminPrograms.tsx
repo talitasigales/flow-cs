@@ -65,6 +65,7 @@ export default function AdminPrograms() {
   const [csvText, setCsvText] = useState('');
   const [sheetUrl, setSheetUrl] = useState('');
   const [loadingSheet, setLoadingSheet] = useState(false);
+  const [sendingWelcomeClassId, setSendingWelcomeClassId] = useState<string | null>(null);
   // Import per class (dentro da turma)
   const [classImportOpen, setClassImportOpen] = useState(false);
   const [classImportClass, setClassImportClass] = useState<any>(null);
