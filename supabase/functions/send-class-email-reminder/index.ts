@@ -192,7 +192,9 @@ Deno.serve(async (req) => {
     const internalKey = req.headers.get('x-internal-key');
     const isInternal =
       !!internalKey &&
-      (internalKey === serviceKey || internalKey === Deno.env.get('INTERNAL_TEST_KEY'));
+      (internalKey === serviceKey ||
+        internalKey === Deno.env.get('INTERNAL_TEST_KEY') ||
+        internalKey === Deno.env.get('INTERNAL_TEST_KEY_V2'));
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey);
 
