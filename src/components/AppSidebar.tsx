@@ -26,6 +26,7 @@ import {
   CalendarDays,
   Headset,
   ShieldCheck,
+  Send,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -130,6 +131,7 @@ export function AppSidebar() {
     { title: 'Base de Conhecimento', icon: BookOpen, path: '/admin/knowledge-base' },
     { title: 'Programas', icon: Award, path: '/admin/programs' },
     { title: 'Acesso CS', icon: ShieldCheck, path: '/admin/cs-access' },
+    { title: 'Envios (E-mail/WhatsApp)', icon: Send, path: '/admin/comunicacoes' },
   ];
 
   const renderTopLevelItem = (title: string, icon: any, path: string, index: number) => {
