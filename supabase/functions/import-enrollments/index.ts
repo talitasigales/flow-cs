@@ -211,6 +211,7 @@ Deno.serve(async (req) => {
       enrolled: enrolled.length,
       pending: pending.length,
       alreadyEnrolled: alreadyEnrolled.length,
+      createdAccounts,
       notFound,
       total: entryList.length,
     }), {
