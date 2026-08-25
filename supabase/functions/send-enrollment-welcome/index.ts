@@ -44,6 +44,14 @@ Deno.serve(async (req) => {
         .eq('id', class_id)
         .maybeSingle();
       klass = data;
+      const { data: sched } = await supabase
+        .from('class_schedules')
+        .select('end_time')
+        .eq('class_id', class_id)
+        .not('end_time', 'is', null)
+        .order('schedule_date', { ascending: true })
+        .limit(1);
+      classEndTime = sched?.[0]?.end_time ?? null;
     }
 
     const info: WelcomeClassInfo = {
