@@ -689,6 +689,75 @@ export default function AdminPrograms() {
     }
   };
 
+  const openClassImport = (cls: any) => {
+    setClassImportClass(cls);
+    setClassImportSheetUrl('');
+    setClassImportCsv('');
+    setClassImportOpen(true);
+  };
+
+  const handleClassLoadSheet = async () => {
+    if (!classImportSheetUrl.trim()) return;
+    setClassImportLoadingSheet(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-sheet-csv', {
+        body: { url: classImportSheetUrl.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const csv = String(data?.csv || '').trim();
+      if (!csv) { toast.error('Planilha vazia'); return; }
+      setClassImportCsv(csv);
+      toast.success(`${csv.split('\n').length} linhas carregadas. Confira e clique em Importar.`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao ler a planilha do Google Sheets');
+    } finally {
+      setClassImportLoadingSheet(false);
+    }
+  };
+
+  const handleClassImport = async () => {
+    if (!classImportCsv.trim() || !selectedProgram || !classImportClass) return;
+    const { entries, errors } = parseEnrollmentCsv(classImportCsv);
+    if (errors.length > 0) {
+      toast.error(`Erros no CSV: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '…' : ''}`);
+    }
+    if (entries.length === 0) return;
+    setClassImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-enrollments', {
+        body: { entries, program_id: selectedProgram, class_id: classImportClass.id },
+      });
+      if (error) throw error;
+      const created = data.createdAccounts || [];
+      toast.success(`Turma ${classImportClass.name}: ${data.enrolled} matriculados${created.length ? `, ${created.length} contas criadas` : ''}, ${data.alreadyEnrolled} já existentes`);
+      if (created.length > 0) {
+        const csv = ['nome,email,senha_provisoria']
+          .concat(created.map((c: any) => `"${c.name || ''}","${c.email}","${c.tempPassword}"`))
+          .join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `credenciais-${classImportClass.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.info(`${created.length} credenciais provisórias baixadas em CSV.`, { duration: 12000 });
+      }
+      if (data.notFound?.length > 0) {
+        toast.warning(`E-mails com erro: ${data.notFound.join(', ')}`);
+      }
+      setClassImportOpen(false);
+      refetchEnrollments();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao importar');
+    } finally {
+      setClassImporting(false);
+    }
+  };
+
+
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
     const file = e.target.files?.[0];
