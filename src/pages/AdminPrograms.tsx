@@ -523,18 +523,15 @@ export default function AdminPrograms() {
       });
       if (error) throw error;
 
+      const createdPwd = data?.createdAccounts?.[0]?.tempPassword;
       if (data.enrolled > 0) {
         let msg = `${individualName} matriculado(a) com sucesso!`;
-        if (inviteData?.tempPassword) {
-          msg += ` Senha temporária: ${inviteData.tempPassword}`;
+        const pwd = createdPwd || inviteData?.tempPassword;
+        if (pwd) {
+          msg += ` Senha provisória: ${pwd}`;
         }
         toast.success(msg, { duration: 15000 });
-      } else if (data.pending > 0) {
-        let msg = `${individualName} pré-matriculado(a). Será ativado no primeiro cadastro.`;
-        if (inviteData?.tempPassword) {
-          msg += ` Senha temporária: ${inviteData.tempPassword}`;
-        }
-        toast.success(msg, { duration: 15000 });
+
       } else if (data.alreadyEnrolled > 0) {
         toast.info('Aluno já está matriculado neste programa.');
       } else {
@@ -626,14 +623,30 @@ export default function AdminPrograms() {
       });
       if (error) throw error;
       let resultMsg = `Importação concluída: ${data.enrolled} matriculados`;
-      if (data.pending > 0) {
-        resultMsg += `, ${data.pending} pré-matriculados (serão ativados no primeiro cadastro)`;
+      const created = data.createdAccounts || [];
+      if (created.length > 0) {
+        resultMsg += `, ${created.length} contas criadas`;
       }
       resultMsg += `, ${data.alreadyEnrolled} já existentes`;
       toast.success(resultMsg);
+      if (created.length > 0) {
+        // Baixa CSV com as credenciais provisórias das contas recém-criadas
+        const csv = ['nome,email,senha_provisoria']
+          .concat(created.map((c: any) => `"${c.name || ''}","${c.email}","${c.tempPassword}"`))
+          .join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `credenciais-novos-alunos-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.info(`${created.length} credenciais provisórias baixadas em CSV.`, { duration: 12000 });
+      }
       if (data.notFound?.length > 0) {
         toast.warning(`E-mails com erro: ${data.notFound.join(', ')}`);
       }
+
       setCsvText('');
       refetchEnrollments();
     } catch (err: any) {
