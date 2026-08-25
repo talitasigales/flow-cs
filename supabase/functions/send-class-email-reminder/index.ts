@@ -20,8 +20,9 @@ const json = (body: unknown, status = 200) =>
 // Sessões são armazenadas em horário local (America/Sao_Paulo, UTC-3).
 const BR_OFFSET = '-03:00';
 const sessionStartUtc = (date: string, time?: string | null) => {
-  const t = (time || '09:00:00').slice(0, 8).padEnd(8, ':00'.slice(0, 0));
-  return new Date(`${date}T${time ? time.slice(0, 8) : '09:00:00'}${BR_OFFSET}`).getTime() || new Date(`${date}T${t}${BR_OFFSET}`).getTime();
+  const t = (time || '09:00:00').slice(0, 8);
+  const ms = new Date(`${date}T${t.length === 5 ? `${t}:00` : t}${BR_OFFSET}`).getTime();
+  return Number.isNaN(ms) ? 0 : ms;
 };
 
 const MIN = 60_000;
