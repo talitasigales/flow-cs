@@ -246,6 +246,7 @@ Deno.serve(async (req) => {
           html: buildReminderHtml(info, type, recipients[0]?.name || 'Nome do Aluno'),
           recipients_count: recipients.length,
           sample_recipients: recipients.slice(0, 5),
+          recipients,
           session: { date: upcoming.session_date, start_time: upcoming.start_time, end_time: upcoming.end_time },
         });
       }
