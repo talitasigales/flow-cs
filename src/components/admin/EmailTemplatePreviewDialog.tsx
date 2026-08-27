@@ -37,6 +37,8 @@ export function EmailTemplatePreviewDialog({ open, onOpenChange, programId, clas
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cache, setCache] = useState<Record<string, PreviewData>>({});
+  const [selected, setSelected] = useState<string[]>([]);
+  const [sending, setSending] = useState(false);
 
   const load = async (key: TemplateKey, force = false) => {
     if (!programId || !classId) return;
