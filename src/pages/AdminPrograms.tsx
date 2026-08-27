@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useNavigate } from 'react-router-dom';
+import { EmailTemplatePreviewDialog } from '@/components/admin/EmailTemplatePreviewDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
@@ -22,7 +23,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award, FileDown, Mail } from 'lucide-react';
+import { Upload, Users, FileText, Trash2, Eye, Plus, CalendarIcon, GraduationCap, PackagePlus, Layers, Pencil, ExternalLink, Clock, Video, FileUp, UserCircle, ChevronRight, MessageSquare, Award, FileDown, Mail, MailSearch } from 'lucide-react';
 import { downloadEnrollmentTemplate } from '@/utils/exportUtils';
 import { ModuleExerciseManager } from '@/components/admin/ModuleExerciseManager';
 import { ModuleFeatureLinkManager } from '@/components/admin/ModuleFeatureLinkManager';
@@ -66,6 +67,8 @@ export default function AdminPrograms() {
   const [sheetUrl, setSheetUrl] = useState('');
   const [loadingSheet, setLoadingSheet] = useState(false);
   const [sendingWelcomeClassId, setSendingWelcomeClassId] = useState<string | null>(null);
+  const [emailPreviewOpen, setEmailPreviewOpen] = useState(false);
+  const [emailPreviewClass, setEmailPreviewClass] = useState<any>(null);
   // Import per class (dentro da turma)
   const [classImportOpen, setClassImportOpen] = useState(false);
   const [classImportClass, setClassImportClass] = useState<any>(null);
@@ -694,6 +697,11 @@ export default function AdminPrograms() {
     } finally {
       setLoadingSheet(false);
     }
+  };
+
+  const openEmailPreview = (cls: any) => {
+    setEmailPreviewClass(cls);
+    setEmailPreviewOpen(true);
   };
 
   const handleResendWelcome = async (cls: any) => {
@@ -1596,6 +1604,14 @@ export default function AdminPrograms() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                title="Pré-visualizar e-mails da turma"
+                                onClick={() => openEmailPreview(c)}
+                              >
+                                <MailSearch className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 title="Reenviar e-mail de boas-vindas para a turma"
                                 disabled={sendingWelcomeClassId === c.id}
                                 onClick={() => handleResendWelcome(c)}
@@ -1617,6 +1633,13 @@ export default function AdminPrograms() {
                 </CardContent>
               </Card>
               {renderClassDialog()}
+              <EmailTemplatePreviewDialog
+                open={emailPreviewOpen}
+                onOpenChange={setEmailPreviewOpen}
+                programId={selectedProgram}
+                classId={emailPreviewClass?.id ?? null}
+                className={emailPreviewClass?.name ?? null}
+              />
               <Dialog open={classImportOpen} onOpenChange={setClassImportOpen}>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
