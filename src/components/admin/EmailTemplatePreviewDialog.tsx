@@ -3,16 +3,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2, RefreshCw, AlertTriangle, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 type TemplateKey = 'welcome' | '24h' | '1h';
+
+interface Recipient {
+  email: string;
+  name?: string | null;
+}
 
 interface PreviewData {
   subject?: string;
   html?: string;
   recipients_count?: number;
-  sample_recipients?: { email: string; name?: string | null }[];
+  sample_recipients?: Recipient[];
+  recipients?: Recipient[];
   session?: { date?: string; start_time?: string | null; end_time?: string | null };
 }
 
