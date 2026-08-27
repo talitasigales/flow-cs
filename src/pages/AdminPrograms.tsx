@@ -1166,11 +1166,11 @@ export default function AdminPrograms() {
 
   const renderClassDialog = () => (
     <Dialog open={classDialogOpen} onOpenChange={(v) => { setClassDialogOpen(v); if (!v) setEditingClass(null); }}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>{editingClass ? 'Editar Turma' : 'Criar Turma'}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 overflow-y-auto flex-1 -mx-6 px-6">
           <div className="space-y-2">
             <Label>Nome da Turma</Label>
             <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="Ex: Turma 10-12 Mar/2026" />
@@ -1345,7 +1345,7 @@ export default function AdminPrograms() {
             </div>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="border-t border-border pt-4">
           <Button onClick={handleSaveClass} disabled={savingClass}>
             {savingClass ? 'Salvando...' : editingClass ? 'Atualizar Turma' : 'Criar Turma'}
           </Button>
