@@ -96,6 +96,9 @@ Deno.serve(async (req) => {
         }),
         recipients_count: sample.length,
         sample_recipients: sample.slice(0, 5).map((p: any) => ({ email: p.email, name: p.full_name })),
+        recipients: sample
+          .filter((p: any) => !!p.email)
+          .map((p: any) => ({ email: String(p.email).toLowerCase(), name: p.full_name })),
       });
     }
 

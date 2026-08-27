@@ -246,6 +246,7 @@ Deno.serve(async (req) => {
           html: buildReminderHtml(info, type, recipients[0]?.name || 'Nome do Aluno'),
           recipients_count: recipients.length,
           sample_recipients: recipients.slice(0, 5),
+          recipients,
           session: { date: upcoming.session_date, start_time: upcoming.start_time, end_time: upcoming.end_time },
         });
       }
@@ -260,6 +261,30 @@ Deno.serve(async (req) => {
           payload.test_name || null,
         );
         return json({ test: true, ...res }, res.ok ? 200 : 502);
+      }
+
+      // ---- Envio individual/seleção de alunos (ignora dedup de turma) ----
+      if (Array.isArray(payload.emails) && payload.emails.length) {
+        const filter = payload.emails.map((e: string) => String(e).trim().toLowerCase());
+        const all = await collectRecipients(supabase, payload.class_id);
+        const targets = all.filter((r) => filter.includes(r.email));
+        const info = buildInfo(upcoming);
+        const results: any[] = [];
+        for (const r of targets) {
+          const logId = await startDeliveryLog(supabase, {
+            class_id: payload.class_id,
+            program_id: upcoming.cls.program_id ?? null,
+            recipient_name: r.name,
+            recipient_email: r.email,
+            channel: 'email',
+            message_type: type === '24h' ? 'reminder_24h' : 'reminder_1h',
+            session_date: upcoming.session_date,
+          });
+          const res = await sendReminderEmail(resendApiKey, info, type, r.email, r.name);
+          await finishDeliveryLog(supabase, logId, !!res.ok, (res as any).body ?? null);
+          results.push({ email: r.email, ok: !!res.ok });
+        }
+        return json({ individual: true, sent: results.filter((r) => r.ok).length, total: results.length, results });
       }
 
       const result = await dispatch(supabase, resendApiKey, upcoming, type);
