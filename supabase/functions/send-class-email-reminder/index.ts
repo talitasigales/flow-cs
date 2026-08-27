@@ -3,6 +3,8 @@ import {
   ReminderClassInfo,
   ReminderType,
   sendReminderEmail,
+  buildReminderSubject,
+  buildReminderHtml,
 } from '../_shared/class-reminder-email.ts';
 import { startDeliveryLog, finishDeliveryLog } from '../_shared/delivery-log.ts';
 
@@ -235,7 +237,21 @@ Deno.serve(async (req) => {
           .sort((a, b) => sessionStartUtc(a.session_date, a.start_time) - sessionStartUtc(b.session_date, b.start_time))[0] ||
         sessions[0];
 
+      if (payload.preview) {
+        const info = buildInfo(upcoming);
+        const recipients = await collectRecipients(supabase, payload.class_id);
+        return json({
+          preview: true,
+          subject: buildReminderSubject(info, type),
+          html: buildReminderHtml(info, type, recipients[0]?.name || 'Nome do Aluno'),
+          recipients_count: recipients.length,
+          sample_recipients: recipients.slice(0, 5),
+          session: { date: upcoming.session_date, start_time: upcoming.start_time, end_time: upcoming.end_time },
+        });
+      }
+
       if (payload.test_email) {
+
         const res = await sendReminderEmail(
           resendApiKey,
           buildInfo(upcoming),
