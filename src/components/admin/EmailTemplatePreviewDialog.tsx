@@ -68,7 +68,39 @@ export function EmailTemplatePreviewDialog({ open, onOpenChange, programId, clas
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, tab, classId]);
 
+  useEffect(() => {
+    setSelected([]);
+  }, [tab, classId, open]);
+
   const current = classId ? cache[`${classId}:${tab}`] : undefined;
+  const recipients: Recipient[] = current?.recipients ?? current?.sample_recipients ?? [];
+
+  const toggle = (email: string) =>
+    setSelected((prev) => (prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]));
+
+  const sendTo = async (emails: string[]) => {
+    if (!programId || !classId || !emails.length) return;
+    setSending(true);
+    try {
+      const { data, error: fnError } =
+        tab === 'welcome'
+          ? await supabase.functions.invoke('send-enrollment-welcome', {
+              body: { program_id: programId, class_id: classId, emails },
+            })
+          : await supabase.functions.invoke('send-class-email-reminder', {
+              body: { class_id: classId, reminder_type: tab, emails },
+            });
+      if (fnError) throw fnError;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const sent = (data as any)?.sent ?? emails.length;
+      toast({ title: 'Envio concluído', description: `${sent} e-mail(s) enviado(s) com sucesso.` });
+      setSelected([]);
+    } catch (err: any) {
+      toast({ title: 'Falha no envio', description: err.message || 'Tente novamente.', variant: 'destructive' });
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
