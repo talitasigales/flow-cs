@@ -3,6 +3,8 @@ import {
   ReminderClassInfo,
   ReminderType,
   sendReminderEmail,
+  buildReminderSubject,
+  buildReminderHtml,
 } from '../_shared/class-reminder-email.ts';
 import { startDeliveryLog, finishDeliveryLog } from '../_shared/delivery-log.ts';
 

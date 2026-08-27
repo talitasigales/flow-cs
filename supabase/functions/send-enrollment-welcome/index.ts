@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { sendWelcomeEmail, type WelcomeClassInfo } from '../_shared/enrollment-welcome-email.ts';
+import { sendWelcomeEmail, buildWelcomeSubject, buildWelcomeHtml, type WelcomeClassInfo } from '../_shared/enrollment-welcome-email.ts';
 import { startDeliveryLog, finishDeliveryLog } from '../_shared/delivery-log.ts';
 
 const corsHeaders = {
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       if (!roleData) return json({ error: 'Acesso negado' }, 403);
     }
 
-    const { program_id, class_id, emails, test_email } = await req.json();
+    const { program_id, class_id, emails, test_email, preview } = await req.json();
     if (!program_id) return json({ error: 'program_id é obrigatório' }, 400);
 
     const { data: program } = await supabase.from('programs').select('name, description').eq('id', program_id).maybeSingle();
@@ -73,6 +73,31 @@ Deno.serve(async (req) => {
       videoConferenceUrl: klass?.video_conference_url ?? null,
       specialist: klass?.specialist ?? null,
     };
+
+    if (preview) {
+      let sample: any[] = [];
+      if (class_id && class_id !== 'none') {
+        const { data: enrolls } = await supabase
+          .from('program_enrollments').select('user_id').eq('program_id', program_id).eq('class_id', class_id);
+        const ids = (enrolls || []).map((e: any) => e.user_id);
+        if (ids.length) {
+          const { data: profs } = await supabase.from('profiles').select('full_name, email').in('user_id', ids);
+          sample = profs || [];
+        }
+      }
+      const first = sample[0];
+      return json({
+        preview: true,
+        subject: buildWelcomeSubject(info),
+        html: buildWelcomeHtml(info, {
+          email: first?.email || 'aluno@exemplo.com',
+          name: first?.full_name || 'Nome do Aluno',
+          tempPassword: (first?.email || 'aluno@exemplo.com').split('@')[0],
+        }),
+        recipients_count: sample.length,
+        sample_recipients: sample.slice(0, 5).map((p: any) => ({ email: p.email, name: p.full_name })),
+      });
+    }
 
     if (test_email) {
       const res = await sendWelcomeEmail(resendApiKey, info, {
