@@ -1345,7 +1345,7 @@ export default function AdminPrograms() {
             </div>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="border-t border-border pt-4">
           <Button onClick={handleSaveClass} disabled={savingClass}>
             {savingClass ? 'Salvando...' : editingClass ? 'Atualizar Turma' : 'Criar Turma'}
           </Button>
