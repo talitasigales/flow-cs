@@ -158,17 +158,60 @@ export function EmailTemplatePreviewDialog({ open, onOpenChange, programId, clas
                       </Badge>
                     )}
                   </div>
-                  {!!current.sample_recipients?.length && (
-                    <p className="text-xs text-muted-foreground">
-                      Ex.: {current.sample_recipients.map((r) => r.email).join(', ')}
-                    </p>
-                  )}
-                  <div className="pt-1">
+                  <div className="pt-1 flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => load(tab, true)}>
                       <RefreshCw className="w-3 h-3 mr-1" /> Atualizar
                     </Button>
+                    <Button
+                      size="sm"
+                      disabled={sending || !selected.length}
+                      onClick={() => sendTo(selected)}
+                    >
+                      {sending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Send className="w-3 h-3 mr-1" />}
+                      Enviar aos selecionados ({selected.length})
+                    </Button>
                   </div>
                 </div>
+
+                {!!recipients.length && (
+                  <div className="rounded-md border">
+                    <div className="flex items-center justify-between gap-2 border-b px-3 py-2 text-sm">
+                      <span className="font-medium">Alunos da turma</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setSelected(selected.length === recipients.length ? [] : recipients.map((r) => r.email))
+                        }
+                      >
+                        {selected.length === recipients.length ? 'Limpar seleção' : 'Selecionar todos'}
+                      </Button>
+                    </div>
+                    <div className="max-h-56 overflow-y-auto divide-y">
+                      {recipients.map((r) => (
+                        <div key={r.email} className="flex items-center gap-3 px-3 py-2 text-sm">
+                          <Checkbox
+                            checked={selected.includes(r.email)}
+                            onCheckedChange={() => toggle(r.email)}
+                            aria-label={`Selecionar ${r.email}`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">{r.name || r.email}</p>
+                            {r.name && <p className="truncate text-xs text-muted-foreground">{r.email}</p>}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={sending}
+                            onClick={() => sendTo([r.email])}
+                          >
+                            <Send className="w-3 h-3 mr-1" /> Enviar
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <iframe
                   title="Pré-visualização do e-mail"
