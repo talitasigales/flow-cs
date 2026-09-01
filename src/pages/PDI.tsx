@@ -7,7 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Search, BookOpen, Target, TrendingUp, CheckCircle2, AlertCircle, FileDown } from 'lucide-react';
+import { ArrowLeft, Plus, Search, BookOpen, Target, TrendingUp, CheckCircle2, AlertCircle, FileDown, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { PDA_AXES } from '@/data/pdiTemplates';
 import { exportPDIs } from '@/utils/exportUtils';
@@ -33,6 +43,8 @@ export default function PDI() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [axisFilter, setAxisFilter] = useState('all');
+  const [pdiToDelete, setPdiToDelete] = useState<PDI | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -56,6 +68,23 @@ export default function PDI() {
       toast.error('Erro ao carregar PDIs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pdiToDelete) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('pdis').delete().eq('id', pdiToDelete.id);
+      if (error) throw error;
+      setPdis((prev) => prev.filter((p) => p.id !== pdiToDelete.id));
+      toast.success('PDI excluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao excluir PDI:', error);
+      toast.error('Erro ao excluir PDI');
+    } finally {
+      setDeleting(false);
+      setPdiToDelete(null);
     }
   };
 
@@ -273,10 +302,23 @@ export default function PDI() {
                       <div>
                         <h3 className="font-semibold text-lg">{pdi.employee_name}</h3>
                       </div>
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: axisInfo?.color }}
-                      />
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: axisInfo?.color }}
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Excluir PDI"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPdiToDelete(pdi);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -313,6 +355,23 @@ export default function PDI() {
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!pdiToDelete} onOpenChange={(open) => !open && setPdiToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir PDI</AlertDialogTitle>
+            <AlertDialogDescription>
+              O plano de {pdiToDelete?.employee_name} será apagado definitivamente, junto com ações, check-ins e fechamento. Não é possível desfazer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

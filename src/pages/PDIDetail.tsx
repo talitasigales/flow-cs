@@ -5,7 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, FileCheck, Share2 } from 'lucide-react';
+import { ArrowLeft, Plus, FileCheck, Share2, Pencil, Trash2 } from 'lucide-react';
+import PDIEditDialog from '@/components/pdi/PDIEditDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import PDIStageTips from '@/components/pdi/PDIStageTips';
 import PDIShareDialog from '@/components/pdi/PDIShareDialog';
 import { toast } from 'sonner';
@@ -30,6 +41,9 @@ export default function PDIDetail() {
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [closureDialogOpen, setClosureDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user && pdiId) {
@@ -181,6 +195,22 @@ export default function PDIDetail() {
     return labels[status] || status;
   };
 
+  const handleDeletePDI = async () => {
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('pdis').delete().eq('id', pdi.id);
+      if (error) throw error;
+      toast.success('PDI excluído com sucesso!');
+      navigate('/pdi');
+    } catch (error) {
+      console.error('Erro ao excluir PDI:', error);
+      toast.error('Erro ao excluir PDI');
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-card border-b">
@@ -195,9 +225,17 @@ export default function PDIDetail() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
               <Button variant="outline" onClick={() => setShareDialogOpen(true)}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Compartilhar
+              </Button>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
               </Button>
               {!closure && (
                 <>
@@ -304,11 +342,19 @@ export default function PDIDetail() {
           </TabsContent>
 
           <TabsContent value="assessment">
-            <PDIBehaviorDisplay
-              behaviors={behaviors}
-              reflectiveAnswers={pdi.reflective_answers}
-              pdaAxis={pdi.pda_axis}
-            />
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar autoavaliação
+                </Button>
+              </div>
+              <PDIBehaviorDisplay
+                behaviors={behaviors}
+                reflectiveAnswers={pdi.reflective_answers}
+                pdaAxis={pdi.pda_axis}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="actions">
@@ -384,6 +430,30 @@ export default function PDIDetail() {
         pdiId={pdiId!}
         onSuccess={fetchPDIData}
       />
+
+      <PDIEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        pdi={pdi}
+        onSuccess={fetchPDIData}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir PDI</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso apagará definitivamente este plano, incluindo ações, check-ins, fechamento e links compartilhados. Não é possível desfazer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePDI} disabled={deleting}>
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PDIShareDialog
         open={shareDialogOpen}
