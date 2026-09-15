@@ -42,8 +42,187 @@ function loadImageWithDimensions(url: string): Promise<{ dataUrl: string; width:
   });
 }
 
-function loadImageAsDataUrl(url: string): Promise<string> {
-  return loadImageWithDimensions(url).then((image) => image.dataUrl);
+// Near-black background of the certificate template, used to decide whether a
+// signature's ink is light enough to be readable once it is drawn on top of it.
+const CERTIFICATE_BACKGROUND = { r: 38, g: 21, b: 32 };
+// Below this contrast ratio against the background the stroke gets lightened.
+const SIGNATURE_MIN_CONTRAST = 4.5;
+// Anything lighter than this counts as paper, not ink, on opaque scans.
+const SIGNATURE_PAPER_LUMINANCE = 0.88;
+// A pixel belongs to the stroke from this coverage upwards.
+const SIGNATURE_INK_COVERAGE = 0.1;
+// Only fully inked pixels are sampled when measuring the stroke colour.
+const SIGNATURE_SOLID_COVERAGE = 0.6;
+const SIGNATURE_RENDER_DPI = 400;
+
+function srgbToLinear(channel: number): number {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+function relativeLuminance(r: number, g: number, b: number): number {
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(lumA: number, lumB: number): number {
+  const lighter = Math.max(lumA, lumB);
+  const darker = Math.min(lumA, lumB);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function loadImageElement(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+/**
+ * Uploaded signatures are a stroke sitting on a large, mostly empty canvas (the
+ * two we ship are 2000x2000 PNGs whose ink covers only 27% and 60% of the
+ * height), and the ink is often too dark to read against the near-black
+ * template. Drawing such a file as-is wastes most of the box on empty margin
+ * and leaves a stroke a few millimetres tall.
+ *
+ * This crops the image down to the ink, knocks out a white paper background when
+ * the scan has no alpha channel, and blends the stroke towards white until it
+ * clears SIGNATURE_MIN_CONTRAST, so the caller can scale the real signature to
+ * fill its box at its true aspect ratio.
+ */
+async function prepareSignature(
+  url: string,
+): Promise<{ canvas: HTMLCanvasElement; width: number; height: number }> {
+  const img = await loadImageElement(url);
+  const source = document.createElement('canvas');
+  source.width = img.naturalWidth;
+  source.height = img.naturalHeight;
+  const sourceCtx = source.getContext('2d');
+  if (!sourceCtx) throw new Error('No canvas context');
+  sourceCtx.drawImage(img, 0, 0);
+
+  const { data } = sourceCtx.getImageData(0, 0, source.width, source.height);
+  const pixelCount = source.width * source.height;
+
+  let hasAlpha = false;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] < 250) {
+      hasAlpha = true;
+      break;
+    }
+  }
+
+  const coverageOf = (index: number): number => {
+    if (hasAlpha) return data[index + 3] / 255;
+    const lum = relativeLuminance(data[index], data[index + 1], data[index + 2]);
+    return Math.min(1, Math.max(0, (SIGNATURE_PAPER_LUMINANCE - lum) / SIGNATURE_PAPER_LUMINANCE));
+  };
+
+  let minX = source.width;
+  let minY = source.height;
+  let maxX = -1;
+  let maxY = -1;
+  let solidPixels = 0;
+  let sumR = 0;
+  let sumG = 0;
+  let sumB = 0;
+
+  for (let pixel = 0; pixel < pixelCount; pixel++) {
+    const index = pixel * 4;
+    const coverage = coverageOf(index);
+    if (coverage <= SIGNATURE_INK_COVERAGE) continue;
+    const x = pixel % source.width;
+    const y = (pixel - x) / source.width;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (coverage >= SIGNATURE_SOLID_COVERAGE) {
+      solidPixels++;
+      sumR += data[index];
+      sumG += data[index + 1];
+      sumB += data[index + 2];
+    }
+  }
+
+  if (maxX < 0 || maxY < 0) throw new Error('Signature image has no visible ink');
+
+  // Keep a hair of margin so antialiased edges are not clipped.
+  minX = Math.max(0, minX - 2);
+  minY = Math.max(0, minY - 2);
+  maxX = Math.min(source.width - 1, maxX + 2);
+  maxY = Math.min(source.height - 1, maxY + 2);
+
+  const backgroundLuminance = relativeLuminance(
+    CERTIFICATE_BACKGROUND.r,
+    CERTIFICATE_BACKGROUND.g,
+    CERTIFICATE_BACKGROUND.b,
+  );
+
+  // How far the stroke has to be blended towards white to become readable.
+  let lighten = 0;
+  if (solidPixels > 0) {
+    const inkR = sumR / solidPixels;
+    const inkG = sumG / solidPixels;
+    const inkB = sumB / solidPixels;
+    while (lighten < 1) {
+      const mixed = relativeLuminance(
+        inkR + (255 - inkR) * lighten,
+        inkG + (255 - inkG) * lighten,
+        inkB + (255 - inkB) * lighten,
+      );
+      if (contrastRatio(mixed, backgroundLuminance) >= SIGNATURE_MIN_CONTRAST) break;
+      lighten = Math.min(1, lighten + 0.02);
+    }
+  }
+
+  const width = maxX - minX + 1;
+  const height = maxY - minY + 1;
+  const output = document.createElement('canvas');
+  output.width = width;
+  output.height = height;
+  const outputCtx = output.getContext('2d');
+  if (!outputCtx) throw new Error('No canvas context');
+  const cropped = outputCtx.createImageData(width, height);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const sourceIndex = ((y + minY) * source.width + (x + minX)) * 4;
+      const targetIndex = (y * width + x) * 4;
+      const coverage = coverageOf(sourceIndex);
+      const r = data[sourceIndex];
+      const g = data[sourceIndex + 1];
+      const b = data[sourceIndex + 2];
+      cropped.data[targetIndex] = r + (255 - r) * lighten;
+      cropped.data[targetIndex + 1] = g + (255 - g) * lighten;
+      cropped.data[targetIndex + 2] = b + (255 - b) * lighten;
+      cropped.data[targetIndex + 3] = Math.round(coverage * 255);
+    }
+  }
+
+  outputCtx.putImageData(cropped, 0, 0);
+  return { canvas: output, width, height };
+}
+
+/**
+ * Downsamples the prepared signature to the resolution it is actually printed
+ * at, so a 2000px source does not bloat the PDF.
+ */
+function signatureDataUrl(canvas: HTMLCanvasElement, widthMm: number): string {
+  const targetWidth = Math.max(1, Math.round((widthMm / 25.4) * SIGNATURE_RENDER_DPI));
+  if (canvas.width <= targetWidth) return canvas.toDataURL('image/png');
+
+  const scaled = document.createElement('canvas');
+  scaled.width = targetWidth;
+  scaled.height = Math.max(1, Math.round((canvas.height / canvas.width) * targetWidth));
+  const ctx = scaled.getContext('2d');
+  if (!ctx) return canvas.toDataURL('image/png');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(canvas, 0, 0, scaled.width, scaled.height);
+  return scaled.toDataURL('image/png');
 }
 
 function getCertificateDescription(programName: string, courseHours: number): string {
@@ -169,10 +348,25 @@ async function buildCertificateDoc(data: {
   // Specialist: show signature image instead of name text
   if (data.directorSignatureUrl) {
     try {
-      const signatureDataUrl = await loadImageAsDataUrl(data.directorSignatureUrl);
-      const sigW = rw(0.1875);
-      const sigH = sigW * 0.35;
-      doc.addImage(signatureDataUrl, 'PNG', specialistCenterX - sigW / 2, signatureLineY - sigH + 1, sigW, sigH);
+      const signature = await prepareSignature(data.directorSignatureUrl);
+      // Fit the cropped stroke inside the box at its own aspect ratio, so wide
+      // signatures stay wide and tall ones stay tall instead of being squashed.
+      const maxWidth = rw(0.19);
+      const maxHeight = rh(0.095);
+      let sigW = maxWidth;
+      let sigH = (signature.height / signature.width) * sigW;
+      if (sigH > maxHeight) {
+        sigH = maxHeight;
+        sigW = (signature.width / signature.height) * sigH;
+      }
+      doc.addImage(
+        signatureDataUrl(signature.canvas, sigW),
+        'PNG',
+        specialistCenterX - sigW / 2,
+        signatureLineY - sigH - 0.5,
+        sigW,
+        sigH,
+      );
     } catch (e) {
       console.warn('Could not load signature image:', e);
       doc.text(data.directorName, specialistCenterX, signatureLineY - 3, { align: 'center' });
